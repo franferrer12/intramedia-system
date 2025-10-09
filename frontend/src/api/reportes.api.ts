@@ -77,4 +77,58 @@ export const reportesApi = {
     const filename = `movimientos_stock_${fechaInicio}_${fechaFin}.xlsx`;
     downloadFile(response.data, filename);
   },
+
+  // ========== PDF EXPORTS ==========
+
+  // Export nominas to PDF
+  exportNominasPdf: async (mes: number, anio: number): Promise<void> => {
+    const response = await axiosInstance.get(
+      '/reportes/nominas/pdf',
+      {
+        params: { mes, anio },
+        responseType: 'blob',
+      }
+    );
+    const filename = `nominas_${mes}_${anio}.pdf`;
+    downloadFile(response.data, filename);
+  },
+
+  // Export eventos to PDF
+  exportEventosPdf: async (fechaInicio: string, fechaFin: string): Promise<void> => {
+    const response = await axiosInstance.get(
+      '/reportes/eventos/pdf',
+      {
+        params: { fechaInicio, fechaFin },
+        responseType: 'blob',
+      }
+    );
+    const filename = `eventos_${fechaInicio}_${fechaFin}.pdf`;
+    downloadFile(response.data, filename);
+  },
+
+  // Export profit & loss to PDF
+  exportProfitLossPdf: async (fechaInicio: string, fechaFin: string): Promise<void> => {
+    const response = await axiosInstance.get(
+      '/reportes/profit-loss/pdf',
+      {
+        params: { fechaInicio, fechaFin },
+        responseType: 'blob',
+      }
+    );
+    const filename = `profit_loss_${fechaInicio}_${fechaFin}.pdf`;
+    downloadFile(response.data, filename);
+  },
+
+  // Export transacciones to PDF
+  exportTransaccionesPdf: async (fechaInicio: string, fechaFin: string): Promise<void> => {
+    const response = await axiosInstance.get(
+      '/reportes/transacciones/pdf',
+      {
+        params: { fechaInicio, fechaFin },
+        responseType: 'blob',
+      }
+    );
+    const filename = `transacciones_${fechaInicio}_${fechaFin}.pdf`;
+    downloadFile(response.data, filename);
+  },
 };

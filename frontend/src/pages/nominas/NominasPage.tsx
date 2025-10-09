@@ -202,6 +202,20 @@ export const NominasPage = () => {
     }
   };
 
+  const handleExportPdf = async () => {
+    try {
+      const currentDate = new Date();
+      const mes = currentDate.getMonth() + 1;
+      const anio = currentDate.getFullYear();
+
+      await reportesApi.exportNominasPdf(mes, anio);
+      notify.success('PDF exportado correctamente');
+    } catch (error) {
+      console.error('Error al exportar PDF:', error);
+      handleApiError(error, 'Error al exportar el PDF');
+    }
+  };
+
   const calcularTotales = () => {
     const totalNominas = filteredNominas.length;
     const nominasPendientes = filteredNominas.filter(n => n.estado === 'PENDIENTE').length;
@@ -259,7 +273,11 @@ export const NominasPage = () => {
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleExportExcel} className="flex items-center">
             <FileDown className="h-4 w-4 mr-2" />
-            Exportar Excel
+            Excel
+          </Button>
+          <Button variant="outline" onClick={handleExportPdf} className="flex items-center">
+            <FileText className="h-4 w-4 mr-2" />
+            PDF
           </Button>
           <Button variant="secondary" onClick={handleGenerarMasivas} className="flex items-center">
             <FileText className="h-4 w-4 mr-2" />

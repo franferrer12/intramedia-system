@@ -1,7 +1,9 @@
 package com.club.management.controller;
 
 import com.club.management.service.reports.ExcelExportService;
+import com.club.management.service.reports.PdfReportService;
 import lombok.RequiredArgsConstructor;
+import net.sf.jasperreports.engine.JRException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -19,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 public class ReportController {
 
     private final ExcelExportService excelExportService;
+    private final PdfReportService pdfReportService;
 
     @GetMapping("/eventos/excel")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE', 'ROLE_ENCARGADO', 'ROLE_LECTURA')")
@@ -111,6 +114,86 @@ public class ReportController {
                     .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                     .body(excelData);
         } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // ========== ENDPOINTS PARA EXPORTACIÓN PDF ==========
+
+    @GetMapping("/nominas/pdf")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE', 'ROLE_RRHH')")
+    public ResponseEntity<byte[]> exportNominasPdf(
+            @RequestParam Integer mes,
+            @RequestParam Integer anio) {
+        try {
+            byte[] pdfData = pdfReportService.generateNominasPdf(mes, anio);
+            String filename = String.format("nominas_%d_%d.pdf", mes, anio);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfData);
+        } catch (JRException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/eventos/pdf")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE', 'ROLE_ENCARGADO', 'ROLE_LECTURA')")
+    public ResponseEntity<byte[]> exportEventosPdf(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
+        try {
+            byte[] pdfData = pdfReportService.generateEventosPdf(fechaInicio, fechaFin);
+            String filename = String.format("eventos_%s_%s.pdf",
+                    fechaInicio.format(DateTimeFormatter.ISO_DATE),
+                    fechaFin.format(DateTimeFormatter.ISO_DATE));
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfData);
+        } catch (JRException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/profit-loss/pdf")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE', 'ROLE_LECTURA')")
+    public ResponseEntity<byte[]> exportProfitLossPdf(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
+        try {
+            byte[] pdfData = pdfReportService.generateProfitLossPdf(fechaInicio, fechaFin);
+            String filename = String.format("profit_loss_%s_%s.pdf",
+                    fechaInicio.format(DateTimeFormatter.ISO_DATE),
+                    fechaFin.format(DateTimeFormatter.ISO_DATE));
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfData);
+        } catch (JRException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/transacciones/pdf")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE', 'ROLE_LECTURA')")
+    public ResponseEntity<byte[]> exportTransaccionesPdf(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
+        try {
+            byte[] pdfData = pdfReportService.generateTransaccionesPdf(fechaInicio, fechaFin);
+            String filename = String.format("transacciones_%s_%s.pdf",
+                    fechaInicio.format(DateTimeFormatter.ISO_DATE),
+                    fechaFin.format(DateTimeFormatter.ISO_DATE));
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfData);
+        } catch (JRException e) {
             return ResponseEntity.internalServerError().build();
         }
     }

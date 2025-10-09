@@ -5,7 +5,7 @@ import { EventoModal } from '../../components/eventos/EventoModal';
 import { eventosApi } from '../../api/eventos.api';
 import { reportesApi } from '../../api/reportes.api';
 import { Evento, EventoFormData, EstadoEvento } from '../../types';
-import { Plus, Calendar, Users, Edit2, Trash2, DollarSign, FileDown } from 'lucide-react';
+import { Plus, Calendar, Users, Edit2, Trash2, DollarSign, FileDown, FileText } from 'lucide-react';
 import { notify, handleApiError } from '../../utils/notifications';
 
 export const EventosPage = () => {
@@ -115,6 +115,19 @@ export const EventosPage = () => {
     }
   };
 
+  const handleExportPdf = async () => {
+    try {
+      const fechaFin = new Date().toISOString().split('T')[0];
+      const fechaInicio = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+      await reportesApi.exportEventosPdf(fechaInicio, fechaFin);
+      notify.success('PDF exportado correctamente');
+    } catch (error) {
+      console.error('Error al exportar PDF:', error);
+      handleApiError(error, 'Error al exportar el PDF');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -133,7 +146,11 @@ export const EventosPage = () => {
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleExportExcel} className="flex items-center">
             <FileDown className="h-4 w-4 mr-2" />
-            Exportar Excel
+            Excel
+          </Button>
+          <Button variant="outline" onClick={handleExportPdf} className="flex items-center">
+            <FileText className="h-4 w-4 mr-2" />
+            PDF
           </Button>
           <Button variant="primary" onClick={handleCreate} className="flex items-center">
             <Plus className="h-4 w-4 mr-2" />

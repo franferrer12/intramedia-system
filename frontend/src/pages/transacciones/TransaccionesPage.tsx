@@ -5,7 +5,7 @@ import { TransaccionModal } from '../../components/transacciones/TransaccionModa
 import { transaccionesApi } from '../../api/transacciones.api';
 import { reportesApi } from '../../api/reportes.api';
 import { Transaccion, TransaccionFormData, TipoTransaccion } from '../../types';
-import { Plus, TrendingUp, TrendingDown, DollarSign, Edit2, Trash2, Calendar, Tag, FileDown } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, DollarSign, Edit2, Trash2, Calendar, Tag, FileDown, FileText } from 'lucide-react';
 import { notify, handleApiError } from '../../utils/notifications';
 
 export const TransaccionesPage = () => {
@@ -139,7 +139,20 @@ export const TransaccionesPage = () => {
     }
   };
 
-  const { totalIngresos, totalGastos, balance } = calcularTotales();
+  const handleExportPdf = async () => {
+    try {
+      const fechaFin = new Date().toISOString().split('T')[0];
+      const fechaInicio = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+      await reportesApi.exportTransaccionesPdf(fechaInicio, fechaFin);
+      notify.success('PDF exportado correctamente');
+    } catch (error) {
+      console.error('Error al exportar PDF:', error);
+      handleApiError(error, 'Error al exportar el PDF');
+    }
+  };
+
+  const { totalIngresos, totalGastos, balance} = calcularTotales();
 
   if (isLoading) {
     return (
@@ -159,7 +172,11 @@ export const TransaccionesPage = () => {
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleExportExcel} className="flex items-center">
             <FileDown className="h-4 w-4 mr-2" />
-            Exportar Excel
+            Excel
+          </Button>
+          <Button variant="outline" onClick={handleExportPdf} className="flex items-center">
+            <FileText className="h-4 w-4 mr-2" />
+            PDF
           </Button>
           <Button variant="primary" onClick={handleCreate} className="flex items-center">
             <Plus className="h-4 w-4 mr-2" />
