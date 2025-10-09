@@ -45,7 +45,7 @@ export interface ProductoCategoriaStats {
 
 export const inventoryStatsApi = {
   getStats: async (): Promise<InventoryStats> => {
-    const { data } = await axiosInstance.get('/inventory/stats');
+    const { data } = await axiosInstance.get('/productos/estadisticas');
     return data;
   },
 };
