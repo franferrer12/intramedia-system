@@ -1,8 +1,10 @@
 package com.club.management.controller;
 
 import com.club.management.dto.request.ProductoFormData;
+import com.club.management.dto.response.InventoryStatsDTO;
 import com.club.management.dto.response.ProductoDTO;
 import com.club.management.entity.Producto.TipoVenta;
+import com.club.management.service.InventoryStatsService;
 import com.club.management.service.ProductoCalculationService;
 import com.club.management.service.ProductoService;
 import jakarta.validation.Valid;
@@ -23,6 +25,7 @@ public class ProductoController {
 
     private final ProductoService productoService;
     private final ProductoCalculationService calculationService;
+    private final InventoryStatsService inventoryStatsService;
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE', 'ROLE_ENCARGADO', 'ROLE_LECTURA')")
@@ -157,5 +160,17 @@ public class ProductoController {
                 )
         );
         return ResponseEntity.ok(tipos);
+    }
+
+    // ========== ENDPOINTS PARA DASHBOARD DE INVENTARIO ==========
+
+    /**
+     * Obtener estadísticas completas del inventario
+     * GET /api/productos/estadisticas
+     */
+    @GetMapping("/estadisticas")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE', 'ROLE_ENCARGADO', 'ROLE_LECTURA')")
+    public ResponseEntity<InventoryStatsDTO> getEstadisticasInventario() {
+        return ResponseEntity.ok(inventoryStatsService.getInventoryStats());
     }
 }
