@@ -111,7 +111,7 @@ app:
   upload-dir: ${UPLOAD_DIR:/app/uploads}
   max-file-size: 10MB
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://yourdomain.com}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://club-management-frontend-production.up.railway.app}
 
 # Actuator (production)
 management:
