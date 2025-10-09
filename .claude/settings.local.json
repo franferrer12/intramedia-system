@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker:*)",
+      "Bash(docker-compose:*)",
+      "Bash(java:*)",
+      "Bash(mvn:*)",
+      "Bash(node:*)",
+      "Bash(npm:*)",
+      "Bash(psql:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(awk:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc2MDAzMjM1NywiZXhwIjoxNzYwMTE4NzU3fQ.--uyxXTrbFDWw-UaGZXm6YPkvSFO_3LM6YffGSQZJKzMME45TE_hngvo6l2SS31Wt-84J7Cg4gcyZerwgCaviw\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

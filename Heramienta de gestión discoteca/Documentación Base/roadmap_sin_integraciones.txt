@@ -1,0 +1,772 @@
+# Roadmap de Implementación - SIN Integraciones Externas
+
+## Visión General
+
+**Duración total:** 12 semanas (en lugar de 16)
+**MVP funcional:** 6 semanas
+**Sistema completo:** 12 semanas
+
+**SIMPLIFICADO:** Sin dependencias de Fourvenues, POS u otros sistemas externos.
+Todo es autónomo y bajo tu control total.
+
+---
+
+## FASE 0: Setup Inicial (Semana 1)
+
+### Objetivos
+- ✅ Repositorio GitHub configurado
+- ✅ Estructura base de proyecto
+- ✅ Docker configurado
+- ✅ CI/CD básico
+- ✅ Base de datos inicial
+
+### Tareas
+
+#### Día 1-2: Repositorio y Estructura
+**Con Claude Code:**
+```
+"Crea la estructura completa del proyecto Club Management:
+- Backend: Spring Boot 3.2+ con Maven
+- Frontend: React 18 + TypeScript con Vite
+- Configuración Docker Compose
+- GitHub Actions para CI/CD
+- Documentación inicial
+
+Incluye:
+- pom.xml con todas las dependencias
+- package.json con todas las dependencias
+- docker-compose.yml con postgres, backend, frontend
+- .github/workflows/ para CI
+- README.md básico"
+```
+
+**Entregables:**
+- `club-management/` con estructura completa
+- Dependencies instaladas
+- Docker Compose funcional
+
+#### Día 3-4: Base de Datos
+```
+"Crea las migraciones Flyway iniciales:
+
+V001__create_base_tables.sql:
+- Tablas: categorias_producto, proveedores
+
+V002__create_usuarios.sql:
+- Tabla usuarios con roles
+- Usuario admin por defecto (password hasheado)
+
+Genera también el código para:
+- Entity Usuario
+- UserDetailsService para Spring Security
+- JWT configuration básica"
+```
+
+**Entregables:**
+- Migraciones Flyway
+- Sistema de autenticación funcional
+
+#### Día 5: Testing y Documentación
+```
+"Configura el ambiente de testing:
+- TestContainers para PostgreSQL
+- Test base classes
+- Configuración de cobertura (JaCoCo)
+- Test ejemplo que pase
+
+Frontend:
+- Vitest configurado
+- React Testing Library
+- Test ejemplo"
+```
+
+**Entregables:**
+- Tests passing
+- Coverage reports configurados
+
+---
+
+## FASE 1: MVP Core (Semanas 2-6)
+
+### Sprint 1: Autenticación + Eventos (Semanas 2-3)
+
+#### Semana 2: Backend
+
+**Lunes-Martes: Autenticación**
+```
+"Implementa sistema completo de autenticación:
+
+Backend:
+- LoginRequest, LoginResponse DTOs
+- AuthenticationService con JWT
+- AuthenticationController (/api/auth/login, /api/auth/refresh, /api/auth/me)
+- Security configuration completa
+- Tests de autenticación"
+```
+
+**Miércoles-Viernes: Eventos**
+```
+"Implementa módulo completo de EVENTOS:
+
+Entidad Evento:
+- id, nombre, fecha, horaInicio, horaFin
+- tipo (enum), estado (enum)
+- aforoEsperado, aforoReal
+- artista, cacheArtista
+- ingresosEstimados, gastosEstimados
+- ingresosReales, gastosReales
+
+CRUD completo:
+- EventoService con todos los métodos
+- EventoController con endpoints REST
+- DTOs (CreateEventoRequest, UpdateEventoRequest, EventoDTO)
+- Migración V003__create_eventos.sql
+- Tests unitarios e integración"
+```
+
+**Entregables:**
+- ✅ Login funcional con JWT
+- ✅ CRUD eventos completo
+- ✅ Tests passing (>80% coverage)
+
+#### Semana 3: Frontend
+
+**Lunes-Martes: Autenticación**
+```
+"Implementa autenticación en frontend:
+
+Componentes:
+- LoginPage con formulario
+- Validación con Zod
+- authService.ts (login, refresh, getCurrentUser)
+- authStore con Zustand (user, token, login, logout)
+- ProtectedRoute component
+- Axios interceptor para JWT
+
+Layout:
+- Layout principal con navbar
+- Sidebar con navegación
+- User menu con logout"
+```
+
+**Miércoles-Viernes: Eventos**
+```
+"Implementa gestión de eventos en frontend:
+
+Páginas y componentes:
+- EventosPage con lista y filtros
+- EventoTable con TanStack Table
+- EventoForm (crear/editar) en modal
+- Calendario con react-big-calendar
+- eventoService.ts con CRUD
+- Types de evento
+
+Features:
+- Lista paginada con filtros (fecha, tipo, estado)
+- Formulario validado
+- Vista calendario mensual
+- Acciones: ver, editar, eliminar"
+```
+
+**Entregables:**
+- ✅ Login page funcional
+- ✅ Layout principal
+- ✅ Gestión eventos completa
+- ✅ Calendario visual
+
+---
+
+### Sprint 2: Gestión Financiera (Semanas 4-5)
+
+#### Semana 4: Backend Finanzas
+
+**Lunes-Martes: Proveedores y Gastos**
+```
+"Implementa módulos de Proveedores y Gastos:
+
+1. PROVEEDOR:
+   - Entity, Repository, Service, Controller
+   - CRUD básico
+   - Migración V004__create_proveedores.sql
+
+2. GASTO:
+   - Entity con relación a Evento y Proveedor
+   - Repository con queries custom:
+     * findByEventoId
+     * sumMontoByEvento
+     * findByCategoriaAndFechaBetween
+   - Service con lógica:
+     * crearGasto (actualiza gastos del evento)
+     * calcularGastosPorCategoria
+     * marcarComoPagado
+   - Controller con endpoints completos
+   - Migración V005__create_gastos.sql
+   - Tests completos"
+```
+
+**Miércoles-Jueves: Ingresos**
+```
+"Implementa módulo de INGRESOS:
+
+Entity Ingreso:
+- Campos: fuente, monto, metodoPago, fecha
+- cantidad_entradas, precio_unitario (para taquilla)
+- notas (para registro manual)
+
+Fuentes de ingreso:
+- TAQUILLA_ANTICIPADA (registrada manualmente)
+- TAQUILLA_FISICA (registrada manualmente)
+- BARRA (registrada manualmente del POS)
+- GUARDARROPA
+- OTROS
+
+Service:
+- registrarIngreso (actualiza ingresos del evento)
+- obtenerIngresosPorFuente
+- importarDesdeCSV (para importación manual)
+
+Controller con endpoints
+Migración V006__create_ingresos.sql
+Tests"
+```
+
+**Viernes: P&L Service**
+```
+"Implementa servicio de análisis financiero:
+
+FinanzasService:
+- calcularPyL(Long eventoId) → ProfitLossDTO
+  * Total ingresos por fuente
+  * Total gastos por categoría
+  * Beneficio neto
+  * Margen %
+  
+- obtenerResumenMensual(mes, año) → ResumenMensualDTO
+  * Eventos del mes
+  * Ingresos/gastos totales
+  * Promedio por evento
+  
+- compararEventos(Long eventoId1, Long eventoId2)
+
+Controller: FinanzasController
+Tests"
+```
+
+**Entregables:**
+- ✅ CRUD proveedores, gastos, ingresos
+- ✅ Cálculo P&L automático
+- ✅ Tests passing
+
+#### Semana 5: Frontend Finanzas
+
+**Lunes: Proveedores**
+```
+"Página de Proveedores:
+- ProveedoresPage con tabla
+- Formulario crear/editar
+- Filtros por categoría
+- proveedorService.ts"
+```
+
+**Martes-Miércoles: Gastos**
+```
+"Página completa de Gastos:
+- GastosPage con tabla avanzada
+- Columnas: concepto, categoría, monto, proveedor, fecha, pagado
+- Filtros: evento, categoría, rango fechas, pagado/pendiente
+- GastoForm con selects de evento y proveedor
+- Acción: marcar como pagado
+- gastoService.ts
+- Badge de estado (pagado/pendiente)"
+```
+
+**Jueves: Ingresos**
+```
+"Página de Ingresos:
+
+IMPORTANTE: Sin integración automática.
+
+Features:
+- IngresosPage con tabla
+- Columnas: fuente, monto, método pago, fecha, notas
+- Filtros por evento y fuente
+- Formulario REGISTRO MANUAL con:
+  * Selección de evento
+  * Selección de fuente (Taquilla Anticipada, Barra, etc.)
+  * Monto total
+  * Método de pago
+  * Notas (ej: 'Total del reporte Fourvenues')
+- ingresoService.ts
+
+Añade también:
+- Botón 'Importar CSV' para importación masiva opcional
+- Vista previa antes de importar"
+```
+
+**Viernes: Vista Financiera de Evento**
+```
+"Vista detallada financiera:
+- EventoFinanzasView component
+- Secciones:
+  * Resumen (ingresos, gastos, beneficio)
+  * Gráfico pie: distribución gastos
+  * Gráfico bar: ingresos por fuente
+  * Tabla de gastos del evento
+  * Tabla de ingresos del evento
+- Comparativa: estimado vs real
+- Botón 'Registrar Ingreso Rápido' 
+  (para añadir ingresos post-evento)"
+```
+
+**Entregables:**
+- ✅ Gestión completa de gastos e ingresos MANUAL
+- ✅ Vista P&L por evento
+- ✅ Dashboard financiero básico
+- ✅ Importador CSV opcional
+
+---
+
+### Sprint 3: Personal Básico (Semana 6)
+
+#### Lunes-Miércoles: Backend
+```
+"Implementa módulos de Empleados y Turnos:
+
+EMPLEADO:
+- Entity con campos completos
+- Repository con queries:
+  * findByActivo
+  * findByRolPrincipal
+- Service con CRUD
+- Controller
+- Migración V007__create_empleados.sql
+
+TURNO:
+- Entity con relación a Evento y Empleado
+- Repository:
+  * findByEventoId
+  * findByEmpleadoIdAndFechaBetween
+- Service:
+  * asignarTurno
+  * registrarHoras
+  * calcularMontosAutomaticamente
+- Controller
+- Migración V008__create_turnos.sql
+
+Tests completos"
+```
+
+#### Jueves-Viernes: Frontend
+```
+"Frontend de Personal:
+
+EmpleadosPage:
+- Tabla con empleados activos
+- Formulario completo (datos personales, contrato, salario)
+- Filtros por rol y estado
+- empleadoService.ts
+
+Asignación de Turnos:
+- En EventoDetailPage, sección de personal
+- TurnoForm: seleccionar empleado, rol, horario
+- Lista de turnos asignados
+- turnoService.ts
+
+CalendarioEmpleadoView (opcional):
+- Vista de turnos de un empleado
+- Calendario semanal/mensual"
+```
+
+**Entregables FASE 1:**
+- ✅ Sistema de autenticación completo
+- ✅ Gestión de eventos
+- ✅ Gestión financiera MANUAL (gastos/ingresos/P&L)
+- ✅ Gestión básica de personal
+- ✅ **Sistema MVP deployable y usable**
+
+---
+
+## FASE 2: Funcionalidades Avanzadas (Semanas 7-11)
+
+### Sprint 4: Nóminas (Semanas 7-8)
+
+#### Semana 7: Backend Nóminas
+
+```
+"Implementa sistema completo de nóminas:
+
+Entity Nomina:
+- Campos: empleadoId, mes, año
+- Devengos: salarioBase, horasExtra, comisiones, bonos
+- Deducciones: irpf, seguridadSocial, anticipos
+- totalNeto
+- estado, fechaPago, rutaPDF
+
+NominaService:
+- calcularNominaMes(empleadoId, mes, año):
+  * Obtener todos los turnos del empleado en el mes
+  * Sumar horas trabajadas y extra
+  * Calcular devengos
+  * Calcular deducciones (IRPF según tramos, SS según tipo contrato)
+  * Generar Nomina entity
+  
+- generarTodasNominasMes(mes, año):
+  * Calcular para todos los empleados activos
+  
+- generarPDF(nominaId):
+  * JasperReports con plantilla profesional
+  * Guardar en filesystem
+  
+- marcarComoPagada(nominaId, fechaPago)
+
+NominaController
+Migración V009__create_nominas.sql
+Tests"
+```
+
+**Plantilla JasperReports:**
+```
+"Crea plantilla JasperReports para nómina:
+
+Secciones:
+- Header: Logo, datos empresa
+- Datos empleado
+- Período (mes/año)
+- Devengos (tabla)
+- Deducciones (tabla)
+- Total líquido (destacado)
+- Firma
+
+Formato: A4, profesional"
+```
+
+#### Semana 8: Frontend Nóminas
+
+```
+"Frontend de Nóminas:
+
+NominasPage:
+- Filtros: mes, año, empleado, estado
+- Tabla con resumen
+- nominaService.ts
+
+GenerarNominasWizard:
+- Step 1: Seleccionar mes/año
+- Step 2: Preview de empleados y montos calculados
+- Step 3: Confirmar generación
+- Step 4: Ver resultados
+
+NominaDetailView:
+- Desglose completo
+- Botón descargar PDF
+- Botón marcar como pagada (si admin/gerente)
+
+EmpleadoDetailPage:
+- Pestaña con histórico de nóminas"
+```
+
+**Entregables:**
+- ✅ Cálculo automático de nóminas
+- ✅ Generación de PDFs profesionales
+- ✅ Gestión de pagos
+- ✅ Histórico por empleado
+
+---
+
+### Sprint 5: Inventario (Semanas 9-10)
+
+#### Semana 9: Backend Inventario
+
+```
+"Sistema completo de inventario:
+
+CATEGORIA_PRODUCTO:
+- Entity simple con nombre
+- Ejemplos: Whisky, Vodka, Ron, Ginebra, Refrescos, Consumibles
+
+PRODUCTO:
+- Entity completa
+- Repository con:
+  * findByCategoria
+  * findByStockActualLessThan (para alertas)
+  * buscar por nombre/marca
+- Service con CRUD
+- Migración V010__create_productos_categorias.sql
+
+STOCK_MOVIMIENTO:
+- Entity con tipo (ENTRADA, SALIDA, AJUSTE, MERMA)
+- StockService:
+  * registrarMovimiento(productoId, tipo, cantidad, motivo)
+    - Validar stock suficiente para SALIDA
+    - Calcular nuevo stock
+    - Guardar movimiento
+    - Actualizar producto
+  * obtenerStockActual(productoId)
+  * obtenerAlertasStockBajo()
+  * calcularValoracionInventario()
+  * obtenerHistorialMovimientos(filters)
+- Migración V011__create_stock_movimientos.sql
+
+Controller completo
+Tests"
+```
+
+#### Semana 10: Frontend Inventario
+
+```
+"Frontend de Inventario:
+
+ProductosPage:
+- Tabla con stock actual
+- Badge de alerta (stock < mínimo) en rojo
+- Filtros: categoría, stock bajo
+- ProductoForm
+- productoService.ts
+
+StockPage:
+- Vista de stock actual por producto
+- Filtros y búsqueda
+- Acción rápida: registrar movimiento
+
+MovimientosPage:
+- Histórico de movimientos
+- Filtros: producto, tipo, rango fechas
+- Modal para registrar nuevo movimiento
+- movimientoService.ts
+
+InventarioDashboard:
+- Card: Valoración total
+- Lista de alertas (stock bajo)
+- Top productos por rotación
+- Gráfico: movimientos por tipo"
+```
+
+**Entregables:**
+- ✅ Catálogo de productos
+- ✅ Sistema de movimientos
+- ✅ Alertas de stock bajo
+- ✅ Valoración de inventario
+
+---
+
+### Sprint 6: Compras y Proveedores (Semana 11)
+
+```
+"Sistema de compras:
+
+PEDIDO y DETALLE_PEDIDO:
+- Entities con relación
+- PedidoService:
+  * crearPedido(proveedorId, List<DetallePedidoDTO>)
+  * recepcionarPedido(pedidoId)
+    - Cambiar estado a RECIBIDO
+    - Crear movimientos de stock (ENTRADA) para cada producto
+    - Registrar gasto automático
+  * cancelarPedido
+- Controller
+- Migración V012__create_pedidos.sql
+
+Frontend:
+- PedidosPage con estados
+- PedidoForm: seleccionar proveedor y productos
+- Modal de recepción con checklist
+- pedidoService.ts"
+```
+
+**Entregables:**
+- ✅ Gestión de pedidos
+- ✅ Recepción automatizada
+- ✅ Integración con stock y gastos
+
+---
+
+## FASE 3: Analytics y Finalización (Semanas 12-15)
+
+### Sprint 7: Dashboard Ejecutivo (Semanas 12-13)
+
+```
+"Dashboard ejecutivo completo:
+
+AnalyticsService:
+- obtenerKPIs(periodo):
+  * Total ingresos
+  * Total gastos
+  * Beneficio neto
+  * Margen %
+  * Aforo promedio
+  * Revenue por persona
+  * Comparativa período anterior
+
+- obtenerTendencias(meses):
+  * Evolución ingresos/gastos mensual
+  * Eventos por mes
+  * Rentabilidad por mes
+
+- obtenerEventosMasRentables(top)
+- obtenerProductosMasVendidos(top)
+- obtenerDistribucionGastos(periodo)
+
+Controller: AnalyticsController
+
+Frontend:
+- DashboardPage completamente rediseñado:
+  * Grid de KPI cards con comparativas
+  * Gráfico línea: evolución temporal
+  * Gráfico pie: distribución gastos
+  * Gráfico bar: top eventos rentables
+  * Tabla: próximos eventos
+  * Alertas: stock bajo, gastos pendientes, nóminas pendientes
+- Filtros temporales
+- Exportar dashboard a PDF
+- analyticsService.ts"
+```
+
+---
+
+### Sprint 8: Reportes Avanzados (Semana 14)
+
+```
+"Sistema de reportes avanzados:
+
+ReportService:
+- Plantillas JasperReports:
+  * P&L mensual
+  * Resumen de evento
+  * Nóminas del mes
+  * Inventario valorado
+  * Comparativa eventos
+  
+- Exportación Excel (Apache POI):
+  * Lista de gastos
+  * Lista de ingresos
+  * Movimientos de stock
+  * Turnos de empleados
+
+- generarReporte(plantilla, parametros) → byte[]
+
+Controller: ReportController
+
+Frontend:
+- ReportesPage:
+  * Selector de plantilla
+  * Form de parámetros (dinámico según plantilla)
+  * Preview PDF inline
+  * Botón descarga
+  * Histórico de reportes generados"
+```
+
+---
+
+### Sprint 9: Optimización Final (Semana 15)
+
+```
+"Optimización y testing final:
+
+Backend:
+1. Añadir índices faltantes
+2. Optimizar queries lentas (EXPLAIN ANALYZE)
+3. Tests E2E con REST Assured
+4. Performance testing básico
+5. Completar Swagger docs
+6. README técnico actualizado
+
+Frontend:
+1. Code splitting y lazy loading
+2. Optimizar bundle size
+3. Lighthouse audit y mejoras
+4. Tests E2E con Playwright
+5. Responsive testing en todos los dispositivos
+6. Accesibilidad (WCAG AA)
+
+General:
+1. Security audit
+2. Load testing básico
+3. Backup/restore testing
+4. User documentation
+5. Video tutorials cortos"
+```
+
+**Entregables COMPLETOS:**
+- ✅ Sistema 100% funcional
+- ✅ Optimizado y testeado
+- ✅ Documentado completamente
+- ✅ **Production-ready en 12 semanas**
+
+---
+
+## 🎯 Diferencias vs Versión con Integraciones
+
+| Aspecto | Con Integraciones | Sin Integraciones |
+|---------|-------------------|-------------------|
+| **Duración** | 16 semanas | **12 semanas** ✅ |
+| **Complejidad** | Alta | **Media** ✅ |
+| **Puntos de fallo** | 3 sistemas | **1 sistema** ✅ |
+| **Mantenimiento** | Complejo | **Simple** ✅ |
+| **Registro de ventas** | Automático | Manual (7 min/evento) |
+| **Funcionalidad core** | 100% | **100%** ✅ |
+| **Coste desarrollo** | $0 | **$0** ✅ |
+| **Curva aprendizaje** | Empinada | **Suave** ✅ |
+
+---
+
+## 📊 Workflow Real Post-Evento
+
+### Con Sistema Manual (7 minutos):
+
+```
+1. Abrir sistema (30 seg)
+2. Ir a evento → Finanzas (10 seg)
+3. Clic "Registrar Ingreso" (5 seg)
+
+4. Llenar formulario:
+   - Fuente: Taquilla Anticipada
+   - Monto: €3,450 (del reporte Fourvenues)
+   - Método: Transferencia
+   - Notas: "Ventas Fourvenues - 230 entradas"
+   - Guardar (1 min)
+
+5. Clic "Registrar Ingreso" de nuevo
+   - Fuente: Barra
+   - Monto: €5,230 (del cierre de caja POS)
+   - Método: Mixto
+   - Notas: "Cierre de caja - Reporte POS"
+   - Guardar (30 seg)
+
+6. Registrar gastos si hay (3-4 min)
+
+7. Ver P&L calculado automáticamente (10 seg)
+   ✅ Listo!
+
+TOTAL: 7 minutos por evento
+```
+
+**¿Vale la pena ahorrar 7 minutos vs 4 semanas de desarrollo extra? SÍ** 🎯
+
+---
+
+## ✅ Checklist de Hitos
+
+### Semana 6 - MVP
+- [ ] Login funcional
+- [ ] CRUD eventos completo
+- [ ] Registro manual de gastos/ingresos
+- [ ] P&L automático por evento
+- [ ] Asignación básica de personal
+- [ ] **Sistema usable en producción** ✅
+
+### Semana 11 - Sistema Avanzado
+- [ ] Nóminas automáticas
+- [ ] Inventario completo
+- [ ] Sistema de compras
+- [ ] Gestión completa de proveedores
+
+### Semana 15 - Sistema Completo
+- [ ] Dashboard ejecutivo
+- [ ] Reportes avanzados
+- [ ] Sistema optimizado
+- [ ] Documentación completa
+- [ ] **Production-ready total** ✅
+
+---
+
+[← Anterior: Módulos Funcionales](./05-modulos-funcionales.md) | [Siguiente: Setup y Despliegue →](./07-setup-despliegue.md)

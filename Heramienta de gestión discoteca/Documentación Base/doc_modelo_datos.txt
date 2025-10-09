@@ -1,0 +1,423 @@
+# Modelo de Datos
+
+## Diagrama ER Principal
+
+```
+┌─────────────┐         ┌──────────────┐         ┌─────────────┐
+│   EVENTO    │────1:N──│    GASTO     │    ┌────│  PROVEEDOR  │
+│             │         │              │    │    │             │
+│ id          │         │ id           │────┘    │ id          │
+│ nombre      │         │ evento_id    │         │ nombre      │
+│ fecha       │         │ concepto     │         │ categoria   │
+│ tipo        │         │ monto        │         │ contacto    │
+│ aforo_esp.  │         │ proveedor_id │         └─────────────┘
+│ estado      │         │ categoria    │
+└──────┬──────┘         │ pagado       │
+       │                └──────────────┘
+       │
+       │                ┌──────────────┐
+       └───────1:N──────│   INGRESO    │
+       │                │              │
+       │                │ id           │
+       │                │ evento_id    │
+       │                │ fuente       │
+       │                │ monto        │
+       │                │ tipo_pago    │
+       │                └──────────────┘
+       │
+       │                ┌──────────────┐         ┌─────────────┐
+       └───────1:N──────│   TURNO      │────N:1──│  EMPLEADO   │
+                        │              │         │             │
+                        │ id           │         │ id          │
+                        │ evento_id    │         │ nombre      │
+                        │ empleado_id  │         │ email       │
+                        │ rol          │         │ tipo_contr. │
+                        │ hora_inicio  │         │ salario_base│
+                        │ hora_fin     │         │ cuenta_banc.│
+                        │ horas_trab.  │         │ activo      │
+                        └──────────────┘         └─────────────┘
+
+┌─────────────┐         ┌──────────────┐         ┌─────────────┐
+│  PRODUCTO   │────1:N──│    STOCK     │    ┌────│  CATEGORIA  │
+│             │         │ MOVIMIENTO   │    │    │  PRODUCTO   │
+│ id          │         │              │────┘    │             │
+│ nombre      │         │ id           │         │ id          │
+│ categoria_id│         │ producto_id  │         │ nombre      │
+│ precio_cost.│         │ cantidad     │         └─────────────┘
+│ precio_vent.│         │ ubicacion    │
+│ unidad_med. │         └──────────────┘
+└─────────────┘
+
+┌─────────────┐         ┌──────────────┐
+│   PEDIDO    │────1:N──│ DETALLE_PED. │
+│             │         │              │
+│ id          │         │ id           │
+│ proveedor_id│         │ pedido_id    │
+│ fecha       │         │ producto_id  │
+│ estado      │         │ cantidad     │
+│ total       │         │ precio_unit. │
+└─────────────┘         └──────────────┘
+```
+
+## Entidades Completas
+
+### EVENTO
+```sql
+CREATE TABLE eventos (
+    id BIGSERIAL PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    fecha DATE NOT NULL,
+    hora_inicio TIME,
+    hora_fin TIME,
+    tipo VARCHAR(50) NOT NULL, -- REGULAR, ESPECIAL, CONCIERTO, PRIVADO, TEMATICO
+    aforo_esperado INTEGER,
+    aforo_real INTEGER,
+    estado VARCHAR(50) NOT NULL, -- PLANIFICADO, CONFIRMADO, EN_CURSO, FINALIZADO, CANCELADO
+    artista VARCHAR(255),
+    cache_artista DECIMAL(10,2),
+    ingresos_estimados DECIMAL(10,2),
+    gastos_estimados DECIMAL(10,2),
+    ingresos_reales DECIMAL(10,2),
+    gastos_reales DECIMAL(10,2),
+    fourvenues_event_id VARCHAR(255),
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_eventos_fecha ON eventos(fecha);
+CREATE INDEX idx_eventos_estado ON eventos(estado);
+CREATE INDEX idx_eventos_tipo ON eventos(tipo);
+```
+
+### GASTO
+```sql
+CREATE TABLE gastos (
+    id BIGSERIAL PRIMARY KEY,
+    evento_id BIGINT REFERENCES eventos(id),
+    categoria VARCHAR(50) NOT NULL, -- ARTISTA, PERSONAL, COMPRAS, MARKETING, SERVICIOS, MANTENIMIENTO, OTROS
+    concepto VARCHAR(255) NOT NULL,
+    monto DECIMAL(10,2) NOT NULL,
+    proveedor_id BIGINT REFERENCES proveedores(id),
+    fecha DATE NOT NULL,
+    metodo_pago VARCHAR(50), -- EFECTIVO, TRANSFERENCIA, TARJETA
+    pagado BOOLEAN DEFAULT FALSE,
+    fecha_pago DATE,
+    notas TEXT,
+    numero_factura VARCHAR(100),
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    creado_por VARCHAR(255)
+);
+
+CREATE INDEX idx_gastos_evento_id ON gastos(evento_id);
+CREATE INDEX idx_gastos_categoria ON gastos(categoria);
+CREATE INDEX idx_gastos_fecha ON gastos(fecha);
+```
+
+### INGRESO
+```sql
+CREATE TABLE ingresos (
+    id BIGSERIAL PRIMARY KEY,
+    evento_id BIGINT REFERENCES eventos(id),
+    fuente VARCHAR(50) NOT NULL, -- TAQUILLA_ANTICIPADA, TAQUILLA_FISICA, BARRA, GUARDARROPA, OTROS
+    monto DECIMAL(10,2) NOT NULL,
+    metodo_pago VARCHAR(50),
+    fecha TIMESTAMP NOT NULL,
+    cantidad_entradas INTEGER,
+    precio_unitario DECIMAL(10,2),
+    referencia_externa VARCHAR(255),
+    notas TEXT,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    creado_por VARCHAR(255)
+);
+
+CREATE INDEX idx_ingresos_evento_id ON ingresos(evento_id);
+CREATE INDEX idx_ingresos_fuente ON ingresos(fuente);
+CREATE INDEX idx_ingresos_fecha ON ingresos(fecha);
+```
+
+### EMPLEADO
+```sql
+CREATE TABLE empleados (
+    id BIGSERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    apellidos VARCHAR(100) NOT NULL,
+    dni VARCHAR(20) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    telefono VARCHAR(20),
+    tipo_contrato VARCHAR(50) NOT NULL, -- FIJO, EVENTUAL, FREELANCE
+    rol_principal VARCHAR(50) NOT NULL, -- CAMARERO, SEGURIDAD, RRPP, TECNICO, LIMPIEZA, GERENTE, ENCARGADO
+    salario_base DECIMAL(10,2),
+    tarifa_hora_extra DECIMAL(10,2),
+    porcentaje_comision DECIMAL(5,2),
+    cuenta_bancaria VARCHAR(50),
+    fecha_alta DATE NOT NULL,
+    fecha_baja DATE,
+    activo BOOLEAN DEFAULT TRUE,
+    ruta_contrato VARCHAR(255),
+    ruta_dni VARCHAR(255),
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_empleados_activo ON empleados(activo);
+CREATE INDEX idx_empleados_rol ON empleados(rol_principal);
+```
+
+### TURNO
+```sql
+CREATE TABLE turnos (
+    id BIGSERIAL PRIMARY KEY,
+    evento_id BIGINT REFERENCES eventos(id),
+    empleado_id BIGINT REFERENCES empleados(id),
+    rol VARCHAR(50) NOT NULL,
+    hora_inicio TIMESTAMP NOT NULL,
+    hora_fin TIMESTAMP,
+    horas_trabajadas DECIMAL(5,2),
+    horas_extra DECIMAL(5,2),
+    monto_base DECIMAL(10,2),
+    monto_extra DECIMAL(10,2),
+    comisiones DECIMAL(10,2),
+    total DECIMAL(10,2),
+    estado VARCHAR(50) DEFAULT 'PROGRAMADO', -- PROGRAMADO, CONFIRMADO, COMPLETADO, AUSENTE
+    notas TEXT,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_turnos_evento_id ON turnos(evento_id);
+CREATE INDEX idx_turnos_empleado_id ON turnos(empleado_id);
+CREATE INDEX idx_turnos_estado ON turnos(estado);
+```
+
+### NOMINA
+```sql
+CREATE TABLE nominas (
+    id BIGSERIAL PRIMARY KEY,
+    empleado_id BIGINT REFERENCES empleados(id),
+    mes INTEGER NOT NULL,
+    anio INTEGER NOT NULL,
+    salario_base DECIMAL(10,2),
+    horas_extra DECIMAL(10,2),
+    comisiones DECIMAL(10,2),
+    bonos DECIMAL(10,2),
+    total_devengado DECIMAL(10,2),
+    retencion_irpf DECIMAL(10,2),
+    seguridad_social DECIMAL(10,2),
+    anticipos DECIMAL(10,2),
+    otras_deducciones DECIMAL(10,2),
+    total_deducciones DECIMAL(10,2),
+    total_neto DECIMAL(10,2),
+    estado VARCHAR(50) DEFAULT 'BORRADOR', -- BORRADOR, PENDIENTE_PAGO, PAGADA
+    fecha_pago DATE,
+    ruta_pdf VARCHAR(255),
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    creado_por VARCHAR(255),
+    UNIQUE(empleado_id, mes, anio)
+);
+
+CREATE INDEX idx_nominas_empleado_id ON nominas(empleado_id);
+CREATE INDEX idx_nominas_mes_anio ON nominas(mes, anio);
+```
+
+### PRODUCTO
+```sql
+CREATE TABLE productos (
+    id BIGSERIAL PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    marca VARCHAR(255),
+    categoria_id BIGINT REFERENCES categorias_producto(id),
+    codigo_barras VARCHAR(50),
+    precio_coste DECIMAL(10,2),
+    precio_venta DECIMAL(10,2),
+    unidad_medida VARCHAR(50), -- BOTELLA, LITRO, UNIDAD, CAJA
+    stock_minimo INTEGER,
+    stock_optimo INTEGER,
+    activo BOOLEAN DEFAULT TRUE,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_productos_categoria_id ON productos(categoria_id);
+CREATE INDEX idx_productos_activo ON productos(activo);
+```
+
+### STOCK_MOVIMIENTO
+```sql
+CREATE TABLE stock_movimientos (
+    id BIGSERIAL PRIMARY KEY,
+    producto_id BIGINT REFERENCES productos(id),
+    tipo VARCHAR(50) NOT NULL, -- ENTRADA, SALIDA, AJUSTE, MERMA, TRASPASO
+    cantidad INTEGER NOT NULL,
+    stock_anterior INTEGER NOT NULL,
+    stock_nuevo INTEGER NOT NULL,
+    ubicacion VARCHAR(50), -- ALMACEN, BARRA_1, BARRA_2
+    motivo TEXT,
+    pedido_id BIGINT REFERENCES pedidos(id),
+    fecha TIMESTAMP NOT NULL,
+    realizado_por VARCHAR(255),
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_stock_producto_id ON stock_movimientos(producto_id);
+CREATE INDEX idx_stock_fecha ON stock_movimientos(fecha);
+CREATE INDEX idx_stock_tipo ON stock_movimientos(tipo);
+```
+
+### PROVEEDOR
+```sql
+CREATE TABLE proveedores (
+    id BIGSERIAL PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    cif VARCHAR(20) UNIQUE,
+    categoria VARCHAR(50), -- BEBIDAS, CONSUMIBLES, SERVICIOS, LIMPIEZA, TECNICO, MARKETING
+    contacto VARCHAR(255),
+    email VARCHAR(255),
+    telefono VARCHAR(20),
+    direccion TEXT,
+    condiciones_pago TEXT,
+    plazo_entrega_dias INTEGER,
+    activo BOOLEAN DEFAULT TRUE,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### PEDIDO
+```sql
+CREATE TABLE pedidos (
+    id BIGSERIAL PRIMARY KEY,
+    proveedor_id BIGINT REFERENCES proveedores(id),
+    fecha DATE NOT NULL,
+    fecha_entrega_estimada DATE,
+    fecha_entrega_real DATE,
+    estado VARCHAR(50) DEFAULT 'BORRADOR', -- BORRADOR, ENVIADO, RECIBIDO, CANCELADO
+    total DECIMAL(10,2),
+    notas TEXT,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    creado_por VARCHAR(255)
+);
+```
+
+### DETALLE_PEDIDO
+```sql
+CREATE TABLE detalle_pedidos (
+    id BIGSERIAL PRIMARY KEY,
+    pedido_id BIGINT REFERENCES pedidos(id),
+    producto_id BIGINT REFERENCES productos(id),
+    cantidad INTEGER NOT NULL,
+    precio_unitario DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(10,2) NOT NULL
+);
+```
+
+### USUARIO
+```sql
+CREATE TABLE usuarios (
+    id BIGSERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    rol VARCHAR(50) NOT NULL, -- ADMIN, GERENTE, ENCARGADO, RRHH, LECTURA
+    activo BOOLEAN DEFAULT TRUE,
+    ultimo_acceso TIMESTAMP,
+    empleado_id BIGINT REFERENCES empleados(id),
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## Enums Principales
+
+### TipoEvento
+```java
+public enum TipoEvento {
+    REGULAR,        // Viernes/Sábado normal
+    ESPECIAL,       // Festivos, eventos especiales
+    CONCIERTO,      // Con artista en vivo
+    PRIVADO,        // Evento privado/corporativo
+    TEMATICO        // Fiesta temática
+}
+```
+
+### EstadoEvento
+```java
+public enum EstadoEvento {
+    PLANIFICADO,
+    CONFIRMADO,
+    EN_CURSO,
+    FINALIZADO,
+    CANCELADO
+}
+```
+
+### CategoriaGasto
+```java
+public enum CategoriaGasto {
+    ARTISTA,
+    PERSONAL,
+    COMPRAS,
+    MARKETING,
+    SERVICIOS,
+    MANTENIMIENTO,
+    IMPUESTOS,
+    OTROS
+}
+```
+
+### FuenteIngreso
+```java
+public enum FuenteIngreso {
+    TAQUILLA_ANTICIPADA,  // Desde Fourvenues
+    TAQUILLA_FISICA,      // Vendida en puerta
+    BARRA,                // Desde POS
+    GUARDARROPA,
+    RESERVADOS,
+    OTROS
+}
+```
+
+### RolEmpleado
+```java
+public enum RolEmpleado {
+    CAMARERO,
+    SEGURIDAD,
+    RRPP,
+    TECNICO_SONIDO,
+    TECNICO_LUCES,
+    LIMPIEZA,
+    GERENTE,
+    ENCARGADO,
+    DJ
+}
+```
+
+### RolUsuario
+```java
+public enum RolUsuario {
+    ADMIN,          // Acceso total
+    GERENTE,        // Gestión completa menos usuarios
+    ENCARGADO,      // Operaciones diarias
+    RRHH,           // Solo personal y nóminas
+    LECTURA         // Solo consulta
+}
+```
+
+## Migraciones Flyway
+
+Las migraciones se numeran secuencialmente:
+
+```
+db/migration/
+├── V001__create_base_tables.sql
+├── V002__create_eventos_gastos_ingresos.sql
+├── V003__create_empleados_turnos.sql
+├── V004__create_nominas.sql
+├── V005__create_inventario.sql
+├── V006__create_pedidos.sql
+├── V007__create_usuarios.sql
+├── V008__add_indexes.sql
+└── V009__insert_initial_data.sql
+```
+
+---
+
+[← Anterior: Arquitectura](./02-arquitectura-tecnica.md) | [Siguiente: Módulos Funcionales →](./05-modulos-funcionales.md)

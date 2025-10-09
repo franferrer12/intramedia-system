@@ -1,0 +1,156 @@
+spring:
+  application:
+    name: club-management
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+---
+# Perfil de desarrollo
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/club_management}
+    username: ${DB_USER:club_admin}
+    password: ${DB_PASSWORD:club_password}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  devtools:
+    restart:
+      enabled: true
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:club-management-dev-secret-ONLY-FOR-DEV-CHANGE-IN-PROD}
+  expiration: 86400000 # 24 horas en milisegundos
+
+# Application Configuration
+app:
+  upload-dir: ./uploads
+  max-file-size: 10MB
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:5173
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    com.club.management: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+---
+# Perfil de producción
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/club_management}
+    username: ${DB_USER:club_admin}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+# JWT Configuration (production)
+# CRÍTICO: JWT_SECRET debe estar configurado como variable de entorno
+# Para generar un secret seguro: openssl rand -base64 64
+jwt:
+  secret: ${JWT_SECRET}  # SIN valor por defecto - falla si no está configurado
+  expiration: 86400000
+
+# Application Configuration (production)
+app:
+  upload-dir: ${UPLOAD_DIR:/app/uploads}
+  max-file-size: 10MB
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://yourdomain.com}
+
+# Actuator (production)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+# Logging (production)
+logging:
+  level:
+    com.club.management: INFO
+    org.springframework: WARN
+  file:
+    name: /app/logs/club-management.log
+    max-size: 10MB
+    max-history: 30
+
+---
+# Perfil de test
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  datasource:
+    url: jdbc:tc:postgresql:15-alpine:///testdb
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+  flyway:
+    enabled: true
+    clean-disabled: false
+
+logging:
+  level:
+    com.club.management: INFO
+    org.testcontainers: INFO
