@@ -13,8 +13,8 @@ restartPolicyMaxRetries = 10
 # Configuración para el frontend
 [environments.production.services.club-management-frontend]
 builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
-watchPatterns = ["**"]
+dockerfilePath = "frontend/Dockerfile"
+watchPatterns = ["frontend/**"]
 
 [environments.production.services.club-management-frontend.build.buildArgs]
 VITE_API_URL = "${{VITE_API_URL}}"
