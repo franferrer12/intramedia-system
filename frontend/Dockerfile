@@ -1,4 +1,5 @@
 # Etapa 1: Build
+# REBUILD 2025-01-10 15:17 - Category field fix
 FROM node:18-alpine AS build
 WORKDIR /app
 

@@ -1,7 +1,7 @@
 # Configuración para el backend
 [environments.production.services.club-manegament]
 builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile.backend"
+dockerfilePath = "backend/Dockerfile"
 watchPatterns = ["backend/**"]
 
 [environments.production.services.club-manegament.deploy]
@@ -13,7 +13,7 @@ restartPolicyMaxRetries = 10
 # Configuración para el frontend
 [environments.production.services.club-management-frontend]
 builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
+dockerfilePath = "frontend/Dockerfile"
 watchPatterns = ["frontend/**"]
 
 [environments.production.services.club-management-frontend.build.buildArgs]
