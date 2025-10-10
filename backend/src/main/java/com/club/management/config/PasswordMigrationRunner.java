@@ -8,6 +8,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Runner que se ejecuta al iniciar la aplicación para migrar passwords viejos
@@ -25,6 +26,7 @@ public class PasswordMigrationRunner implements ApplicationRunner {
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public void run(ApplicationArguments args) {
         log.info("=== INICIANDO MIGRACIÓN DE PASSWORDS ===");
 
