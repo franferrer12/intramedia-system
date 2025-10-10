@@ -18,6 +18,8 @@ import {
   Building2,
   TrendingUp,
   Percent,
+  ShoppingCart,
+  ClipboardList,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../ui/Button';
@@ -39,6 +41,8 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'POS', href: '/pos', icon: ShoppingCart },
+    { name: 'Sesiones', href: '/sesiones', icon: ClipboardList },
     { name: 'Eventos', href: '/eventos', icon: Calendar },
     { name: 'Inventario', href: '/inventario', icon: Package },
     { name: 'Dashboard Inventario', href: '/inventario/dashboard', icon: BarChart3 },

@@ -39,3 +39,27 @@ export const CardFooter: FC<CardProps> = ({ children, className, ...props }) => 
     </div>
   );
 };
+
+export const CardContent: FC<CardProps> = ({ children, className, ...props }) => {
+  return (
+    <div className={clsx('px-6 py-4', className)} {...props}>
+      {children}
+    </div>
+  );
+};
+
+export const CardTitle: FC<CardProps> = ({ children, className, ...props }) => {
+  return (
+    <h3 className={clsx('text-lg font-semibold text-gray-900', className)} {...props}>
+      {children}
+    </h3>
+  );
+};
+
+export const CardDescription: FC<CardProps> = ({ children, className, ...props }) => {
+  return (
+    <p className={clsx('text-sm text-gray-600 mt-1', className)} {...props}>
+      {children}
+    </p>
+  );
+};

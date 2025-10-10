@@ -130,3 +130,42 @@ export const AlertDialog: FC<AlertDialogProps> = ({
     </div>
   );
 };
+
+// Exports compatibles con shadcn/ui para los componentes POS
+export const AlertDialogAction = ({ className = '', ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+  <button
+    className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-red-600 text-white hover:bg-red-700 h-10 px-4 py-2 ${className}`}
+    {...props}
+  />
+);
+
+export const AlertDialogCancel = ({ className = '', ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+  <button
+    className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-gray-300 bg-white hover:bg-gray-100 h-10 px-4 py-2 mt-2 sm:mt-0 ${className}`}
+    {...props}
+  />
+);
+
+export const AlertDialogContent = ({ className = '', ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={`relative z-50 bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6 ${className}`}
+    onClick={(e) => e.stopPropagation()}
+    {...props}
+  />
+);
+
+export const AlertDialogDescription = ({ className = '', ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
+  <p className={`text-sm text-gray-500 ${className}`} {...props} />
+);
+
+export const AlertDialogFooter = ({ className = '', ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={`flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-4 ${className}`} {...props} />
+);
+
+export const AlertDialogHeader = ({ className = '', ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={`flex flex-col space-y-2 text-center sm:text-left ${className}`} {...props} />
+);
+
+export const AlertDialogTitle = ({ className = '', ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+  <h2 className={`text-lg font-semibold ${className}`} {...props} />
+);

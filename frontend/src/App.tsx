@@ -20,6 +20,8 @@ import { DashboardInventarioPage } from './pages/inventario/DashboardInventarioP
 import ActivosFijosPage from './pages/activos-fijos/ActivosFijosPage';
 import InversionesPage from './pages/activos-fijos/InversionesPage';
 import RoiDashboardPage from './pages/activos-fijos/RoiDashboardPage';
+import PosPage from './pages/pos/PosPage';
+import SesionesPage from './pages/pos/SesionesPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,6 +63,8 @@ function App() {
                     <Route path="/activos-fijos" element={<ActivosFijosPage />} />
                     <Route path="/inversiones" element={<InversionesPage />} />
                     <Route path="/roi" element={<RoiDashboardPage />} />
+                    <Route path="/pos" element={<PosPage />} />
+                    <Route path="/sesiones" element={<SesionesPage />} />
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 </MainLayout>
