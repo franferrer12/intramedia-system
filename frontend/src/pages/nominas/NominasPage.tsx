@@ -265,88 +265,83 @@ export const NominasPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Nominas</h1>
-          <p className="text-gray-600 mt-2">Gestion de nominas de empleados</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExportExcel} className="flex items-center">
-            <FileDown className="h-4 w-4 mr-2" />
-            Excel
-          </Button>
-          <Button variant="outline" onClick={handleExportPdf} className="flex items-center">
-            <FileText className="h-4 w-4 mr-2" />
-            PDF
-          </Button>
-          <Button variant="secondary" onClick={handleGenerarMasivas} className="flex items-center">
-            <FileText className="h-4 w-4 mr-2" />
-            Generar Nominas Masivas
-          </Button>
-          <Button variant="primary" onClick={handleCreate} className="flex items-center">
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva Nomina
-          </Button>
-        </div>
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-lg border-2 border-purple-200">
+        <h1 className="text-4xl font-bold text-gray-900">💵 Pagar a la Gente</h1>
+        <p className="text-gray-700 mt-2 text-lg">Los sueldos que tengo que pagar cada mes</p>
+      </div>
+
+      <div className="flex gap-2 justify-end">
+        <Button variant="outline" onClick={handleExportExcel} className="flex items-center">
+          <FileDown className="h-4 w-4 mr-2" />
+          Descargar Excel
+        </Button>
+        <Button variant="outline" onClick={handleExportPdf} className="flex items-center">
+          <FileText className="h-4 w-4 mr-2" />
+          Descargar PDF
+        </Button>
+        <Button variant="secondary" onClick={handleGenerarMasivas} className="flex items-center">
+          <FileText className="h-4 w-4 mr-2" />
+          ✨ Generar Todos los Sueldos
+        </Button>
+        <Button variant="primary" onClick={handleCreate} className="flex items-center">
+          <Plus className="h-4 w-4 mr-2" />
+          ➕ Registrar Sueldo
+        </Button>
       </div>
 
       {/* Resumen de Nominas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardBody>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Nominas</p>
-                <p className="text-2xl font-bold text-gray-900">{totalNominas}</p>
-              </div>
-              <div className="bg-blue-100 p-3 rounded-full">
-                <FileText className="h-6 w-6 text-blue-600" />
-              </div>
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg p-6 border-2 border-blue-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-bold text-gray-700">📋 Total de Sueldos</p>
+              <p className="text-4xl font-bold text-blue-600 mt-2">{totalNominas}</p>
+              <p className="text-xs text-gray-600 mt-1">sueldos registrados</p>
             </div>
-          </CardBody>
-        </Card>
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-lg shadow-md">
+              <FileText className="h-8 w-8 text-white" />
+            </div>
+          </div>
+        </div>
 
-        <Card>
-          <CardBody>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Pendientes</p>
-                <p className="text-2xl font-bold text-yellow-600">{nominasPendientes}</p>
-              </div>
-              <div className="bg-yellow-100 p-3 rounded-full">
-                <Clock className="h-6 w-6 text-yellow-600" />
-              </div>
+        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg shadow-lg p-6 border-2 border-yellow-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-bold text-gray-700">⏳ Tengo que Pagar</p>
+              <p className="text-4xl font-bold text-yellow-600 mt-2">{nominasPendientes}</p>
+              <p className="text-xs text-gray-600 mt-1">sueldos pendientes</p>
             </div>
-          </CardBody>
-        </Card>
+            <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 p-3 rounded-lg shadow-md">
+              <Clock className="h-8 w-8 text-white" />
+            </div>
+          </div>
+        </div>
 
-        <Card>
-          <CardBody>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Pagadas</p>
-                <p className="text-2xl font-bold text-green-600">{nominasPagadas}</p>
-              </div>
-              <div className="bg-green-100 p-3 rounded-full">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg shadow-lg p-6 border-2 border-green-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-bold text-gray-700">✅ Ya Pagué</p>
+              <p className="text-4xl font-bold text-green-600 mt-2">{nominasPagadas}</p>
+              <p className="text-xs text-gray-600 mt-1">sueldos pagados</p>
             </div>
-          </CardBody>
-        </Card>
+            <div className="bg-gradient-to-br from-green-500 to-green-600 p-3 rounded-lg shadow-md">
+              <CheckCircle className="h-8 w-8 text-white" />
+            </div>
+          </div>
+        </div>
 
-        <Card>
-          <CardBody>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Neto a Pagar</p>
-                <p className="text-2xl font-bold text-purple-600">{formatMonto(totalNetoAPagar)}</p>
-              </div>
-              <div className="bg-purple-100 p-3 rounded-full">
-                <DollarSign className="h-6 w-6 text-purple-600" />
-              </div>
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg shadow-lg p-6 border-2 border-purple-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-bold text-gray-700">💰 Me Falta Pagar</p>
+              <p className="text-4xl font-bold text-purple-600 mt-2">{formatMonto(totalNetoAPagar)}</p>
+              <p className="text-xs text-gray-600 mt-1">dinero pendiente</p>
             </div>
-          </CardBody>
-        </Card>
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-3 rounded-lg shadow-md">
+              <DollarSign className="h-8 w-8 text-white" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Filtros */}
@@ -354,19 +349,19 @@ export const NominasPage = () => {
         <CardBody>
           <div className="flex items-center gap-2 mb-3">
             <Filter className="h-5 w-5 text-gray-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Filtros</h3>
+            <h3 className="text-lg font-bold text-gray-900">🔍 Filtrar Sueldos</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Periodo
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                📅 ¿Qué Mes?
               </label>
               <select
                 value={periodoFiltro}
                 onChange={(e) => setPeriodoFiltro(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg font-medium"
               >
-                <option value="">Todos los periodos</option>
+                <option value="">Todos los meses</option>
                 {periodos.map((periodo) => (
                   <option key={periodo} value={periodo}>
                     {formatPeriodo(periodo)}
@@ -376,18 +371,18 @@ export const NominasPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Estado
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                💰 Estado del Pago
               </label>
               <select
                 value={estadoFiltro}
                 onChange={(e) => setEstadoFiltro(e.target.value as EstadoNomina | 'TODOS')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg font-medium"
               >
                 <option value="TODOS">Todos</option>
-                <option value="PENDIENTE">Pendientes</option>
-                <option value="PAGADA">Pagadas</option>
-                <option value="CANCELADA">Canceladas</option>
+                <option value="PENDIENTE">⏳ Pendientes</option>
+                <option value="PAGADA">✅ Pagadas</option>
+                <option value="CANCELADA">❌ Canceladas</option>
               </select>
             </div>
           </div>

@@ -138,25 +138,24 @@ export const EventosPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Eventos</h1>
-          <p className="text-gray-600 mt-2">Gestión de eventos y actividades</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExportExcel} className="flex items-center">
-            <FileDown className="h-4 w-4 mr-2" />
-            Excel
-          </Button>
-          <Button variant="outline" onClick={handleExportPdf} className="flex items-center">
-            <FileText className="h-4 w-4 mr-2" />
-            PDF
-          </Button>
-          <Button variant="primary" onClick={handleCreate} className="flex items-center">
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Evento
-          </Button>
-        </div>
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border-2 border-blue-200">
+        <h1 className="text-4xl font-bold text-gray-900">🎉 Mis Fiestas y Eventos</h1>
+        <p className="text-gray-700 mt-2 text-lg">Todas las fiestas que he hecho y las que voy a hacer</p>
+      </div>
+
+      <div className="flex gap-2 justify-end">
+        <Button variant="outline" onClick={handleExportExcel} className="flex items-center">
+          <FileDown className="h-4 w-4 mr-2" />
+          Descargar Excel
+        </Button>
+        <Button variant="outline" onClick={handleExportPdf} className="flex items-center">
+          <FileText className="h-4 w-4 mr-2" />
+          Descargar PDF
+        </Button>
+        <Button variant="primary" onClick={handleCreate} className="flex items-center">
+          <Plus className="h-4 w-4 mr-2" />
+          ➕ Crear Fiesta
+        </Button>
       </div>
 
       {eventos.length === 0 ? (
@@ -165,13 +164,13 @@ export const EventosPage = () => {
             <div className="text-center py-12">
               <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No hay eventos registrados
+                No tienes ninguna fiesta todavía
               </h3>
               <p className="text-gray-600 mb-4">
-                Comienza creando tu primer evento
+                Crea tu primera fiesta para empezar
               </p>
               <Button variant="primary" onClick={handleCreate}>
-                Crear Evento
+                ➕ Crear Mi Primera Fiesta
               </Button>
             </div>
           </CardBody>
