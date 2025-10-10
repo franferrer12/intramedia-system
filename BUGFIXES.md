@@ -1,5 +1,214 @@
 # Registro de Errores Solucionados
 
+📖 **Para troubleshooting detallado de errores de deployment, consulta:** [`TROUBLESHOOTING.md`](./TROUBLESHOOTING.md)
+
+---
+
+## 2025-10-10 - Errores Críticos de Deployment en Railway
+
+### 1. Out of Memory (OOM) - Backend No Inicia
+
+**Problema:**
+Backend se reiniciaba continuamente en Railway y nunca llegaba a completar el inicio. Health endpoint retornaba 502 Bad Gateway.
+
+**Síntomas:**
+- Logs se detenían en la fase de inicialización de Hibernate
+- Nunca aparecía el mensaje "Started ClubManagementApplication"
+- Railway mostraba errores de OOM (Out of Memory)
+- Tiempo de inicio: timeout (>5 minutos)
+
+**Causa Raíz:**
+Spring Boot con Hibernate, Flyway y múltiples entidades JPA consume demasiada memoria durante el inicio. Railway free tier no proporciona suficiente memoria para iniciar la aplicación con la configuración JVM por defecto (sin límites).
+
+**Archivos/Configuraciones Afectadas:**
+- Railway environment variables (nuevo)
+
+**Solución:**
+Configurar límites de memoria JVM mediante variable de entorno en Railway:
+
+```bash
+JAVA_TOOL_OPTIONS=-Xmx512m -Xms256m -XX:MaxMetaspaceSize=128m -XX:+UseG1GC -XX:MaxGCPauseMillis=100
+```
+
+**Parámetros explicados:**
+- `-Xmx512m`: Memoria máxima del heap (512MB)
+- `-Xms256m`: Memoria inicial del heap (256MB)
+- `-XX:MaxMetaspaceSize=128m`: Limitar metaspace (clases, métodos)
+- `-XX:+UseG1GC`: Usar G1 Garbage Collector (más eficiente)
+- `-XX:MaxGCPauseMillis=100`: Pausas de GC máximo 100ms
+
+**Resultado:**
+✅ Backend inicia correctamente en ~40 segundos
+✅ Uso de memoria controlado
+✅ No más reinicios por OOM
+
+📖 **Diagnóstico completo:** Ver [TROUBLESHOOTING.md - Error 1](./TROUBLESHOOTING.md#error-1-out-of-memory-oom---backend-no-inicia)
+
+---
+
+### 2. HTTP 403 Forbidden en `/api/auth/login`
+
+**Problema:**
+El endpoint de login retornaba 403 Forbidden, impidiendo que usuarios se autenticaran.
+
+**Síntomas:**
+- POST `/api/auth/login` → HTTP 403
+- Frontend mostraba "Failed to load resource: 403"
+- Backend logs NO mostraban que el request llegara al controller
+- Spring Security bloqueaba antes de llegar a AuthenticationController
+
+**Causa Raíz:**
+Spring Security 6 evalúa `requestMatchers` en orden **top-to-bottom**. Los matchers genéricos `/api/**` con restricciones de roles estaban ANTES de los específicos `/api/auth/**` con `permitAll()`, causando que el login fuera bloqueado.
+
+**Flujo problemático:**
+```
+Request: POST /api/auth/login
+   ↓
+1. Evalúa: .requestMatchers(HttpMethod.POST, "/api/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_GERENTE")
+   → ✅ Coincide con /api/auth/login
+   → ❌ Usuario NO tiene token → NO tiene roles
+   → 🚫 Resultado: 403 Forbidden
+
+2. NUNCA llega a evaluar: .requestMatchers("/api/auth/**").permitAll()
+```
+
+**Archivos Afectados:**
+- `backend/src/main/java/com/club/management/config/SecurityConfig.java`
+
+**Solución:**
+Reordenar los requestMatchers para que los paths **específicos estén ANTES** de los genéricos:
+
+```java
+.authorizeHttpRequests(auth -> auth
+    // ✅ CORRECTO: OPTIONS primero para CORS preflight
+    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+    // ✅ CORRECTO: Endpoints públicos específicos PRIMERO
+    .requestMatchers("/api/auth/**").permitAll()
+    .requestMatchers("/").permitAll()
+    .requestMatchers("/actuator/health").permitAll()
+
+    // ✅ CORRECTO: Endpoints protegidos genéricos DESPUÉS
+    .requestMatchers(HttpMethod.GET, "/api/**").hasAnyAuthority("ROLE_ADMIN", ...)
+    .requestMatchers(HttpMethod.POST, "/api/**").hasAnyAuthority("ROLE_ADMIN", ...)
+
+    .anyRequest().authenticated()
+)
+```
+
+**Commit:**
+```
+035eb93 - fix: Restore proper Spring Security configuration with correct requestMatcher order
+```
+
+**Resultado:**
+✅ Login funciona correctamente: HTTP 200 con token JWT
+
+📖 **Diagnóstico completo:** Ver [TROUBLESHOOTING.md - Error 2](./TROUBLESHOOTING.md#error-2-http-403-forbidden-en-apiauthlogin)
+
+---
+
+### 3. Error "Cannot commit when autoCommit is enabled"
+
+**Problema:**
+Login retornaba HTTP 500 Internal Server Error con excepción de PostgreSQL.
+
+**Síntomas:**
+- Backend estaba corriendo (health check OK)
+- Login retornaba: HTTP 500
+- Stack trace mostraba: `org.postgresql.util.PSQLException: Cannot commit when autoCommit is enabled`
+- Ocurría en métodos con `@Transactional`
+
+**Causa Raíz:**
+**HikariCP** (connection pool) tiene `autoCommit=true` por defecto, lo que causa que cada SQL statement se commitee automáticamente. **Spring JPA** con `@Transactional` necesita controlar los commits manualmente para garantizar atomicidad y permitir rollbacks.
+
+**Conflicto:**
+```
+HikariCP:         autoCommit = true  → Cada SQL se commitea inmediatamente
+Spring JPA:       Quiere hacer commit manual al final del método @Transactional
+PostgreSQL JDBC:  "No puedes hacer commit si autoCommit está enabled"
+```
+
+**Archivos/Configuraciones Afectadas:**
+- Railway environment variables (nuevo)
+- Todos los métodos con `@Transactional` (indirectamente)
+
+**Solución:**
+Configurar HikariCP para deshabilitar autoCommit mediante variable de entorno en Railway:
+
+```bash
+SPRING_DATASOURCE_HIKARI_AUTO_COMMIT=false
+```
+
+Spring Boot convierte automáticamente:
+```
+SPRING_DATASOURCE_HIKARI_AUTO_COMMIT=false
+    ↓
+spring.datasource.hikari.auto-commit=false
+    ↓
+HikariCP Config: autoCommit = false
+```
+
+**Resultado:**
+✅ Login funciona correctamente
+✅ Todas las transacciones JPA funcionan
+✅ Rollbacks automáticos en caso de error
+
+📖 **Diagnóstico completo:** Ver [TROUBLESHOOTING.md - Error 3](./TROUBLESHOOTING.md#error-3-cannot-commit-when-autocommit-is-enabled)
+
+---
+
+### 4. CORS Policy Blocking XMLHttpRequest
+
+**Problema:**
+Browser bloqueaba requests del frontend al backend con error de CORS.
+
+**Síntomas:**
+- Console mostraba: "Access to XMLHttpRequest blocked by CORS policy"
+- No había header `Access-Control-Allow-Origin` en la respuesta
+- Funcionaba en localhost pero no en producción
+
+**Causa Raíz:**
+CORS con credentials requiere que:
+1. ✅ Backend configure `allowCredentials: true` (ya estaba)
+2. ✅ Backend especifique origins explícitos (ya estaba)
+3. ❌ **Frontend envíe `withCredentials: true`** (FALTABA)
+
+**Archivos Afectados:**
+- `frontend/src/api/axios.ts`
+
+**Solución:**
+Agregar `withCredentials: true` a la configuración de axios:
+
+```typescript
+// ANTES (INCORRECTO):
+const axiosInstance = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  // ❌ FALTA: withCredentials: true
+});
+
+// DESPUÉS (CORRECTO):
+const axiosInstance = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true, // ✅ Necesario para CORS con credenciales
+});
+```
+
+**Resultado:**
+✅ CORS funciona correctamente
+✅ Cookies y Authorization headers se envían
+✅ Backend permite requests del frontend
+
+📖 **Diagnóstico completo:** Ver [TROUBLESHOOTING.md - Error 4](./TROUBLESHOOTING.md#error-4-cors-policy-blocking-xmlhttprequest)
+
+---
+
 ## 2025-10-06 - Errores de Autenticación y Exportación Excel
 
 ### 1. Error 403 Forbidden en Exportaciones de Excel

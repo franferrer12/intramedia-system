@@ -157,6 +157,7 @@ cd frontend && npm run build
 - **[INSTRUCCIONES_RAPIDAS_DEPLOY.md](INSTRUCCIONES_RAPIDAS_DEPLOY.md)** - ⚡ Guía rápida para desplegar en Railway (25 min)
 - **[RAILWAY_DEPLOY.md](RAILWAY_DEPLOY.md)** - 📖 Guía detallada paso a paso para Railway.app
 - **[DEPLOY.md](DEPLOY.md)** - 🐳 Guía completa de despliegue local con Docker
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - 🔧 **Solución de errores de deployment** (OOM, 403, CORS, transacciones)
 
 ### Documentación del Proyecto
 
@@ -227,6 +228,19 @@ Este es un proyecto privado. Ver documentación para guías de desarrollo.
 - ✅ **Análisis del Negocio** (antes "Analytics") - "Cómo va tu club"
 
 ### 🐛 Bugfixes Aplicados
+
+#### Deployment en Railway (2025-10-10)
+- ✅ **Out of Memory (OOM)** - Backend no iniciaba en Railway
+  - **Solución:** Configurar `JAVA_TOOL_OPTIONS` con límites de memoria JVM
+  - **Tiempo de inicio:** Reducido de timeout a ~40 segundos
+- ✅ **403 Forbidden en `/api/auth/login`** - Spring Security bloqueaba autenticación
+  - **Solución:** Reordenar requestMatchers (específicos antes de genéricos)
+- ✅ **500 Error "Cannot commit when autoCommit is enabled"** - Transacciones JPA fallaban
+  - **Solución:** Configurar `SPRING_DATASOURCE_HIKARI_AUTO_COMMIT=false`
+- ✅ **CORS Policy Error** - Frontend bloqueado por browser
+  - **Solución:** Agregar `withCredentials: true` en axios
+
+#### Anteriores
 - ✅ **(2025-10-10)** Menú lateral móvil sin scroll - agregado `overflow-y-auto`
 - ✅ **(2025-10-06)** Error 403 en exportaciones Excel
 - ✅ **(2025-10-06)** Token JWT no enviado en peticiones
@@ -234,5 +248,6 @@ Este es un proyecto privado. Ver documentación para guías de desarrollo.
 - ✅ **(2025-10-06)** Carácter inválido "/" en hoja Excel
 
 Ver [BUGFIXES.md](BUGFIXES.md) para detalles completos.
+Ver [TROUBLESHOOTING.md](TROUBLESHOOTING.md) para guía completa de solución de errores de deployment.
 Ver [ROADMAP.md](ROADMAP.md) para la hoja de ruta detallada.
 Ver [DEPLOY.md](DEPLOY.md) para instrucciones de despliegue.

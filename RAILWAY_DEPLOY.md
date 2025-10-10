@@ -133,6 +133,12 @@ JWT_EXPIRATION=86400000
 
 # CORS (actualizar cuando tengas el dominio del frontend)
 CORS_ALLOWED_ORIGINS=https://tu-frontend.railway.app
+
+# ⚠️ CRÍTICO: Optimización de memoria JVM (REQUERIDO para Railway)
+JAVA_TOOL_OPTIONS=-Xmx512m -Xms256m -XX:MaxMetaspaceSize=128m -XX:+UseG1GC -XX:MaxGCPauseMillis=100
+
+# ⚠️ CRÍTICO: Configuración de HikariCP (REQUERIDO para transacciones)
+SPRING_DATASOURCE_HIKARI_AUTO_COMMIT=false
 ```
 
 **IMPORTANTE**: Para obtener las variables de PostgreSQL:
@@ -267,16 +273,165 @@ curl https://tu-backend.railway.app/actuator/health
 
 ## 🔧 Troubleshooting
 
-### Error: CORS blocked
+⚠️ **Para troubleshooting detallado de todos los errores conocidos, consulta:** [`TROUBLESHOOTING.md`](./TROUBLESHOOTING.md)
 
-**Problema**: Frontend no puede conectar con backend
+Este documento contiene diagnóstico completo de:
+- Errores de memoria (OOM)
+- Errores de Spring Security (403 Forbidden)
+- Errores de transacciones (@Transactional)
+- Errores de CORS
+- Y mucho más...
 
-**Solución**:
-1. Verificar que `CORS_ALLOWED_ORIGINS` en backend incluya la URL del frontend
-2. Incluir protocolo completo: `https://`, no solo el dominio
-3. NO incluir `/` al final de la URL
+### Errores Críticos Comunes
 
-### Error: Cannot connect to database
+#### Error 1: Backend no inicia (OOM - Out of Memory)
+
+**Síntomas:**
+- Backend se reinicia continuamente
+- Logs nunca llegan a "Started ClubManagementApplication"
+- Railway muestra errores de OOM
+- Health endpoint retorna 502 Bad Gateway
+
+**Causa:**
+Railway no tiene suficiente memoria para iniciar Spring Boot sin límites configurados.
+
+**Solución:**
+```bash
+# Agregar esta variable de entorno en Railway (Settings → Variables)
+JAVA_TOOL_OPTIONS=-Xmx512m -Xms256m -XX:MaxMetaspaceSize=128m -XX:+UseG1GC -XX:MaxGCPauseMillis=100
+```
+
+**Verificación:**
+```bash
+# Esperar 60 segundos y verificar logs
+railway logs -s tu-servicio-backend --lines 100 | grep "Started ClubManagementApplication"
+# Debes ver: Started ClubManagementApplication in XX.XX seconds
+
+# Verificar health
+curl https://tu-backend.railway.app/actuator/health
+# Debe devolver: {"status":"UP"}
+```
+
+📖 **Diagnóstico completo:** Ver [TROUBLESHOOTING.md - Error 1: Out of Memory](./TROUBLESHOOTING.md#error-1-out-of-memory-oom---backend-no-inicia)
+
+---
+
+#### Error 2: Login retorna 403 Forbidden
+
+**Síntomas:**
+- `/api/auth/login` retorna HTTP 403
+- Usuario no puede autenticarse
+- Frontend muestra "Failed to load resource: 403"
+
+**Causa:**
+Spring Security 6 evalúa requestMatchers en orden top-to-bottom. Los matchers genéricos `/api/**` estaban ANTES de los específicos `/api/auth/**`, bloqueando el login.
+
+**Solución:**
+Ya está corregido en el código actual. Si tienes este error:
+
+1. Verificar que `SecurityConfig.java` tenga el orden correcto:
+```java
+.authorizeHttpRequests(auth -> auth
+    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+    .requestMatchers("/api/auth/**").permitAll()  // ← Específico PRIMERO
+    .requestMatchers("/actuator/health").permitAll()
+    // Luego los genéricos
+    .requestMatchers(HttpMethod.GET, "/api/**").hasAnyAuthority(...)
+    ...
+)
+```
+
+2. Si el problema persiste, hacer git pull del código actualizado:
+```bash
+git pull origin main
+git push  # Railway desplegará automáticamente
+```
+
+📖 **Diagnóstico completo:** Ver [TROUBLESHOOTING.md - Error 2: HTTP 403 Forbidden](./TROUBLESHOOTING.md#error-2-http-403-forbidden-en-apiauthlogin)
+
+---
+
+#### Error 3: Login retorna 500 "Cannot commit when autoCommit is enabled"
+
+**Síntomas:**
+- Backend está corriendo (health check OK)
+- Login retorna HTTP 500
+- Logs muestran: `org.postgresql.util.PSQLException: Cannot commit when autoCommit is enabled`
+
+**Causa:**
+HikariCP tiene `autoCommit=true` por defecto, pero Spring JPA con `@Transactional` necesita controlar commits manualmente.
+
+**Solución:**
+```bash
+# Agregar esta variable de entorno en Railway (Settings → Variables)
+SPRING_DATASOURCE_HIKARI_AUTO_COMMIT=false
+```
+
+**Verificación:**
+```bash
+# Esperar 60 segundos para redeploy
+sleep 60
+
+# Probar login
+curl -X POST https://tu-backend.railway.app/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+
+# Debe devolver HTTP 200 con token JWT
+```
+
+📖 **Diagnóstico completo:** Ver [TROUBLESHOOTING.md - Error 3: Cannot commit](./TROUBLESHOOTING.md#error-3-cannot-commit-when-autocommit-is-enabled)
+
+---
+
+#### Error 4: CORS blocked
+
+**Síntomas:**
+- Browser console muestra: "Access to XMLHttpRequest blocked by CORS policy"
+- Frontend no puede conectar con backend
+
+**Causa:**
+Dos posibles causas:
+1. Backend no incluye la URL del frontend en `CORS_ALLOWED_ORIGINS`
+2. Frontend no está enviando `withCredentials: true` en axios
+
+**Solución:**
+
+1. **Verificar backend** (Settings → Variables):
+```bash
+CORS_ALLOWED_ORIGINS=https://tu-frontend.railway.app,http://localhost:5173
+```
+
+2. **Verificar frontend** - `frontend/src/api/axios.ts` debe tener:
+```typescript
+const axiosInstance = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true,  // ← CRÍTICO para CORS
+});
+```
+
+3. **Test CORS preflight:**
+```bash
+curl -X OPTIONS https://tu-backend.railway.app/api/auth/login \
+  -H "Origin: https://tu-frontend.railway.app" \
+  -H "Access-Control-Request-Method: POST" \
+  -v
+
+# Debe incluir en response:
+# Access-Control-Allow-Origin: https://tu-frontend.railway.app
+# Access-Control-Allow-Credentials: true
+```
+
+📖 **Diagnóstico completo:** Ver [TROUBLESHOOTING.md - Error 4: CORS](./TROUBLESHOOTING.md#error-4-cors-policy-blocking-xmlhttprequest)
+
+---
+
+### Otros Errores Comunes
+
+#### Error: Cannot connect to database
 
 **Problema**: Backend no se conecta a PostgreSQL
 
@@ -285,7 +440,7 @@ curl https://tu-backend.railway.app/actuator/health
 2. Verificar variables `DB_URL`, `DB_USER`, `DB_PASSWORD`
 3. Usar referencias a variables de Railway: `${{Postgres.PGHOST}}`
 
-### Error: Flyway migration failed
+#### Error: Flyway migration failed
 
 **Problema**: Migraciones de base de datos fallan
 
@@ -295,7 +450,7 @@ curl https://tu-backend.railway.app/actuator/health
 3. Ejecutar: `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`
 4. Re-desplegar backend
 
-### Frontend muestra "Network Error"
+#### Frontend muestra "Network Error"
 
 **Problema**: No puede conectar con API
 
@@ -303,6 +458,19 @@ curl https://tu-backend.railway.app/actuator/health
 1. Verificar `VITE_API_URL` en variables del frontend
 2. Debe apuntar a: `https://tu-backend.railway.app/api` (con `/api` al final)
 3. Verificar que backend esté corriendo (healthy)
+
+---
+
+### 📚 Recursos de Diagnóstico
+
+Para diagnóstico detallado de TODOS los errores con:
+- ✅ Stack traces completos
+- ✅ Causa raíz explicada
+- ✅ Proceso de diagnóstico paso a paso
+- ✅ Verificación de soluciones
+- ✅ Comandos útiles
+
+**Consulta:** [`TROUBLESHOOTING.md`](./TROUBLESHOOTING.md)
 
 ---
 
