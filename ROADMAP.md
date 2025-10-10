@@ -1,0 +1,527 @@
+# 🗺️ ROADMAP - Club Management System
+
+> **Hoja de ruta del proyecto** - Se actualiza continuamente con el progreso del desarrollo
+
+---
+
+## 📌 Visión General
+
+**Objetivo:** Sistema integral de gestión para discotecas 100% autónomo, sin integraciones externas, optimizado para dueños de discotecas sin conocimientos técnicos.
+
+**Duración Total:** 15 semanas
+**Versión Actual:** 0.2.0
+**Estado:** ✅ MVP funcional en producción
+
+---
+
+## 🎯 Buyer Persona
+
+**Perfil:** Dueños de discotecas sin conocimientos técnicos
+**Necesidades:**
+- Lenguaje simple y conversacional
+- Interfaz profesional pero accesible
+- Responsive en móvil
+- Sin términos técnicos complejos
+
+**Principios UX:**
+- ❌ NO usar jerga técnica (ej: "Analytics", "Dashboard")
+- ✅ SÍ usar lenguaje natural (ej: "Análisis del Negocio", "Inicio")
+- ❌ NO usar emojis excesivos ni multicolores
+- ✅ SÍ mantener diseño limpio y profesional
+
+---
+
+## 📊 Progreso Global
+
+```
+✅ Sprint 0: Setup Inicial (100%)
+✅ Sprint 1: Autenticación + Eventos (100%)
+✅ Sprint 2: Gestión Financiera (100%)
+✅ Sprint 3: Personal y Nóminas (100%)
+✅ Sprint 4: Inventario Completo (100%)
+✅ Sprint 5: Analytics y Reportes (100%)
+✅ Sprint 6: UX Optimization (100%)
+🔄 Sprint 7: Mejoras Continuas (En Progreso)
+⏳ Sprint 8-10: Funcionalidades Avanzadas (Pendiente)
+```
+
+**Progreso Total:** 70% (10.5/15 semanas)
+
+---
+
+## 🚀 Sprints Completados
+
+### ✅ Sprint 0: Setup Inicial (Semana 1)
+**Duración:** 5 días
+**Estado:** COMPLETADO ✅
+
+#### Objetivos Cumplidos
+- ✅ Estructura base de backend (Spring Boot 3.2 + Java 17)
+- ✅ Estructura base de frontend (React 18 + TypeScript + Vite)
+- ✅ Configuración Docker Compose (PostgreSQL + Backend + Frontend)
+- ✅ Primera migración Flyway con tablas base
+- ✅ Usuario admin por defecto (admin/admin123)
+
+#### Tecnologías Implementadas
+**Backend:**
+- Spring Boot 3.2, PostgreSQL 15, Spring Security + JWT
+- JasperReports (PDF), Apache POI (Excel)
+
+**Frontend:**
+- React 18 + TypeScript, TanStack Query, Zustand
+- TailwindCSS + Shadcn/ui, Recharts
+
+**DevOps:**
+- Docker + Docker Compose, GitHub Actions
+
+#### Entregables
+- 22 archivos creados (~1,150 líneas de código)
+- README.md con instrucciones completas
+- Docker Compose funcional
+
+---
+
+### ✅ Sprint 1: Autenticación + Eventos (Semanas 2-3)
+**Duración:** 10 días
+**Estado:** COMPLETADO ✅
+
+#### Backend (Semana 2)
+- ✅ Sistema de autenticación JWT completo
+- ✅ Entidad Usuario con roles (ADMIN, GERENTE, RRHH, ENCARGADO, LECTURA)
+- ✅ AuthenticationController (/login, /refresh, /me)
+- ✅ SecurityConfig con endpoints protegidos
+- ✅ Entidad Evento con estados (PLANIFICADO, EN_CURSO, FINALIZADO, CANCELADO)
+- ✅ EventoRepository con queries custom
+- ✅ EventoService con lógica de negocio
+- ✅ EventoController REST completo
+- ✅ Migración V002__create_eventos.sql
+- ✅ Tests unitarios e integración
+
+#### Frontend (Semana 3)
+- ✅ LoginPage con formulario validado
+- ✅ authService.ts (login, logout)
+- ✅ authStore con Zustand
+- ✅ ProtectedRoute component
+- ✅ MainLayout con navbar y sidebar responsive
+- ✅ EventosPage con lista, filtros y búsqueda
+- ✅ EventoModal (crear/editar)
+- ✅ eventosApi.ts con TanStack Query
+
+#### Features Entregadas
+- Login/logout con JWT
+- Gestión completa de eventos (CRUD)
+- Filtros por estado y búsqueda
+- Layout responsive con sidebar móvil
+
+---
+
+### ✅ Sprint 2: Gestión Financiera (Semanas 4-5)
+**Duración:** 10 días
+**Estado:** COMPLETADO ✅
+
+#### Backend (Semana 4)
+- ✅ Entidad Transaccion (INGRESO/GASTO)
+- ✅ Entidad CategoriaTransaccion
+- ✅ TransaccionRepository con queries por fecha y tipo
+- ✅ TransaccionService con cálculo de P&L automático
+- ✅ TransaccionController REST
+- ✅ Migración V004__create_finanzas.sql
+- ✅ Tests de cálculo de balance
+
+#### Frontend (Semana 5)
+- ✅ TransaccionesPage con resumen financiero
+- ✅ Cards de Ingresos/Gastos/Balance
+- ✅ Filtros por tipo y mes
+- ✅ TransaccionModal con validación
+- ✅ transaccionesApi.ts
+- ✅ Formato de moneda (EUR)
+- ✅ Gráficos con Recharts
+
+#### Features Entregadas
+- Registro de ingresos y gastos
+- Cálculo automático de balance
+- Filtros por tipo y fecha
+- Visualización de P&L
+
+---
+
+### ✅ Sprint 3: Personal y Nóminas (Semanas 6-8)
+**Duración:** 15 días
+**Estado:** COMPLETADO ✅
+
+#### Backend (Semanas 6-7)
+- ✅ Entidad Empleado con información completa
+- ✅ EmpleadoRepository con búsquedas
+- ✅ EmpleadoService con lógica de activación/desactivación
+- ✅ EmpleadoController REST
+- ✅ Migración V005__create_empleados.sql
+- ✅ Entidad JornadaTrabajo con cálculo automático de horas
+- ✅ JornadaService con lógica de turnos overnight
+- ✅ Entidad Nomina con relación a jornadas
+- ✅ NominaService con cálculo automático de sueldos
+- ✅ Generación masiva de nóminas
+- ✅ Migraciones V006, V007, V008
+
+#### Frontend (Semana 8)
+- ✅ EmpleadosPage con resumen de personal
+- ✅ EmpleadoModal (crear/editar)
+- ✅ JornadasPage con registro de turnos
+- ✅ JornadaModal con cálculo de horas automático
+- ✅ NominasPage con gestión de sueldos
+- ✅ NominaModal (crear/editar)
+- ✅ Generación masiva de nóminas
+- ✅ Filtros por estado y periodo
+
+#### Features Entregadas
+- Gestión completa de empleados
+- Registro de jornadas laborales
+- Cálculo automático de horas trabajadas
+- Gestión de nóminas
+- Generación masiva de sueldos
+
+---
+
+### ✅ Sprint 4: Inventario Completo (Semanas 9-11)
+**Duración:** 15 días
+**Estado:** COMPLETADO ✅
+
+#### Backend (Semanas 9-10)
+- ✅ Entidad Producto con categorías
+- ✅ Entidad Inventario con stock actual
+- ✅ Entidad MovimientoStock (ENTRADA/SALIDA/AJUSTE)
+- ✅ Entidad AlertaStock con notificaciones automáticas
+- ✅ ProductoRepository con búsquedas
+- ✅ InventarioService con lógica de stock
+- ✅ MovimientoStockService transaccional
+- ✅ AlertaStockService con verificación automática
+- ✅ Migración V009__create_inventory.sql
+- ✅ Entidad Proveedor
+- ✅ ProveedorRepository
+- ✅ Migración V003__create_proveedores.sql
+
+#### Frontend (Semana 11)
+- ✅ ProductosPage con catálogo
+- ✅ ProductoModal (crear/editar)
+- ✅ InventarioPage con stock actual
+- ✅ MovimientosPage con historial
+- ✅ MovimientoModal (registrar entrada/salida)
+- ✅ AlertasPage con notificaciones de stock bajo
+- ✅ ProveedoresPage con gestión de empresas
+- ✅ ProveedorModal (crear/editar)
+- ✅ Filtros por categoría y estado
+
+#### Features Entregadas
+- Catálogo de productos completo
+- Control de stock en tiempo real
+- Historial de movimientos
+- Alertas automáticas de stock bajo
+- Gestión de proveedores
+
+---
+
+### ✅ Sprint 5: Analytics y Reportes (Semanas 12-13)
+**Duración:** 10 días
+**Estado:** COMPLETADO ✅
+
+#### Backend (Semana 12)
+- ✅ DashboardService con métricas en tiempo real
+- ✅ AnalyticsService con agregaciones
+- ✅ ExcelExportService (Apache POI)
+- ✅ PdfExportService (JasperReports)
+- ✅ ReportesController REST
+- ✅ Cálculo de KPIs financieros
+- ✅ Cálculo de rendimiento de empleados
+
+#### Frontend (Semana 13)
+- ✅ DashboardPage con auto-refresh (30s)
+- ✅ Cards de métricas clave
+- ✅ Gráficos de ingresos/gastos (Recharts)
+- ✅ AnalyticsPage con análisis detallado
+- ✅ Exportación a Excel
+- ✅ Exportación a PDF
+- ✅ reportesApi.ts
+
+#### Features Entregadas
+- Dashboard ejecutivo con datos reales
+- Auto-refresh cada 30 segundos
+- Reportes PDF/Excel de transacciones
+- Análisis financiero detallado
+
+---
+
+### ✅ Sprint 6: UX Optimization (Semana 14)
+**Duración:** 5 días
+**Estado:** COMPLETADO ✅
+
+#### Objetivos Cumplidos
+- ✅ Adaptación de textos para buyer persona (dueños no técnicos)
+- ✅ Lenguaje simplificado y conversacional
+- ✅ Diseño limpio y profesional mantenido
+- ✅ Fix de scroll en sidebar móvil
+- ✅ Pruebas en dispositivos móviles
+
+#### Cambios de Nomenclatura
+| Antes | Después | Razón |
+|-------|---------|-------|
+| Dashboard | Inicio | Más simple y directo |
+| Gestión de recursos humanos | Personas que trabajan contigo | Conversacional |
+| Finanzas | Ingresos y Gastos | Más claro |
+| Nóminas | Sueldos | Lenguaje común |
+| Inventario de Productos | Productos y Stock | Más descriptivo |
+| Analytics | Análisis del Negocio | Sin anglicismos |
+| Gestión de eventos | Todas tus fiestas y eventos | Cercano al usuario |
+
+#### Archivos Modificados
+- `frontend/src/pages/dashboard/DashboardPage.tsx`
+- `frontend/src/pages/eventos/EventosPage.tsx`
+- `frontend/src/pages/empleados/EmpleadosPage.tsx`
+- `frontend/src/pages/transacciones/TransaccionesPage.tsx`
+- `frontend/src/pages/proveedores/ProveedoresPage.tsx`
+- `frontend/src/pages/productos/ProductosPage.tsx`
+- `frontend/src/pages/nominas/NominasPage.tsx`
+- `frontend/src/pages/analytics/AnalyticsPage.tsx`
+- `frontend/src/components/layout/MainLayout.tsx` (bugfix scroll)
+
+#### Bugfixes
+- ✅ Sidebar móvil sin scroll → agregado `overflow-y-auto` en `MainLayout.tsx:83`
+
+---
+
+## 🔄 Sprint Actual
+
+### Sprint 7: Mejoras Continuas (Semana 15)
+**Duración:** 5 días
+**Estado:** EN PROGRESO 🔄
+**Progreso:** 60%
+
+#### Objetivos
+- ✅ Documentación actualizada (README.md, ROADMAP.md, PROGRESS.md)
+- 🔄 Testing exhaustivo en producción
+- ⏳ Optimización de rendimiento
+- ⏳ Monitoreo de bugs y mejoras UX
+
+#### Tareas Pendientes
+- [ ] Pruebas con usuarios reales
+- [ ] Ajustes de UX basados en feedback
+- [ ] Optimización de queries SQL
+- [ ] Mejora de carga de imágenes
+- [ ] Validaciones adicionales en formularios
+
+---
+
+## ⏳ Sprints Futuros
+
+### Sprint 8: Sistema POS (Punto de Venta) (Semanas 16-17)
+**Duración:** 10 días
+**Estado:** PENDIENTE ⏳
+
+#### Objetivos
+- [ ] Módulo POS completo para ventas en tiempo real
+- [ ] Gestión de sesiones de caja
+- [ ] Registro rápido de consumos
+- [ ] Integración con inventario (descuento automático de stock)
+- [ ] Cierre de caja con cuadre automático
+- [ ] Reportes de ventas por sesión
+
+#### Backend
+- [ ] Entidad SesionCaja
+- [ ] Entidad Consumo
+- [ ] SesionCajaService con lógica de apertura/cierre
+- [ ] ConsumoService con descuento de stock automático
+- [ ] Migración V0XX__create_pos.sql
+
+#### Frontend
+- [ ] POSPage con interfaz táctil optimizada
+- [ ] Grid de productos para selección rápida
+- [ ] Carrito de compra en tiempo real
+- [ ] SesionCajaModal (abrir/cerrar caja)
+- [ ] Resumen de sesión con cuadre
+
+---
+
+### Sprint 9: Activos Fijos y ROI (Semanas 18-19)
+**Duración:** 10 días
+**Estado:** PENDIENTE ⏳
+
+#### Objetivos
+- [ ] Gestión de activos fijos del club
+- [ ] Seguimiento de inversiones
+- [ ] Cálculo automático de ROI
+- [ ] Dashboard de rentabilidad
+- [ ] Depreciación de activos
+
+#### Backend
+- [ ] Entidad ActivoFijo
+- [ ] Entidad Inversion
+- [ ] ActivoFijoService con cálculo de depreciación
+- [ ] InversionService con cálculo de ROI
+- [ ] Migración V0XX__create_activos.sql
+
+#### Frontend
+- [ ] ActivosFijosPage con catálogo de activos
+- [ ] InversionesPage con seguimiento
+- [ ] ROIDashboard con métricas financieras
+- [ ] Gráficos de rentabilidad
+
+---
+
+### Sprint 10: Optimización Final y Producción (Semana 20)
+**Duración:** 5 días
+**Estado:** PENDIENTE ⏳
+
+#### Objetivos
+- [ ] Auditoría completa de seguridad
+- [ ] Optimización de rendimiento final
+- [ ] Documentación completa de API (Swagger)
+- [ ] Guías de usuario final
+- [ ] Plan de mantenimiento
+- [ ] Backup automático de base de datos
+
+---
+
+## 🎯 Features por Módulo
+
+### ✅ Autenticación y Seguridad
+- ✅ Login con JWT
+- ✅ Roles jerárquicos (ADMIN, GERENTE, RRHH, ENCARGADO, LECTURA)
+- ✅ Protección de rutas
+- ✅ Refresh token
+- ✅ Logout seguro
+- ⏳ 2FA (futuro)
+
+### ✅ Eventos
+- ✅ CRUD completo
+- ✅ Estados (PLANIFICADO, EN_CURSO, FINALIZADO, CANCELADO)
+- ✅ Filtros y búsqueda
+- ✅ Validaciones
+
+### ✅ Finanzas
+- ✅ Registro de ingresos/gastos
+- ✅ Categorías de transacciones
+- ✅ Cálculo de P&L automático
+- ✅ Filtros por fecha y tipo
+- ✅ Exportación Excel/PDF
+
+### ✅ Personal
+- ✅ Gestión de empleados
+- ✅ Registro de jornadas laborales
+- ✅ Cálculo automático de horas
+- ✅ Gestión de nóminas
+- ✅ Generación masiva de sueldos
+
+### ✅ Inventario
+- ✅ Catálogo de productos
+- ✅ Control de stock
+- ✅ Movimientos (ENTRADA/SALIDA/AJUSTE)
+- ✅ Alertas de stock bajo
+- ✅ Gestión de proveedores
+
+### ✅ Analytics
+- ✅ Dashboard con auto-refresh
+- ✅ KPIs financieros
+- ✅ Gráficos de ingresos/gastos
+- ✅ Reportes exportables
+
+### 🔄 POS (En Desarrollo)
+- 🔄 Sesiones de caja
+- 🔄 Registro rápido de ventas
+- 🔄 Descuento automático de stock
+- 🔄 Cierre de caja
+
+### ⏳ ROI (Futuro)
+- ⏳ Gestión de activos fijos
+- ⏳ Seguimiento de inversiones
+- ⏳ Cálculo de ROI
+- ⏳ Dashboard de rentabilidad
+
+---
+
+## 📈 Métricas del Proyecto
+
+### Líneas de Código (Estimado)
+- **Backend:** ~15,000 líneas
+- **Frontend:** ~12,000 líneas
+- **Configuración:** ~2,000 líneas
+- **SQL:** ~1,500 líneas
+- **Tests:** ~3,000 líneas
+- **Total:** ~33,500 líneas
+
+### Archivos
+- **Backend:** ~120 archivos
+- **Frontend:** ~90 archivos
+- **Infraestructura:** ~20 archivos
+- **Documentación:** ~15 archivos
+- **Total:** ~245 archivos
+
+### Tiempo Invertido
+- **Sprint 0-6:** ~10.5 semanas
+- **Restante estimado:** ~4.5 semanas
+- **Total estimado:** ~15 semanas
+
+---
+
+## 🚀 Próximos Pasos Inmediatos
+
+### Esta Semana
+1. ✅ Actualizar documentación completa
+2. 🔄 Testing exhaustivo en producción
+3. ⏳ Recopilar feedback de usuarios
+4. ⏳ Priorizar mejoras UX
+
+### Próxima Semana
+1. Comenzar desarrollo del módulo POS
+2. Diseñar interfaz táctil optimizada
+3. Implementar sesiones de caja
+4. Integrar con inventario
+
+---
+
+## 📊 Estado de Deployment
+
+### ✅ Railway.app (Producción)
+- **Frontend:** https://club-management-frontend.railway.app
+- **Backend:** https://club-management-backend.railway.app
+- **Estado:** 🟢 ONLINE
+- **Última actualización:** 2025-10-10
+
+### Ambientes
+- ✅ Producción (Railway)
+- ✅ Desarrollo Local (Docker Compose)
+- ⏳ Staging (futuro)
+
+---
+
+## 🎓 Aprendizajes Clave
+
+### UX para Usuarios No Técnicos
+- El lenguaje simple es crucial para la adopción
+- Los términos técnicos alejan al buyer persona
+- El diseño profesional no necesita ser complejo
+- La accesibilidad móvil es fundamental
+
+### Arquitectura
+- Spring Boot + React es una combinación sólida
+- TanStack Query simplifica el manejo de estado del servidor
+- Flyway garantiza migraciones consistentes
+- Docker Compose facilita el desarrollo local
+
+### Despliegue
+- Railway.app es excelente para MVPs rápidos
+- El monitoreo continuo es esencial
+- Los healthchecks previenen downtime
+
+---
+
+## 🤝 Contribuciones
+
+Este es un proyecto privado. Para contribuir:
+1. Consultar `CLAUDE.md` para guías técnicas
+2. Seguir los principios UX del buyer persona
+3. Mantener el diseño limpio y profesional
+4. Probar en móvil antes de commitear
+
+---
+
+**Última actualización:** 2025-10-10
+**Versión del documento:** 1.0
+**Mantenido por:** Equipo de desarrollo

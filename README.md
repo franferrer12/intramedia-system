@@ -204,23 +204,35 @@ Este es un proyecto privado. Ver documentación para guías de desarrollo.
 
 ---
 
-**Versión:** 0.1.0
+**Versión:** 0.2.0
 **Última actualización:** Octubre 2025
-**Estado:** ✅ Primera versión funcional lista para producción
+**Estado:** ✅ Versión funcional con UX optimizada para usuarios no técnicos
 
-### ✨ Nuevas Características (v0.1.0)
+### ✨ Nuevas Características (v0.2.0)
+- ✅ **UX adaptada para dueños de discotecas** - Lenguaje simplificado y conversacional
+- ✅ **Responsive mobile mejorado** - Sidebar con scroll en dispositivos móviles
 - ✅ Dashboard con datos reales sincronizados
 - ✅ Auto-refresh de estadísticas cada 30 segundos
+- ✅ Exportación PDF/Excel de transacciones
 - ✅ Configuración de producción optimizada
-- ✅ Guía de despliegue completa
-- ✅ Docker Compose para producción
-- ✅ Healthchecks en todos los servicios
+- ✅ Guía de despliegue completa para Railway.app
 
-### 🐛 Bugfixes Aplicados (2025-10-06)
-- ✅ Error 403 en exportaciones Excel
-- ✅ Token JWT no enviado en peticiones
-- ✅ Error CORS con localhost:3001
-- ✅ Carácter inválido "/" en hoja Excel
+### 🎨 Adaptaciones UX para Buyer Persona (v0.2.0)
+- ✅ **Inicio** (antes "Dashboard") - "Resumen de tu club"
+- ✅ **Eventos y Fiestas** - "Todas tus fiestas y eventos"
+- ✅ **Mi Equipo** (antes "Empleados") - "Personas que trabajan contigo"
+- ✅ **Ingresos y Gastos** (antes "Finanzas") - "Control de dinero"
+- ✅ **Sueldos** (antes "Nóminas") - "Pagos a tu equipo"
+- ✅ **Productos y Stock** (antes "Inventario") - "Tus productos y bebidas"
+- ✅ **Análisis del Negocio** (antes "Analytics") - "Cómo va tu club"
+
+### 🐛 Bugfixes Aplicados
+- ✅ **(2025-10-10)** Menú lateral móvil sin scroll - agregado `overflow-y-auto`
+- ✅ **(2025-10-06)** Error 403 en exportaciones Excel
+- ✅ **(2025-10-06)** Token JWT no enviado en peticiones
+- ✅ **(2025-10-06)** Error CORS con localhost:3001
+- ✅ **(2025-10-06)** Carácter inválido "/" en hoja Excel
 
 Ver [BUGFIXES.md](BUGFIXES.md) para detalles completos.
+Ver [ROADMAP.md](ROADMAP.md) para la hoja de ruta detallada.
 Ver [DEPLOY.md](DEPLOY.md) para instrucciones de despliegue.
