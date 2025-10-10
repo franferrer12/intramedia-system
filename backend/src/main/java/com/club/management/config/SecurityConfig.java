@@ -42,9 +42,14 @@ public class SecurityConfig {
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;
 
+    @Value("${app.security.bcrypt-strength:4}")
+    private int bcryptStrength;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        // Usar strength reducido para producción (4 = mucho más rápido que 10)
+        // En local dev puedes usar 10 para mayor seguridad
+        return new BCryptPasswordEncoder(bcryptStrength);
     }
 
     @Bean

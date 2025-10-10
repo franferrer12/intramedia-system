@@ -7,6 +7,7 @@ import com.club.management.entity.Evento;
 import com.club.management.entity.Evento.EstadoEvento;
 import com.club.management.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,6 +28,7 @@ public class DashboardService {
     private final ProveedorRepository proveedorRepository;
     private final TransaccionRepository transaccionRepository;
 
+    @Cacheable(value = "dashboardStats", unless = "#result == null")
     public DashboardStatsDTO getDashboardStats() {
         // Calcular estadísticas
         Integer eventosActivos = calcularEventosActivos();

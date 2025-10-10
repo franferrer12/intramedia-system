@@ -134,6 +134,24 @@ app:
   max-file-size: 10MB
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:https://club-management-frontend-production.up.railway.app}
+  security:
+    bcrypt-strength: 4  # Reducido para mejor performance en producción remota
+
+# Server optimizations
+server:
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
+    min-response-size: 1024
+  http2:
+    enabled: true
+
+# Caching configuration
+spring:
+  cache:
+    cache-names: dashboardStats
+    caffeine:
+      spec: maximumSize=100,expireAfterWrite=120s  # Cache por 2 minutos
 
 # Actuator (production)
 management:
