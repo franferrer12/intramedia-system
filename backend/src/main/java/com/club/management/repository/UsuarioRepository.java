@@ -3,7 +3,11 @@ package com.club.management.repository;
 import com.club.management.entity.Usuario;
 import com.club.management.entity.Usuario.RolUsuario;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -53,4 +57,12 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
      * Contar usuarios activos
      */
     long countByActivoTrue();
+
+    /**
+     * Actualizar password hash del usuario admin (para migración de performance)
+     */
+    @Modifying
+    @Transactional
+    @Query("UPDATE Usuario u SET u.password = :newHash WHERE u.username = 'admin'")
+    int updateAdminPasswordHash(@Param("newHash") String newHash);
 }
