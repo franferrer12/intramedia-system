@@ -27,7 +27,7 @@ public class AdminMaintenanceController {
      * Este endpoint rehashea el password 'admin123' con cost factor 4 para mejor performance
      */
     @PostMapping("/rehash-admin-password")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Map<String, Object>> rehashAdminPassword() {
         Map<String, Object> response = new HashMap<>();
 
@@ -54,7 +54,7 @@ public class AdminMaintenanceController {
      * Endpoint para verificar el hash actual del admin
      */
     @PostMapping("/check-admin-hash")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Map<String, Object>> checkAdminHash() {
         Map<String, Object> response = new HashMap<>();
 
