@@ -336,7 +336,7 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
                       list="categorias-list"
                       value={formData.categoria}
                       onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
-                      placeholder="Escribe categoría: Licores, Refrescos, Snacks..."
+                      placeholder="Escribe categoría: Licores, Vinos, Cervezas, Refrescos..."
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
                     />
