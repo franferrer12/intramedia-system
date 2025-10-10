@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, FileDown, TrendingUp, TrendingDown } from 'lucide-react';
+import { Plus, Search, TrendingUp, TrendingDown } from 'lucide-react';
 import { toast } from 'sonner';
 import activosFijosApi, { ActivoFijo } from '../../api/activos-fijos.api';
 import { CATEGORIAS_ACTIVO_FIJO } from '../../constants/categorias-activo';

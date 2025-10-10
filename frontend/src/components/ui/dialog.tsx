@@ -1,6 +1,5 @@
 import { FC, HTMLAttributes, ReactNode } from 'react';
 import { clsx } from 'clsx';
-import { X } from 'lucide-react';
 
 interface DialogProps {
   open: boolean;

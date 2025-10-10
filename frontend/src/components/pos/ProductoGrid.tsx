@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '../ui/Card';
 import { Search, Loader2, Package, AlertTriangle, LayoutGrid, List } from 'lucide-react';
 import { productosApi } from '../../api/productos.api';
-import type { Producto } from '../../types/producto.types';
+import type { Producto } from '../../types';
 
 interface ProductoGridProps {
   onProductoClick: (producto: Producto, cantidadRapida?: number) => void;
@@ -23,7 +23,7 @@ export const ProductoGrid: FC<ProductoGridProps> = ({ onProductoClick }) => {
   // Obtener lista única de categorías
   const categorias = useMemo(() => {
     if (!productos) return [];
-    const cats = Array.from(new Set(productos.map(p => p.categoriaNombre || 'Sin Categoría')));
+    const cats = Array.from(new Set(productos.map(p => p.categoria || 'Sin Categoría')));
     return ['TODAS', ...cats.sort()];
   }, [productos]);
 
@@ -36,7 +36,7 @@ export const ProductoGrid: FC<ProductoGridProps> = ({ onProductoClick }) => {
     // Filtrar por categoría
     if (categoriaSeleccionada !== 'TODAS') {
       filtrados = filtrados.filter(
-        p => (p.categoriaNombre || 'Sin Categoría') === categoriaSeleccionada
+        p => (p.categoria || 'Sin Categoría') === categoriaSeleccionada
       );
     }
 
@@ -46,7 +46,7 @@ export const ProductoGrid: FC<ProductoGridProps> = ({ onProductoClick }) => {
       filtrados = filtrados.filter(
         (p) =>
           p.nombre.toLowerCase().includes(term) ||
-          p.categoriaNombre?.toLowerCase().includes(term)
+          p.categoria?.toLowerCase().includes(term)
       );
     }
 
@@ -58,7 +58,7 @@ export const ProductoGrid: FC<ProductoGridProps> = ({ onProductoClick }) => {
     const grupos: Record<string, Producto[]> = {};
 
     productosFiltrados.forEach((producto) => {
-      const categoria = producto.categoriaNombre || 'Sin Categoría';
+      const categoria = producto.categoria || 'Sin Categoría';
       if (!grupos[categoria]) {
         grupos[categoria] = [];
       }
@@ -118,7 +118,7 @@ export const ProductoGrid: FC<ProductoGridProps> = ({ onProductoClick }) => {
         {categorias.map((categoria) => {
           const count = categoria === 'TODAS'
             ? productos?.length || 0
-            : productos?.filter(p => (p.categoriaNombre || 'Sin Categoría') === categoria).length || 0;
+            : productos?.filter(p => (p.categoria || 'Sin Categoría') === categoria).length || 0;
 
           return (
             <button
@@ -191,7 +191,7 @@ export const ProductoGrid: FC<ProductoGridProps> = ({ onProductoClick }) => {
                         <p className={`font-bold text-blue-600 mb-2 ${
                           vistaCompacta ? 'text-lg' : 'text-2xl'
                         }`}>
-                          €{producto.precio.toFixed(2)}
+                          €{producto.precioVenta.toFixed(2)}
                         </p>
 
                         {/* Stock (solo vista detallada) */}

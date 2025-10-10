@@ -2,14 +2,13 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/Button';
-import { Card, CardContent } from '../../components/ui/Card';
 import { Plus, AlertCircle } from 'lucide-react';
 import { AbrirSesionModal } from '../../components/pos/AbrirSesionModal';
 import { SesionActiva } from '../../components/pos/SesionActiva';
 import { ConsumosList } from '../../components/pos/ConsumosList';
 import { ProductoGrid } from '../../components/pos/ProductoGrid';
 import { sesionesVentaApi } from '../../api/sesiones-venta.api';
-import type { Producto } from '../../types/producto.types';
+import type { Producto } from '../../types';
 import type { RegistrarConsumoRequest } from '../../types/sesion-venta.types';
 
 export default function PosPage() {
@@ -161,7 +160,7 @@ export default function PosPage() {
                     {productoSeleccionado.nombre}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Precio: €{productoSeleccionado.precio.toFixed(2)}
+                    Precio: €{productoSeleccionado.precioVenta.toFixed(2)}
                   </p>
                 </div>
 
@@ -188,7 +187,7 @@ export default function PosPage() {
                   <p className="text-2xl font-bold text-blue-900">
                     €
                     {(
-                      productoSeleccionado.precio * (parseFloat(cantidad) || 0)
+                      productoSeleccionado.precioVenta * (parseFloat(cantidad) || 0)
                     ).toFixed(2)}
                   </p>
                 </div>
