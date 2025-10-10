@@ -328,26 +328,79 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Categoría <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
-                      list="categorias-list"
-                      value={formData.categoria}
-                      onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
-                      placeholder="Escribe categoría: Licores, Vinos, Cervezas, Refrescos..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                    <datalist id="categorias-list">
-                      <option value="Licores" />
-                      <option value="Vinos" />
-                      <option value="Cervezas" />
-                      <option value="Refrescos y Mezcladores" />
-                      <option value="Licores Dulces" />
-                      <option value="Snacks" />
-                      {categorias.map((cat) => (
-                        <option key={cat} value={cat} />
-                      ))}
-                    </datalist>
+
+                    {!modoNuevaCategoria ? (
+                      <select
+                        value={formData.categoria}
+                        onChange={(e) => {
+                          if (e.target.value === '__nueva__') {
+                            setModoNuevaCategoria(true);
+                            setFormData({ ...formData, categoria: '' });
+                          } else {
+                            setFormData({ ...formData, categoria: e.target.value });
+                          }
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      >
+                        <option value="">Seleccionar categoría...</option>
+
+                        {/* Categorías predefinidas */}
+                        <option value="Licores">Licores</option>
+                        <option value="Vinos">Vinos</option>
+                        <option value="Cervezas">Cervezas</option>
+                        <option value="Refrescos y Mezcladores">Refrescos y Mezcladores</option>
+                        <option value="Licores Dulces">Licores Dulces</option>
+                        <option value="Snacks">Snacks</option>
+
+                        {/* Categorías existentes del backend */}
+                        {categorias
+                          .filter((cat) => !['Licores', 'Vinos', 'Cervezas', 'Refrescos y Mezcladores', 'Licores Dulces', 'Snacks'].includes(cat))
+                          .map((cat) => (
+                            <option key={cat} value={cat}>
+                              {cat}
+                            </option>
+                          ))}
+
+                        {/* Opción para crear nueva categoría */}
+                        <option value="__nueva__">+ Crear nueva categoría</option>
+                      </select>
+                    ) : (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={nuevaCategoria}
+                          onChange={(e) => setNuevaCategoria(e.target.value)}
+                          placeholder="Nombre de la nueva categoría..."
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          autoFocus
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (nuevaCategoria.trim()) {
+                              setFormData({ ...formData, categoria: nuevaCategoria.trim() });
+                              setModoNuevaCategoria(false);
+                              setNuevaCategoria('');
+                            }
+                          }}
+                          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
+                        >
+                          ✓
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setModoNuevaCategoria(false);
+                            setNuevaCategoria('');
+                          }}
+                          className="px-3 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 text-sm font-medium"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div>
