@@ -62,6 +62,7 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
 
   const [metricas, setMetricas] = useState<any>(null);
   const [calculando, setCalculando] = useState(false);
+  const [mostrarOcioNocturno, setMostrarOcioNocturno] = useState(false);
 
   const { data: categorias = [] } = useQuery<string[]>({
     queryKey: ['productos-categorias'],
@@ -157,6 +158,8 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
         mlPorServicio: producto.mlPorServicio || 90,
         factorMerma: producto.factorMerma || 10,
       });
+      // Si el producto tiene tipoVenta definido, mostrar ocio nocturno
+      setMostrarOcioNocturno(!!producto.tipoVenta);
     } else {
       setFormData({
         codigo: '',
@@ -180,6 +183,7 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
         mlPorServicio: 90,
         factorMerma: 10,
       });
+      setMostrarOcioNocturno(false);
     }
     setMetricas(null);
   }, [producto, isOpen]);
@@ -255,15 +259,6 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
   if (!isOpen) return null;
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
-
-  // Detectar si es una bebida alcohólica (categorías que se venden por copas/chupitos)
-  const categoriasAlcohol = [
-    'vodka', 'ginebra', 'whisky', 'ron', 'tequila', 'licor', 'champagne', 'vino',
-    'cerveza', 'bebida', 'cóctel', 'cocktail', 'espirituoso', 'destilado'
-  ];
-  const esCategoriaBebida = categoriasAlcohol.some(cat =>
-    formData.categoria.toLowerCase().includes(cat)
-  );
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -394,7 +389,7 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
                 </div>
 
                 {/* === SECCIÓN OCIO NOCTURNO === */}
-                {esCategoriaBebida && (
+                {mostrarOcioNocturno && (
                   <div className="border-t pt-4 mt-4">
                     <div className="flex items-center gap-2 mb-4">
                       <Beer className="w-5 h-5 text-purple-600" />
@@ -599,7 +594,7 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
                 </div>
 
                 {/* Checkboxes */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="flex items-center">
                     <input
                       type="checkbox"
@@ -623,6 +618,20 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
                     />
                     <label htmlFor="perecedero" className="ml-2 block text-sm text-gray-700">
                       Producto Perecedero
+                    </label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="ocioNocturno"
+                      checked={mostrarOcioNocturno}
+                      onChange={(e) => setMostrarOcioNocturno(e.target.checked)}
+                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="ocioNocturno" className="ml-2 block text-sm text-gray-700 flex items-center gap-1">
+                      <Beer className="w-4 h-4 text-purple-600" />
+                      Venta por Copa/Chupito
                     </label>
                   </div>
                 </div>
@@ -661,7 +670,7 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
               </div>
 
               {/* Columna derecha: Panel de Cálculos (1/3) */}
-              {esCategoriaBebida && (
+              {mostrarOcioNocturno && (
                 <div className="lg:col-span-1">
                   <div className="sticky top-4 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-4 border-2 border-purple-200">
                     <div className="flex items-center gap-2 mb-4">
