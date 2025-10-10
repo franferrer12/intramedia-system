@@ -63,6 +63,8 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
   const [metricas, setMetricas] = useState<any>(null);
   const [calculando, setCalculando] = useState(false);
   const [mostrarOcioNocturno, setMostrarOcioNocturno] = useState(false);
+  const [modoNuevaCategoria, setModoNuevaCategoria] = useState(false);
+  const [nuevaCategoria, setNuevaCategoria] = useState('');
 
   const { data: categorias = [] } = useQuery<string[]>({
     queryKey: ['productos-categorias'],
