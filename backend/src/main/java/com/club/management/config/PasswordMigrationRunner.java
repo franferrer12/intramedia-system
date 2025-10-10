@@ -17,7 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
  * IMPORTANTE: Este componente puede ser eliminado después de que todos los
  * usuarios hayan migrado sus passwords.
  */
-@Component
+// TEMPORAL: Deshabilitado porque causa crashes en producción
+// @Component
 @RequiredArgsConstructor
 @Slf4j
 public class PasswordMigrationRunner implements ApplicationRunner {
