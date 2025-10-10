@@ -16,7 +16,9 @@ export const DashboardInventarioPage: FC = () => {
   const { data: stats, isLoading } = useQuery<InventoryStats>({
     queryKey: ['inventory-stats'],
     queryFn: inventoryStatsApi.getStats,
-    refetchInterval: 60000, // Refrescar cada minuto
+    staleTime: 3 * 60 * 1000, // Los datos se consideran frescos por 3 minutos
+    refetchInterval: 10 * 60 * 1000, // Refrescar cada 10 minutos
+    refetchOnWindowFocus: false, // No refrescar al cambiar de ventana
   });
 
   if (isLoading) {

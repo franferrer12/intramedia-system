@@ -32,7 +32,9 @@ export const AlertasPage: FC = () => {
   const { data: alertas = [], isLoading } = useQuery<AlertaStock[]>({
     queryKey: ['alertas-stock'],
     queryFn: alertasStockApi.getAlertasActivas,
-    refetchInterval: 30000, // Refrescar cada 30 segundos
+    staleTime: 3 * 60 * 1000, // Los datos se consideran frescos por 3 minutos
+    refetchInterval: 5 * 60 * 1000, // Refrescar cada 5 minutos
+    refetchOnWindowFocus: false, // No refrescar al cambiar de ventana
   });
 
   const marcarLeidaMutation = useMutation({

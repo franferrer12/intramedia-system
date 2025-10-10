@@ -7,7 +7,9 @@ export const DashboardPage = () => {
   const { data: dashboardData, isLoading, error } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: dashboardApi.getStats,
-    refetchInterval: 30000, // Refrescar cada 30 segundos
+    staleTime: 2 * 60 * 1000, // Los datos se consideran frescos por 2 minutos
+    refetchInterval: 5 * 60 * 1000, // Refrescar cada 5 minutos
+    refetchOnWindowFocus: false, // No refrescar al cambiar de ventana
   });
 
   if (isLoading) {
