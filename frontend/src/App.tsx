@@ -17,6 +17,9 @@ import { ProductosPage } from './pages/productos/ProductosPage';
 import { MovimientosPage } from './pages/movimientos/MovimientosPage';
 import { AlertasPage } from './pages/alertas/AlertasPage';
 import { DashboardInventarioPage } from './pages/inventario/DashboardInventarioPage';
+import ActivosFijosPage from './pages/activos-fijos/ActivosFijosPage';
+import InversionesPage from './pages/activos-fijos/InversionesPage';
+import RoiDashboardPage from './pages/activos-fijos/RoiDashboardPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,6 +58,9 @@ function App() {
                     <Route path="/inventario/dashboard" element={<DashboardInventarioPage />} />
                     <Route path="/movimientos-stock" element={<MovimientosPage />} />
                     <Route path="/alertas-stock" element={<AlertasPage />} />
+                    <Route path="/activos-fijos" element={<ActivosFijosPage />} />
+                    <Route path="/inversiones" element={<InversionesPage />} />
+                    <Route path="/roi" element={<RoiDashboardPage />} />
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 </MainLayout>

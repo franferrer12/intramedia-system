@@ -15,6 +15,9 @@ import {
   Package,
   ArrowRightLeft,
   Bell,
+  Building2,
+  TrendingUp,
+  Percent,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../ui/Button';
@@ -42,6 +45,9 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
     { name: 'Movimientos', href: '/movimientos-stock', icon: ArrowRightLeft },
     { name: 'Alertas', href: '/alertas-stock', icon: Bell },
     { name: 'Finanzas', href: '/finanzas', icon: DollarSign },
+    { name: 'Activos Fijos', href: '/activos-fijos', icon: Building2 },
+    { name: 'Inversiones', href: '/inversiones', icon: TrendingUp },
+    { name: 'ROI Dashboard', href: '/roi', icon: Percent },
     { name: 'Personal', href: '/personal', icon: Users },
     { name: 'Turnos', href: '/turnos', icon: Clock },
     { name: 'Nóminas', href: '/nominas', icon: DollarSign },
