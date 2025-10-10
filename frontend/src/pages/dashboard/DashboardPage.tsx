@@ -36,36 +36,48 @@ export const DashboardPage = () => {
 
   const stats = [
     {
-      title: 'Eventos Activos',
+      title: '🎉 Eventos este Mes',
+      subtitle: 'Fiestas y actividades planificadas',
       value: dashboardData?.eventosActivos?.toString() || '0',
       icon: Calendar,
-      color: 'bg-blue-500',
+      color: 'from-blue-500 to-blue-600',
+      bgColor: 'from-blue-50 to-blue-100',
+      borderColor: 'border-blue-200',
     },
     {
-      title: 'Usuarios',
+      title: '👥 Gente Trabajando',
+      subtitle: 'Empleados en tu equipo',
       value: dashboardData?.totalUsuarios?.toString() || '0',
       icon: Users,
-      color: 'bg-green-500',
+      color: 'from-green-500 to-green-600',
+      bgColor: 'from-green-50 to-green-100',
+      borderColor: 'border-green-200',
     },
     {
-      title: 'Proveedores',
+      title: '🚚 Proveedores',
+      subtitle: 'Empresas que te venden',
       value: dashboardData?.totalProveedores?.toString() || '0',
       icon: TruckIcon,
-      color: 'bg-purple-500',
+      color: 'from-purple-500 to-purple-600',
+      bgColor: 'from-purple-50 to-purple-100',
+      borderColor: 'border-purple-200',
     },
     {
-      title: 'Ingresos del Mes',
-      value: `$${dashboardData?.ingresosMes?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`,
+      title: '💰 Ingresé este Mes',
+      subtitle: 'Dinero que entró en el mes',
+      value: `€${dashboardData?.ingresosMes?.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) || '0'}`,
       icon: DollarSign,
-      color: 'bg-yellow-500',
+      color: 'from-yellow-500 to-yellow-600',
+      bgColor: 'from-yellow-50 to-yellow-100',
+      borderColor: 'border-yellow-200',
     },
   ];
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">Bienvenido al sistema de gestión</p>
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border-2 border-blue-200">
+        <h1 className="text-4xl font-bold text-gray-900">👋 ¡Hola! Bienvenido a tu Club</h1>
+        <p className="text-gray-700 mt-2 text-lg">Aquí puedes ver todo lo importante de un vistazo</p>
       </div>
 
       {/* Stats Grid */}
@@ -73,88 +85,106 @@ export const DashboardPage = () => {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title}>
-              <CardBody className="flex items-center">
-                <div className={`p-3 rounded-lg ${stat.color}`}>
-                  <Icon className="h-6 w-6 text-white" />
+            <div key={stat.title} className={`bg-gradient-to-br ${stat.bgColor} rounded-lg shadow-lg p-6 border-2 ${stat.borderColor} transform transition hover:scale-105`}>
+              <div className="flex items-start justify-between mb-3">
+                <div className={`p-3 rounded-lg bg-gradient-to-br ${stat.color} shadow-md`}>
+                  <Icon className="h-7 w-7 text-white" />
                 </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                </div>
-              </CardBody>
-            </Card>
+              </div>
+              <h3 className="text-sm font-bold text-gray-700 mb-1">{stat.title}</h3>
+              <p className="text-4xl font-bold text-gray-900 mb-2">{stat.value}</p>
+              <p className="text-xs text-gray-600 font-medium">{stat.subtitle}</p>
+            </div>
           );
         })}
       </div>
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <h2 className="text-lg font-semibold">Próximos Eventos</h2>
-          </CardHeader>
-          <CardBody>
+        <div className="bg-white rounded-lg shadow-lg border-2 border-blue-200 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="w-6 h-6 text-blue-600" />
+            <h2 className="text-xl font-bold text-gray-900">🎊 Próximas Fiestas</h2>
+          </div>
+          <div>
             {dashboardData?.proximosEventos && dashboardData.proximosEventos.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {dashboardData.proximosEventos.map((evento) => (
-                  <div key={evento.id} className="flex items-center justify-between py-3 border-b last:border-b-0">
-                    <div>
-                      <p className="font-medium">{evento.nombre}</p>
-                      <p className="text-sm text-gray-600">{evento.fecha} - {evento.hora}</p>
+                  <div key={evento.id} className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-bold text-gray-900">{evento.nombre}</p>
+                        <p className="text-sm text-gray-600 mt-1">📅 {evento.fecha} · 🕐 {evento.hora}</p>
+                      </div>
+                      <span className={`px-3 py-1 text-sm font-bold rounded-full ${
+                        evento.estado === 'Confirmado'
+                          ? 'bg-green-500 text-white'
+                          : 'bg-blue-500 text-white'
+                      }`}>
+                        {evento.estado === 'Confirmado' ? '✅ Confirmado' : '📋 Planificando'}
+                      </span>
                     </div>
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                      evento.estado === 'Confirmado'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {evento.estado}
-                    </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500 text-center py-4">No hay eventos próximos</p>
+              <div className="bg-gray-50 p-6 rounded-lg text-center">
+                <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-600 font-medium">No hay fiestas planificadas</p>
+                <p className="text-sm text-gray-500 mt-1">Crea tu primer evento en la sección Eventos</p>
+              </div>
             )}
-          </CardBody>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <h2 className="text-lg font-semibold">Actividad Reciente</h2>
-          </CardHeader>
-          <CardBody>
+        <div className="bg-white rounded-lg shadow-lg border-2 border-green-200 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <DollarSign className="w-6 h-6 text-green-600" />
+            <h2 className="text-xl font-bold text-gray-900">📝 Qué Pasó Últimamente</h2>
+          </div>
+          <div>
             {dashboardData?.actividadReciente && dashboardData.actividadReciente.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {dashboardData.actividadReciente.map((actividad, index) => (
-                  <div key={index} className="flex items-start py-3 border-b last:border-b-0">
-                    <div className={`p-2 rounded-lg ${
-                      actividad.tipo === 'EVENTO_CREADO'
-                        ? 'bg-green-100'
-                        : actividad.tipo === 'USUARIO_CREADO'
-                        ? 'bg-blue-100'
-                        : 'bg-purple-100'
-                    }`}>
-                      {actividad.tipo === 'EVENTO_CREADO' ? (
-                        <Calendar className="h-4 w-4 text-green-600" />
-                      ) : actividad.tipo === 'USUARIO_CREADO' ? (
-                        <Users className="h-4 w-4 text-blue-600" />
-                      ) : (
-                        <DollarSign className="h-4 w-4 text-purple-600" />
-                      )}
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium">{actividad.descripcion}</p>
-                      <p className="text-xs text-gray-600">{actividad.tiempoRelativo}</p>
+                  <div key={index} className={`p-4 rounded-lg border ${
+                    actividad.tipo === 'EVENTO_CREADO'
+                      ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
+                      : actividad.tipo === 'USUARIO_CREADO'
+                      ? 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200'
+                      : 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200'
+                  }`}>
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-lg ${
+                        actividad.tipo === 'EVENTO_CREADO'
+                          ? 'bg-green-500'
+                          : actividad.tipo === 'USUARIO_CREADO'
+                          ? 'bg-blue-500'
+                          : 'bg-purple-500'
+                      }`}>
+                        {actividad.tipo === 'EVENTO_CREADO' ? (
+                          <Calendar className="h-5 w-5 text-white" />
+                        ) : actividad.tipo === 'USUARIO_CREADO' ? (
+                          <Users className="h-5 w-5 text-white" />
+                        ) : (
+                          <DollarSign className="h-5 w-5 text-white" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-gray-900">{actividad.descripcion}</p>
+                        <p className="text-xs text-gray-600 mt-1">🕐 {actividad.tiempoRelativo}</p>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500 text-center py-4">No hay actividad reciente</p>
+              <div className="bg-gray-50 p-6 rounded-lg text-center">
+                <p className="text-gray-600 font-medium">No hay movimientos recientes</p>
+                <p className="text-sm text-gray-500 mt-1">Aquí aparecerán las últimas acciones</p>
+              </div>
             )}
-          </CardBody>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
