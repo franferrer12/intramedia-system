@@ -2,6 +2,7 @@
 FROM node:18-alpine AS build
 WORKDIR /app
 
+# Force rebuild - 2025-01-10
 # Copiar package.json
 COPY frontend/package*.json ./
 RUN npm install
