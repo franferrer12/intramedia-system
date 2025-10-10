@@ -27,6 +27,7 @@ public class ProveedorController {
      * Obtener todos los proveedores
      */
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE', 'ROLE_ENCARGADO', 'ROLE_LECTURA')")
     public ResponseEntity<List<ProveedorDTO>> getAllProveedores() {
         return ResponseEntity.ok(proveedorService.getAllProveedores());
     }
@@ -35,6 +36,7 @@ public class ProveedorController {
      * Obtener proveedor por ID
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE', 'ROLE_ENCARGADO', 'ROLE_LECTURA')")
     public ResponseEntity<ProveedorDTO> getProveedorById(@PathVariable Long id) {
         return ResponseEntity.ok(proveedorService.getProveedorById(id));
     }
@@ -43,6 +45,7 @@ public class ProveedorController {
      * Obtener proveedores activos
      */
     @GetMapping("/activos")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE', 'ROLE_ENCARGADO', 'ROLE_LECTURA')")
     public ResponseEntity<List<ProveedorDTO>> getProveedoresActivos() {
         return ResponseEntity.ok(proveedorService.getProveedoresActivos());
     }
@@ -51,6 +54,7 @@ public class ProveedorController {
      * Obtener proveedores por tipo
      */
     @GetMapping("/tipo/{tipo}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE', 'ROLE_ENCARGADO', 'ROLE_LECTURA')")
     public ResponseEntity<List<ProveedorDTO>> getProveedoresByTipo(@PathVariable TipoProveedor tipo) {
         return ResponseEntity.ok(proveedorService.getProveedoresByTipo(tipo));
     }

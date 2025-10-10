@@ -35,20 +35,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         // Skip JWT authentication for public endpoints only
         String path = request.getRequestURI();
+        String method = request.getMethod();
+
+        logger.info("JWT Filter: " + method + " " + path + " - Processing...");
+
         if (path.equals("/api/auth/login") ||
             path.equals("/api/auth/register") ||
             path.equals("/actuator/health")) {
+            logger.info("JWT Filter: Skipping public endpoint " + path);
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
             String jwt = getJwtFromRequest(request);
+            logger.info("JWT Filter: Token extracted: " + (jwt != null ? "YES (length=" + jwt.length() + ")" : "NO"));
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
                 String username = tokenProvider.getUsernameFromToken(jwt);
+                logger.info("JWT Filter: Token valid, username: " + username);
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                logger.info("JWT Filter: User loaded, authorities: " + userDetails.getAuthorities());
+
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
@@ -58,9 +67,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                logger.info("JWT Filter: Authentication set in SecurityContext");
+            } else {
+                logger.warn("JWT Filter: Token validation failed or empty");
             }
         } catch (Exception ex) {
-            logger.error("Could not set user authentication in security context", ex);
+            logger.error("JWT Filter: Exception occurred: " + ex.getMessage(), ex);
         }
 
         filterChain.doFilter(request, response);
