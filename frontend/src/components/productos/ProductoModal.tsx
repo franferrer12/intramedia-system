@@ -331,19 +331,26 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Categoría <span className="text-red-500">*</span>
                     </label>
-                    <select
+                    <input
+                      type="text"
+                      list="categorias-list"
                       value={formData.categoria}
                       onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
+                      placeholder="Ej: Licores, Refrescos, Snacks..."
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
-                    >
-                      <option value="">Seleccionar...</option>
+                    />
+                    <datalist id="categorias-list">
+                      <option value="Licores" />
+                      <option value="Vinos" />
+                      <option value="Cervezas" />
+                      <option value="Refrescos y Mezcladores" />
+                      <option value="Licores Dulces" />
+                      <option value="Snacks" />
                       {categorias.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
+                        <option key={cat} value={cat} />
                       ))}
-                    </select>
+                    </datalist>
                   </div>
 
                   <div>
