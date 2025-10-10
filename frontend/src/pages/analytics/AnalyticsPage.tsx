@@ -59,34 +59,34 @@ export const AnalyticsPage: FC = () => {
     color: string;
     subtitle?: string;
   }> = ({ title, value, change, icon: Icon, color, subtitle }) => (
-    <div className="bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-lg p-6 border-2 border-gray-200 hover:shadow-xl transition-shadow">
+    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-sm font-bold text-gray-700 mb-2">{title}</p>
-          <p className="text-4xl font-bold text-gray-900">{value}</p>
+          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
           {subtitle && (
-            <p className="text-xs text-gray-600 mt-2 font-medium">{subtitle}</p>
+            <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
           )}
           {change !== undefined && (
-            <div className="flex items-center mt-3">
+            <div className="flex items-center mt-2">
               {change >= 0 ? (
-                <TrendingUp className="h-5 w-5 text-green-500 mr-1" />
+                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
               ) : (
-                <TrendingDown className="h-5 w-5 text-red-500 mr-1" />
+                <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
               )}
               <span
-                className={`text-sm font-bold ${
+                className={`text-sm font-medium ${
                   change >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}
               >
                 {formatPercentage(change)}
               </span>
-              <span className="text-xs text-gray-600 ml-1 font-medium">vs mes anterior</span>
+              <span className="text-xs text-gray-500 ml-1">vs mes anterior</span>
             </div>
           )}
         </div>
-        <div className={`p-4 rounded-full ${color} shadow-md`}>
-          <Icon className="h-8 w-8 text-white" />
+        <div className={`p-3 rounded-full ${color}`}>
+          <Icon className="h-6 w-6 text-white" />
         </div>
       </div>
     </div>
@@ -140,61 +140,66 @@ export const AnalyticsPage: FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-cyan-50 to-blue-50 p-6 rounded-lg border-2 border-cyan-200">
-        <h1 className="text-4xl font-bold text-gray-900">📊 ¿Cómo Va Mi Negocio?</h1>
-        <p className="text-gray-700 mt-2 text-lg">
-          Resumen de cómo está funcionando todo: ganancias, gastos y más
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Análisis del Negocio</h1>
+          <p className="text-gray-600 mt-1">
+            Cómo va tu club
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <BarChart3 className="h-8 w-8 text-blue-600" />
+        </div>
       </div>
 
       {/* Métricas principales */}
       {dashboardData && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard
-            title="💰 Lo que Pagué a Mi Gente"
+            title="Costes Laborales Mes Actual"
             value={formatCurrency(dashboardData?.costesLaboralesMesActual || 0)}
             change={dashboardData?.variacionMensual}
             icon={DollarSign}
-            color="bg-gradient-to-br from-blue-500 to-blue-600"
+            color="bg-blue-500"
             subtitle={dashboardData?.mesActual || ''}
           />
           <MetricCard
-            title="👥 Gente Trabajando"
+            title="Empleados Activos"
             value={dashboardData?.empleadosActivos || 0}
             icon={Users}
-            color="bg-gradient-to-br from-green-500 to-green-600"
-            subtitle={`${dashboardData?.cantidadJornadasMesActual || 0} días trabajados este mes`}
+            color="bg-green-500"
+            subtitle={`${dashboardData?.cantidadJornadasMesActual || 0} jornadas este mes`}
           />
           <MetricCard
-            title="⏰ Pago por Hora"
+            title="Coste Medio por Hora"
             value={formatCurrency(dashboardData?.promedioCosteHora || 0)}
             icon={Clock}
-            color="bg-gradient-to-br from-purple-500 to-purple-600"
+            color="bg-purple-500"
             subtitle={`${(dashboardData?.totalHorasMesActual || 0).toFixed(1)} horas trabajadas`}
           />
           <MetricCard
-            title="⚠️ Tengo que Pagar"
+            title="Pendiente de Pago"
             value={formatCurrency(dashboardData?.importePendientePago || 0)}
             icon={AlertCircle}
-            color="bg-gradient-to-br from-orange-500 to-orange-600"
-            subtitle={`${dashboardData?.jornadasPendientesPago || 0} días pendientes`}
+            color="bg-orange-500"
+            subtitle={`${dashboardData?.jornadasPendientesPago || 0} jornadas pendientes`}
           />
         </div>
       )}
 
       {/* Gráfico de tendencia */}
       {dashboardData && dashboardData.ultimos6MesesTendencia && dashboardData.ultimos6MesesTendencia.length > 0 && (
-        <div className="bg-white rounded-lg shadow-lg p-6 border-2 border-blue-200">
+        <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                📈 Cuánto Pagué Cada Mes
+              <h2 className="text-xl font-bold text-gray-900">
+                Evolución de Costes Laborales
               </h2>
-              <p className="text-sm text-gray-600 mt-2 font-medium">
-                Los últimos 6 meses de sueldos
+              <p className="text-sm text-gray-600 mt-1">
+                Últimos 6 meses
               </p>
             </div>
-            <BarChart3 className="h-8 w-8 text-blue-600" />
+            <BarChart3 className="h-6 w-6 text-blue-600" />
           </div>
           {loadingCostes ? (
             <div className="flex items-center justify-center h-64">
@@ -208,32 +213,32 @@ export const AnalyticsPage: FC = () => {
 
       {/* Detalles de costes laborales */}
       {costesData && (
-        <div className="bg-white rounded-lg shadow-lg p-6 border-2 border-green-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            💵 Detalle de lo que Pagué
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">
+            Detalle de Costes Laborales
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 rounded-lg p-4">
-              <p className="text-sm font-bold text-gray-700">✅ Ya Pagué</p>
-              <p className="text-3xl font-bold text-green-600 mt-2">
+            <div className="border rounded-lg p-4">
+              <p className="text-sm text-gray-600">Total Pagado</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">
                 {formatCurrency(costesData?.totalPagadoMes || 0)}
               </p>
             </div>
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-lg p-4">
-              <p className="text-sm font-bold text-gray-700">📋 Total Sueldos</p>
-              <p className="text-3xl font-bold text-blue-600 mt-2">
+            <div className="border rounded-lg p-4">
+              <p className="text-sm text-gray-600">Total Nóminas</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">
                 {formatCurrency(costesData?.totalNominaMes || 0)}
               </p>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 rounded-lg p-4">
-              <p className="text-sm font-bold text-gray-700">⏰ Horas Trabajadas</p>
-              <p className="text-3xl font-bold text-purple-600 mt-2">
+            <div className="border rounded-lg p-4">
+              <p className="text-sm text-gray-600">Horas Trabajadas</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">
                 {(costesData?.totalHorasTrabajadas || 0).toFixed(1)}h
               </p>
             </div>
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-200 rounded-lg p-4">
-              <p className="text-sm font-bold text-gray-700">💰 Pago por Día</p>
-              <p className="text-3xl font-bold text-orange-600 mt-2">
+            <div className="border rounded-lg p-4">
+              <p className="text-sm text-gray-600">Coste por Jornada</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">
                 {formatCurrency(costesData?.promedioCosteJornada || 0)}
               </p>
             </div>
@@ -242,21 +247,21 @@ export const AnalyticsPage: FC = () => {
       )}
 
       {/* Filtros para rentabilidad */}
-      <div className="bg-white rounded-lg shadow-lg p-6 border-2 border-purple-200">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          🎉 ¿Qué Fiestas Me Dieron Más Dinero?
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">
+          Análisis de Rentabilidad por Eventos
         </h2>
         <div className="flex flex-wrap gap-4 mb-6">
           <div className="flex-1 min-w-[200px]">
             <DatePicker
-              label="📅 Desde cuándo"
+              label="Desde"
               value={fechaDesde}
               onChange={(value) => setFechaDesde(value)}
             />
           </div>
           <div className="flex-1 min-w-[200px]">
             <DatePicker
-              label="📅 Hasta cuándo"
+              label="Hasta"
               value={fechaHasta}
               onChange={(value) => setFechaHasta(value)}
             />
@@ -267,9 +272,9 @@ export const AnalyticsPage: FC = () => {
                 setFechaDesde('');
                 setFechaHasta('');
               }}
-              className="px-4 py-2 text-sm font-bold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 border-2 border-gray-300"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
             >
-              🔄 Borrar Filtros
+              Limpiar filtros
             </button>
           </div>
         </div>

@@ -164,68 +164,72 @@ export const TransaccionesPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-emerald-50 to-green-50 p-6 rounded-lg border-2 border-green-200">
-        <h1 className="text-4xl font-bold text-gray-900">💰 Mi Dinero (Entradas y Salidas)</h1>
-        <p className="text-gray-700 mt-2 text-lg">Todo lo que entra y sale de mi negocio</p>
-      </div>
-
-      <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={handleExportExcel} className="flex items-center">
-          <FileDown className="h-4 w-4 mr-2" />
-          Descargar Excel
-        </Button>
-        <Button variant="outline" onClick={handleExportPdf} className="flex items-center">
-          <FileText className="h-4 w-4 mr-2" />
-          Descargar PDF
-        </Button>
-        <Button variant="primary" onClick={handleCreate} className="flex items-center">
-          <Plus className="h-4 w-4 mr-2" />
-          ➕ Registrar Pago
-        </Button>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Ingresos y Gastos</h1>
+          <p className="text-gray-600 mt-2">Control de dinero</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExportExcel} className="flex items-center">
+            <FileDown className="h-4 w-4 mr-2" />
+            Excel
+          </Button>
+          <Button variant="outline" onClick={handleExportPdf} className="flex items-center">
+            <FileText className="h-4 w-4 mr-2" />
+            PDF
+          </Button>
+          <Button variant="primary" onClick={handleCreate} className="flex items-center">
+            <Plus className="h-4 w-4 mr-2" />
+            Registrar Movimiento
+          </Button>
+        </div>
       </div>
 
       {/* Resumen Financiero */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg shadow-lg p-6 border-2 border-green-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-bold text-gray-700">📈 Dinero que Entró</p>
-              <p className="text-4xl font-bold text-green-600 mt-2">{formatMonto(totalIngresos)}</p>
-              <p className="text-xs text-gray-600 mt-1">ingresos totales</p>
+        <Card>
+          <CardBody>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Ingresos</p>
+                <p className="text-2xl font-bold text-green-600">{formatMonto(totalIngresos)}</p>
+              </div>
+              <div className="bg-green-100 p-3 rounded-full">
+                <TrendingUp className="h-6 w-6 text-green-600" />
+              </div>
             </div>
-            <div className="bg-gradient-to-br from-green-500 to-green-600 p-3 rounded-lg shadow-md">
-              <TrendingUp className="h-8 w-8 text-white" />
-            </div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
 
-        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg shadow-lg p-6 border-2 border-red-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-bold text-gray-700">📉 Dinero que Salió</p>
-              <p className="text-4xl font-bold text-red-600 mt-2">{formatMonto(totalGastos)}</p>
-              <p className="text-xs text-gray-600 mt-1">gastos totales</p>
+        <Card>
+          <CardBody>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Gastos</p>
+                <p className="text-2xl font-bold text-red-600">{formatMonto(totalGastos)}</p>
+              </div>
+              <div className="bg-red-100 p-3 rounded-full">
+                <TrendingDown className="h-6 w-6 text-red-600" />
+              </div>
             </div>
-            <div className="bg-gradient-to-br from-red-500 to-red-600 p-3 rounded-lg shadow-md">
-              <TrendingDown className="h-8 w-8 text-white" />
-            </div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
 
-        <div className={`bg-gradient-to-br ${balance >= 0 ? 'from-blue-50 to-blue-100' : 'from-red-50 to-red-100'} rounded-lg shadow-lg p-6 border-2 ${balance >= 0 ? 'border-blue-200' : 'border-red-200'}`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-bold text-gray-700">💵 Lo que Me Queda</p>
-              <p className={`text-4xl font-bold mt-2 ${balance >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                {formatMonto(balance)}
-              </p>
-              <p className="text-xs text-gray-600 mt-1">{balance >= 0 ? 'ganancia' : 'pérdida'}</p>
+        <Card>
+          <CardBody>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Balance</p>
+                <p className={`text-2xl font-bold ${balance >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                  {formatMonto(balance)}
+                </p>
+              </div>
+              <div className={`${balance >= 0 ? 'bg-blue-100' : 'bg-red-100'} p-3 rounded-full`}>
+                <DollarSign className={`h-6 w-6 ${balance >= 0 ? 'text-blue-600' : 'text-red-600'}`} />
+              </div>
             </div>
-            <div className={`bg-gradient-to-br ${balance >= 0 ? 'from-blue-500 to-blue-600' : 'from-red-500 to-red-600'} p-3 rounded-lg shadow-md`}>
-              <DollarSign className="h-8 w-8 text-white" />
-            </div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
       </div>
 
       {/* Filtros */}
@@ -233,29 +237,29 @@ export const TransaccionesPage = () => {
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                🔍 Filtrar por Tipo
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tipo
               </label>
               <select
                 value={tipoFiltro}
                 onChange={(e) => setTipoFiltro(e.target.value as TipoTransaccion | 'TODOS')}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg font-medium"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
               >
-                <option value="TODOS">Todos los movimientos</option>
-                <option value="INGRESO">💰 Dinero que Entró</option>
-                <option value="GASTO">💸 Dinero que Salió</option>
+                <option value="TODOS">Todos</option>
+                <option value="INGRESO">Ingresos</option>
+                <option value="GASTO">Gastos</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                📅 ¿Qué Mes?
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Fecha
               </label>
               <input
                 type="month"
                 value={mesActual}
                 onChange={(e) => setMesActual(e.target.value)}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg font-medium"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
               />
             </div>
           </div>

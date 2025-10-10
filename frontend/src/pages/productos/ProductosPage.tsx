@@ -184,76 +184,68 @@ export const ProductosPage: FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-orange-50 to-yellow-50 p-6 rounded-lg border-2 border-orange-200">
-        <h1 className="text-4xl font-bold text-gray-900">📦 Lo que Tengo en el Almacén</h1>
-        <p className="text-gray-700 mt-2 text-lg">Bebidas, comida y todo lo que vendo</p>
-      </div>
-
-      <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={handleExportExcel}>
-          <FileDown className="h-4 w-4 mr-2" />
-          Descargar Excel
-        </Button>
-        <Button onClick={handleCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          ➕ Agregar Producto
-        </Button>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Productos y Stock</h1>
+          <p className="text-gray-600 mt-1">Tus productos y bebidas</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExportExcel}>
+            <FileDown className="h-4 w-4 mr-2" />
+            Exportar Excel
+          </Button>
+          <Button onClick={handleCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Producto
+          </Button>
+        </div>
       </div>
 
       {/* Resumen de alertas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg shadow-lg p-6 border-2 border-yellow-200">
-          <div className="flex items-center justify-between">
+        <div className="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
+          <div className="flex items-center">
+            <AlertTriangle className="h-8 w-8 text-yellow-500 mr-3" />
             <div>
-              <p className="text-sm font-bold text-gray-700">⚠️ Se Está Acabando</p>
-              <p className="text-4xl font-bold text-yellow-600 mt-2">
+              <p className="text-sm text-gray-600">Stock Bajo</p>
+              <p className="text-2xl font-bold">
                 {productos.filter(p => p.bajoStock).length}
               </p>
-              <p className="text-xs text-gray-600 mt-1">productos con poco stock</p>
-            </div>
-            <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 p-3 rounded-lg shadow-md">
-              <AlertTriangle className="h-8 w-8 text-white" />
             </div>
           </div>
         </div>
-        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg shadow-lg p-6 border-2 border-red-200">
-          <div className="flex items-center justify-between">
+        <div className="bg-white rounded-lg shadow p-4 border-l-4 border-red-500">
+          <div className="flex items-center">
+            <TrendingDown className="h-8 w-8 text-red-500 mr-3" />
             <div>
-              <p className="text-sm font-bold text-gray-700">❌ Ya No Tengo</p>
-              <p className="text-4xl font-bold text-red-600 mt-2">
+              <p className="text-sm text-gray-600">Sin Stock</p>
+              <p className="text-2xl font-bold">
                 {productos.filter(p => p.sinStock).length}
               </p>
-              <p className="text-xs text-gray-600 mt-1">productos sin stock</p>
-            </div>
-            <div className="bg-gradient-to-br from-red-500 to-red-600 p-3 rounded-lg shadow-md">
-              <TrendingDown className="h-8 w-8 text-white" />
             </div>
           </div>
         </div>
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg p-6 border-2 border-blue-200">
-          <div className="flex items-center justify-between">
+        <div className="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+          <div className="flex items-center">
+            <Package className="h-8 w-8 text-blue-500 mr-3" />
             <div>
-              <p className="text-sm font-bold text-gray-700">📊 Total de Productos</p>
-              <p className="text-4xl font-bold text-blue-600 mt-2">{productos.length}</p>
-              <p className="text-xs text-gray-600 mt-1">en mi catálogo</p>
-            </div>
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-lg shadow-md">
-              <Package className="h-8 w-8 text-white" />
+              <p className="text-sm text-gray-600">Total Productos</p>
+              <p className="text-2xl font-bold">{productos.length}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filtros */}
-      <div className="bg-white rounded-lg shadow-lg p-6 border-2 border-gray-200">
+      <div className="bg-white rounded-lg shadow p-4">
         <div className="flex items-center space-x-4">
-          <label className="text-sm font-bold text-gray-700">🏷️ Filtrar por Categoría:</label>
+          <label className="text-sm font-medium text-gray-700">Categoría:</label>
           <select
             value={filtroCategoria}
             onChange={(e) => setFiltroCategoria(e.target.value)}
-            className="px-4 py-2 border-2 border-gray-300 rounded-lg font-medium"
+            className="px-3 py-2 border border-gray-300 rounded-md"
           >
-            <option value="">Todas las categorías</option>
+            <option value="">Todas</option>
             {categorias.map(cat => (
               <option key={cat} value={cat}>{cat}</option>
             ))}

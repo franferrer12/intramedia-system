@@ -165,71 +165,74 @@ export const EmpleadosPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg border-2 border-green-200">
-        <h1 className="text-4xl font-bold text-gray-900">👥 Mi Equipo de Trabajo</h1>
-        <p className="text-gray-700 mt-2 text-lg">Las personas que trabajan conmigo</p>
-      </div>
-
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Mi Equipo</h1>
+          <p className="text-gray-600 mt-2">Personas que trabajan contigo</p>
+        </div>
         <Button variant="primary" onClick={handleCreate} className="flex items-center">
           <Plus className="h-4 w-4 mr-2" />
-          ➕ Contratar Persona
+          Contratar Empleado
         </Button>
       </div>
 
       {/* Resumen de Empleados */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg p-6 border-2 border-blue-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-bold text-gray-700">👨‍👩‍👧‍👦 Total de Gente</p>
-              <p className="text-4xl font-bold text-blue-600 mt-2">{totalEmpleados}</p>
-              <p className="text-xs text-gray-600 mt-1">personas en total</p>
+        <Card>
+          <CardBody>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Personal</p>
+                <p className="text-2xl font-bold text-gray-900">{totalEmpleados}</p>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-full">
+                <Users className="h-6 w-6 text-blue-600" />
+              </div>
             </div>
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-lg shadow-md">
-              <Users className="h-8 w-8 text-white" />
-            </div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
 
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg shadow-lg p-6 border-2 border-green-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-bold text-gray-700">✅ Trabajando Ahora</p>
-              <p className="text-4xl font-bold text-green-600 mt-2">{empleadosActivos}</p>
-              <p className="text-xs text-gray-600 mt-1">empleados activos</p>
+        <Card>
+          <CardBody>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Trabajando</p>
+                <p className="text-2xl font-bold text-green-600">{empleadosActivos}</p>
+              </div>
+              <div className="bg-green-100 p-3 rounded-full">
+                <UserCheck className="h-6 w-6 text-green-600" />
+              </div>
             </div>
-            <div className="bg-gradient-to-br from-green-500 to-green-600 p-3 rounded-lg shadow-md">
-              <UserCheck className="h-8 w-8 text-white" />
-            </div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
 
-        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg shadow-lg p-6 border-2 border-red-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-bold text-gray-700">❌ Ya No Trabajan</p>
-              <p className="text-4xl font-bold text-red-600 mt-2">{empleadosInactivos}</p>
-              <p className="text-xs text-gray-600 mt-1">empleados inactivos</p>
+        <Card>
+          <CardBody>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">No Trabajan</p>
+                <p className="text-2xl font-bold text-red-600">{empleadosInactivos}</p>
+              </div>
+              <div className="bg-red-100 p-3 rounded-full">
+                <UserX className="h-6 w-6 text-red-600" />
+              </div>
             </div>
-            <div className="bg-gradient-to-br from-red-500 to-red-600 p-3 rounded-lg shadow-md">
-              <UserX className="h-8 w-8 text-white" />
-            </div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
 
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg shadow-lg p-6 border-2 border-purple-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-bold text-gray-700">💰 Les Pago al Mes</p>
-              <p className="text-4xl font-bold text-purple-600 mt-2">{formatSalario(nominaTotal)}</p>
-              <p className="text-xs text-gray-600 mt-1">salarios totales</p>
+        <Card>
+          <CardBody>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Total Sueldos/Mes</p>
+                <p className="text-2xl font-bold text-purple-600">{formatSalario(nominaTotal)}</p>
+              </div>
+              <div className="bg-purple-100 p-3 rounded-full">
+                <DollarSign className="h-6 w-6 text-purple-600" />
+              </div>
             </div>
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-3 rounded-lg shadow-md">
-              <DollarSign className="h-8 w-8 text-white" />
-            </div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
       </div>
 
       {/* Filtros */}
@@ -237,32 +240,32 @@ export const EmpleadosPage = () => {
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                🔍 Filtrar por Estado
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Estado
               </label>
               <select
                 value={filtroEstado}
                 onChange={(e) => setFiltroEstado(e.target.value as 'TODOS' | 'ACTIVOS' | 'INACTIVOS')}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg font-medium"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
               >
                 <option value="TODOS">Todos</option>
-                <option value="ACTIVOS">✅ Activos</option>
-                <option value="INACTIVOS">❌ Inactivos</option>
+                <option value="ACTIVOS">Activos</option>
+                <option value="INACTIVOS">Inactivos</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                🔎 Buscar Persona
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Buscar
               </label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Buscar por nombre, DNI, cargo..."
-                  className="w-full pl-10 pr-3 py-2 border-2 border-gray-300 rounded-lg font-medium"
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md"
                 />
               </div>
             </div>
