@@ -25,6 +25,8 @@ import SesionesPage from './pages/pos/SesionesPage';
 import { POSDashboardPage } from './pages/pos/POSDashboardPage';
 import POSTerminalPage from './pages/pos/POSTerminalPage';
 import MonitorSesionesPage from './pages/pos/MonitorSesionesPage';
+import { AyudaPage } from './pages/ayuda/AyudaPage';
+import { NovedadesPage } from './pages/ayuda/NovedadesPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,6 +73,8 @@ function App() {
                     <Route path="/pos-monitor" element={<MonitorSesionesPage />} />
                     <Route path="/sesiones" element={<SesionesPage />} />
                     <Route path="/pos-dashboard" element={<POSDashboardPage />} />
+                    <Route path="/ayuda" element={<AyudaPage />} />
+                    <Route path="/ayuda/novedades" element={<NovedadesPage />} />
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 </MainLayout>
