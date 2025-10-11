@@ -8,6 +8,7 @@ Sistema integral de gestión para discoteca - **100% autónomo y sin integracion
 - ✅ **Gestión Financiera** - Registro manual de gastos/ingresos + P&L automático
 - ✅ **Gestión de Personal** - Empleados, turnos y nóminas automáticas
 - ✅ **Inventario** - Control de stock con alertas automáticas
+- ✅ **Sistema POS** - Punto de venta con sesiones de caja, ventas y estadísticas en tiempo real
 - ✅ **Compras** - Pedidos a proveedores con actualización automática de stock
 - ✅ **Analytics & Reportes** - Dashboard ejecutivo con KPIs y exportación PDF/Excel
 
@@ -161,8 +162,10 @@ cd frontend && npm run build
 
 ### Documentación del Proyecto
 
-- **[PROGRESS.md](PROGRESS.md)** - Estado actual y progreso del desarrollo
+- **[PROGRESS.md](PROGRESS.md)** - Estado actual y progreso del desarrollo (v0.3.0 - 75% completado)
 - **[BUGFIXES.md](BUGFIXES.md)** - 🐛 Registro detallado de errores solucionados
+- **[POS_DEPLOYMENT_SUCCESS.md](POS_DEPLOYMENT_SUCCESS.md)** - 🎉 Documentación completa del deployment exitoso del Sistema POS
+- **[POS_ROADMAP.md](POS_ROADMAP.md)** - Roadmap completo del Sistema POS (Fase 0 completada)
 - **[STATUS.md](STATUS.md)** - Estado de funcionalidades
 - **[TESTING.md](TESTING.md)** - Guía de testing
 
@@ -205,11 +208,23 @@ Este es un proyecto privado. Ver documentación para guías de desarrollo.
 
 ---
 
-**Versión:** 0.2.0
-**Última actualización:** Octubre 2025
-**Estado:** ✅ Versión funcional con UX optimizada para usuarios no técnicos
+**Versión:** 0.3.0
+**Última actualización:** 11 Octubre 2025
+**Estado:** ✅ Versión funcional con UX optimizada + Sistema POS completo en producción
 
-### ✨ Nuevas Características (v0.2.0)
+### ✨ Nuevas Características (v0.3.0)
+- ✅ **Sistema POS Completo** - Punto de venta con 24 endpoints REST operativos
+  - Gestión de sesiones de caja (apertura/cierre con efectivo inicial/final)
+  - Registro de ventas con múltiples productos
+  - Métodos de pago: EFECTIVO, TARJETA, MIXTO
+  - Generación automática de número de ticket (TKT-YYYYMMDD-NNNN)
+  - Descuento automático de stock vía trigger de base de datos
+  - Creación automática de transacción financiera por cada venta
+  - Dashboard POS con estadísticas en tiempo real
+  - Ranking de productos más vendidos
+  - Ventas por categoría y por período
+
+### Características Previas (v0.2.0)
 - ✅ **UX adaptada para dueños de discotecas** - Lenguaje simplificado y conversacional
 - ✅ **Responsive mobile mejorado** - Sidebar con scroll en dispositivos móviles
 - ✅ Dashboard con datos reales sincronizados
@@ -228,6 +243,14 @@ Este es un proyecto privado. Ver documentación para guías de desarrollo.
 - ✅ **Análisis del Negocio** (antes "Analytics") - "Cómo va tu club"
 
 ### 🐛 Bugfixes Aplicados
+
+#### Sistema POS (2025-10-11)
+- ✅ **Errores de compilación Java** - 4 errores en entidades y servicios POS
+  - Llamadas a `producto.getInventario()` inexistente → Eliminado
+  - Método `isActivo()` vs `getActivo()` → Corregido (Lombok Boolean)
+  - Acceso a `categoria.getNombre()` en String → Simplificado
+  - Query JPQL con `p.categoria.nombre` → Cambiado a `p.categoria`
+  - **Resultado:** Backend compila y despliega exitosamente en Railway
 
 #### Deployment en Railway (2025-10-10)
 - ✅ **Out of Memory (OOM)** - Backend no iniciaba en Railway
