@@ -4,6 +4,173 @@
 
 ---
 
+## 2025-10-11 - Errores de Compilación en Sistema POS
+
+### 1. Llamadas a Método Inexistente `producto.getInventario()`
+
+**Problema:**
+Backend fallaba en compilación al intentar llamar a `producto.getInventario()`, método que no existe en la entidad `Producto`.
+
+**Síntomas:**
+```
+[ERROR] /app/src/main/java/com/club/management/entity/DetalleVenta.java:[111,21] cannot find symbol
+  symbol:   method getInventario()
+  location: variable producto of type com.club.management.entity.Producto
+```
+
+**Causa Raíz:**
+El modelo de datos evolucionó y ya no existe una entidad separada `Inventario`. El stock se maneja directamente en la tabla `productos` con el campo `stock`. El código intentaba acceder a una relación JPA que nunca existió.
+
+**Archivos Afectados:**
+- `backend/src/main/java/com/club/management/entity/DetalleVenta.java` (líneas 111-112)
+
+**Solución:**
+Eliminadas las llamadas a `getInventario()` y simplificada la validación de stock para delegar al trigger de base de datos `descontar_stock_venta` que se encarga de verificar y descontar el stock automáticamente.
+
+```java
+// ANTES (INCORRECTO):
+if (producto.getInventario() != null) {
+    Integer stockActual = producto.getInventario().getCantidadActual();
+    if (stockActual != null && stockActual < cantidad) {
+        throw new IllegalStateException(...);
+    }
+}
+
+// DESPUÉS (CORRECTO):
+// Nota: La validación de stock se hace a nivel de base de datos
+// mediante el trigger descontar_stock_venta
+```
+
+**Commit:** `0e2cd67 - fix: Corregir errores de compilación en sistema POS`
+
+---
+
+### 2. Método `isActivo()` No Existe para Boolean
+
+**Problema:**
+Backend fallaba en compilación al intentar llamar a `producto.isActivo()` cuando el campo `activo` es de tipo `Boolean` (objeto), no `boolean` (primitivo).
+
+**Síntomas:**
+```
+[ERROR] /app/src/main/java/com/club/management/service/VentaService.java:[132,26] cannot find symbol
+  symbol:   method isActivo()
+  location: variable producto of type com.club.management.entity.Producto
+```
+
+**Causa Raíz:**
+Lombok genera métodos getter diferentes según el tipo del campo:
+- Para `boolean` primitivo → `isActivo()`
+- Para `Boolean` objeto → `getActivo()`
+
+El campo `activo` en la entidad `Producto` está definido como `Boolean` objeto, por lo que Lombok genera `getActivo()`, no `isActivo()`.
+
+**Archivos Afectados:**
+- `backend/src/main/java/com/club/management/service/VentaService.java` (línea 132)
+
+**Solución:**
+Cambiar de `isActivo()` a `getActivo()` con null-check apropiado:
+
+```java
+// ANTES (INCORRECTO):
+if (!producto.isActivo()) {
+    throw new RuntimeException("El producto '" + producto.getNombre() + "' no está activo");
+}
+
+// DESPUÉS (CORRECTO):
+if (producto.getActivo() != null && !producto.getActivo()) {
+    throw new RuntimeException("El producto '" + producto.getNombre() + "' no está activo");
+}
+```
+
+**Commit:** `0e2cd67 - fix: Corregir errores de compilación en sistema POS`
+
+---
+
+### 3. Acceso a Método `getNombre()` en String
+
+**Problema:**
+Backend intentaba llamar a `.getNombre()` en el campo `categoria` cuando este es un `String`, no un objeto.
+
+**Síntomas:**
+Error de compilación al intentar acceder a métodos en un tipo básico.
+
+**Causa Raíz:**
+En la entidad `Producto`, el campo `categoria` está definido como `String`:
+```java
+@Column(nullable = false, length = 50)
+private String categoria;
+```
+
+No como una relación a una entidad `CategoriaProducto`.
+
+**Archivos Afectados:**
+- `backend/src/main/java/com/club/management/service/VentaService.java` (línea 210)
+
+**Solución:**
+Acceder directamente a `categoria` sin llamar a `.getNombre()`:
+
+```java
+// ANTES (INCORRECTO):
+.productoCategoria(detalle.getProducto().getCategoria() != null ?
+        detalle.getProducto().getCategoria().getNombre() : null)
+
+// DESPUÉS (CORRECTO):
+.productoCategoria(detalle.getProducto().getCategoria())
+```
+
+**Commit:** `0e2cd67 - fix: Corregir errores de compilación en sistema POS`
+
+---
+
+### 4. Query HQL con Acceso Incorrecto a `categoria.nombre`
+
+**Problema:**
+Query JPQL fallaba al intentar acceder a `p.categoria.nombre` cuando `categoria` es un campo de tipo `String`, no una entidad con propiedades navegables.
+
+**Síntomas:**
+```
+org.hibernate.query.sqm.UnknownPathException: Could not interpret attribute 'nombre'
+of basic-valued path 'com.club.management.entity.DetalleVenta(d).producto(p).categoria'
+```
+
+**Causa Raíz:**
+La query JPQL trataba `categoria` como si fuera una entidad con un campo `nombre`, pero es simplemente un `String` básico. JPQL no permite navegar propiedades de tipos básicos.
+
+**Archivos Afectados:**
+- `backend/src/main/java/com/club/management/repository/DetalleVentaRepository.java` (líneas 77, 81)
+
+**Solución:**
+Cambiar la query para acceder directamente a `p.categoria` sin intentar navegar a `.nombre`:
+
+```java
+// ANTES (INCORRECTO):
+@Query("SELECT p.categoria.nombre, SUM(d.cantidad) as cantidad, SUM(d.total) as ingresos " +
+       "FROM DetalleVenta d " +
+       "JOIN d.producto p " +
+       "WHERE d.venta.fecha >= :fechaInicio AND d.venta.fecha <= :fechaFin " +
+       "GROUP BY p.categoria.nombre " +
+       "ORDER BY ingresos DESC")
+
+// DESPUÉS (CORRECTO):
+@Query("SELECT p.categoria, SUM(d.cantidad) as cantidad, SUM(d.total) as ingresos " +
+       "FROM DetalleVenta d " +
+       "JOIN d.producto p " +
+       "WHERE d.venta.fecha >= :fechaInicio AND d.venta.fecha <= :fechaFin " +
+       "GROUP BY p.categoria " +
+       "ORDER BY ingresos DESC")
+```
+
+**Commit:** `0d01faa - fix: Corregir query HQL en DetalleVentaRepository`
+
+**Resultado Final:**
+✅ Backend compila correctamente
+✅ Aplicación inicia en Railway sin errores
+✅ Todos los endpoints POS responden HTTP 200
+
+**Documentación Completa:** Ver [`POS_DEPLOYMENT_SUCCESS.md`](./POS_DEPLOYMENT_SUCCESS.md)
+
+---
+
 ## 2025-10-10 - Errores Críticos de Deployment en Railway
 
 ### 1. Out of Memory (OOM) - Backend No Inicia

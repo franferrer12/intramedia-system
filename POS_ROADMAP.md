@@ -6,33 +6,81 @@ Evolución del sistema POS desde un registro básico de consumos hasta un sistem
 
 ---
 
-## 🎯 Fase 0: MVP - Sistema Básico de Registro (ACTUAL)
+## 🎯 Fase 0: MVP - Sistema Básico de Registro - ✅ **COMPLETADA**
 
-**Objetivo**: Registrar consumos durante sesiones sin gestión de pagos
+**Objetivo**: Registrar consumos durante sesiones con gestión de pagos básica
 
-**Duración estimada**: 2-3 días
+**Duración real**: 5 días (2025-10-06 a 2025-10-11)
 
-### Funcionalidades
-- ✅ Abrir/cerrar sesiones de venta
-- ✅ Registrar consumos (copas, chupitos, botellas)
-- ✅ Descuento automático de stock
-- ✅ Totales en tiempo real
-- ✅ Historial de consumos por sesión
+**Estado**: ✅ **COMPLETADA** - Desplegado en producción (Railway.app)
+
+### Funcionalidades Completadas
+- ✅ Abrir/cerrar sesiones de caja con efectivo inicial/final
+- ✅ Registrar ventas con múltiples productos
+- ✅ Descuento automático de stock vía trigger DB
+- ✅ Generación automática de número de ticket (formato: TKT-YYYYMMDD-NNNN)
+- ✅ Creación automática de transacción financiera por venta
+- ✅ Totales en tiempo real (ventas, ingresos, ticket promedio)
+- ✅ Historial de ventas por sesión
 - ✅ Asociar sesión a empleado y/o evento
+- ✅ Métodos de pago: EFECTIVO, TARJETA, MIXTO
+- ✅ Estadísticas del día y por período
+- ✅ Ranking de productos más vendidos
+- ✅ Ventas por categoría de producto
 
-### Entregables
-- Base de datos (sesiones_venta, consumos_sesion)
-- Backend completo (entidades, servicios, API)
-- Frontend básico (página POS, grid productos, lista consumos)
-- Documentación de uso
+### Entregables Completados
+- ✅ **Base de datos**:
+  - Migración V019: `sesiones_caja`, `ventas`, `detalle_venta`
+  - 3 triggers: generación de tickets, descuento de stock, registro de transacciones
+  - 3 funciones PL/pgSQL
+- ✅ **Backend completo**:
+  - 3 entidades JPA (SesionCaja, Venta, DetalleVenta)
+  - 3 repositorios con queries JPQL custom
+  - 5 servicios con lógica de negocio
+  - 7 controladores REST
+  - 24 endpoints REST operativos
+- ✅ **Frontend básico**:
+  - Dashboard POS con métricas en tiempo real
+  - Gestión de sesiones de caja
+  - Registro de ventas
+  - Estadísticas y reportes
+- ✅ **Documentación**:
+  - POS_DEPLOYMENT_SUCCESS.md (deployment completo)
+  - POS_ROADMAP.md (este archivo)
+  - BUGFIXES.md (errores resueltos)
+  - PROGRESS.md (actualizado)
 
-### Limitaciones conocidas
-- No hay gestión de pagos
-- No hay control de caja
-- No hay tickets/comandas
-- Sin integración con TPV externo
-- Sin gestión de propinas
-- Sin descuentos o promociones
+### Deployment
+- ✅ Backend desplegado en Railway.app
+- ✅ Base de datos PostgreSQL 17.6 en Railway
+- ✅ Health check: HTTP 200 ✅
+- ✅ Endpoints POS: HTTP 200 ✅
+- ✅ Migración V019 aplicada exitosamente
+- ✅ Triggers y funciones operativos
+
+### Bugs Resueltos Durante Deployment
+1. ✅ Llamadas a `producto.getInventario()` inexistente → Eliminado
+2. ✅ Método `isActivo()` vs `getActivo()` → Corregido (Lombok Boolean)
+3. ✅ Acceso a `categoria.getNombre()` en String → Simplificado
+4. ✅ Query JPQL con `p.categoria.nombre` → Cambiado a `p.categoria`
+
+### URLs de Producción
+- **Health**: https://club-manegament-production.up.railway.app/actuator/health
+- **POS Stats Hoy**: https://club-manegament-production.up.railway.app/api/pos/estadisticas/hoy
+- **Frontend Local**: http://localhost:3000/pos-dashboard
+
+### Limitaciones de Fase 0 (Para fases futuras)
+- ⏳ No hay impresión de tickets
+- ⏳ No hay comandas para cocina/barra
+- ⏳ Sin gestión de propinas
+- ⏳ Sin descuentos o promociones
+- ⏳ Sin gestión de mesas/reservas
+- ⏳ Sin integración con TPV externo
+
+**Fecha de Completado**: 11 de Octubre de 2025, 04:19 CEST
+**Commits Principales**:
+- `0e2cd67` - fix: Corregir errores de compilación en sistema POS
+- `0d01faa` - fix: Corregir query HQL en DetalleVentaRepository
 
 ---
 
