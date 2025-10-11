@@ -20,7 +20,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none  # Deshabilitado temporalmente - Flyway maneja el schema
     show-sql: true
     properties:
       hibernate:
@@ -91,7 +91,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none  # Deshabilitado temporalmente - Flyway maneja el schema
     show-sql: false
     properties:
       hibernate:
