@@ -1,6 +1,7 @@
 import { FC, useState } from 'react';
-import { Book, Play, FileText, Lightbulb, HelpCircle, Video, Download, ExternalLink } from 'lucide-react';
+import { Book, Play, FileText, Lightbulb, HelpCircle, Video, Download, ExternalLink, Bot, Sparkles } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
+import { useNavigate } from 'react-router-dom';
 
 interface Tutorial {
   id: string;
@@ -13,6 +14,7 @@ interface Tutorial {
 }
 
 export const AyudaPage: FC = () => {
+  const navigate = useNavigate();
   const [selectedTutorial, setSelectedTutorial] = useState<Tutorial | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -175,6 +177,47 @@ export const AyudaPage: FC = () => {
             <p className="text-blue-100">Aprende a usar todas las funcionalidades del sistema</p>
           </div>
           <HelpCircle className="h-16 w-16 opacity-80" />
+        </div>
+      </div>
+
+      {/* Asistente Virtual Banner */}
+      <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 text-white rounded-lg p-6 shadow-xl relative overflow-hidden group hover:shadow-2xl transition-shadow cursor-pointer" onClick={() => navigate('/ayuda/asistente')}>
+        <div className="absolute top-0 right-0 opacity-10">
+          <Bot className="h-32 w-32 group-hover:scale-110 transition-transform" />
+        </div>
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="flex-1">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
+                <Bot className="h-6 w-6" />
+              </div>
+              <span className="bg-gradient-to-r from-yellow-400 to-orange-400 text-black px-3 py-1 rounded-full text-sm font-bold flex items-center">
+                <Sparkles className="h-4 w-4 mr-1" />
+                NUEVO
+              </span>
+            </div>
+            <h3 className="text-2xl font-bold mb-2">🤖 Asistente Virtual Interactivo</h3>
+            <p className="text-blue-100 mb-4">
+              Tu guía personal paso a paso. Te acompañaré en tiempo real mientras aprendes a usar cada funcionalidad del sistema.
+            </p>
+            <div className="flex items-center space-x-6 text-sm text-blue-100">
+              <span className="flex items-center">
+                ✨ Guías interactivas
+              </span>
+              <span className="flex items-center">
+                🎯 Navegación automática
+              </span>
+              <span className="flex items-center">
+                📊 Seguimiento de progreso
+              </span>
+            </div>
+          </div>
+          <div className="hidden md:block">
+            <Button size="lg" className="bg-white text-purple-600 hover:bg-blue-50 font-bold">
+              Comenzar Ahora
+              <Sparkles className="h-5 w-5 ml-2" />
+            </Button>
+          </div>
         </div>
       </div>
 
