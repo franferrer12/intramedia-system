@@ -1,7 +1,6 @@
 import { FC } from 'react';
 import { Producto } from '../../types';
 import { Edit, Trash2, AlertTriangle, CheckCircle2, XCircle, Wine, Droplet, TrendingUp } from 'lucide-react';
-import { Button } from '../ui/Button';
 
 interface ProductoCardProps {
   producto: Producto;

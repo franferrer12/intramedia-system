@@ -1,5 +1,5 @@
 import { FC, useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Evento } from '../../types';
 
 interface CalendarioEventosProps {
@@ -35,8 +35,6 @@ export const CalendarioEventos: FC<CalendarioEventosProps> = ({ eventos, onEvent
 
     // Día de la semana del primer día (0 = domingo, 1 = lunes, ...)
     const firstDayOfWeek = firstDay.getDay();
-    // Día de la semana del último día
-    const lastDayOfWeek = lastDay.getDay();
 
     const days: Array<{ date: Date; isCurrentMonth: boolean; eventos: Evento[] }> = [];
 

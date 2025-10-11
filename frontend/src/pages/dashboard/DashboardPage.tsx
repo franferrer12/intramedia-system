@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardBody } from '../../components/ui/Card';
-import { Calendar, Users, TruckIcon, DollarSign, Plus, ShoppingCart, FileDown, AlertTriangle, Package } from 'lucide-react';
+import { Calendar, Users, TruckIcon, DollarSign, Plus, ShoppingCart, AlertTriangle, Package } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { dashboardApi } from '../../api/dashboard.api';
 import { productosApi } from '../../api/productos.api';

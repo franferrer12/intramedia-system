@@ -86,7 +86,7 @@ export const TransaccionesPage = () => {
         await transaccionesApi.update(selectedTransaccion.id, data);
         notify.success(`✅ Transacción actualizada: ${data.concepto}`);
       } else {
-        const nuevaTransaccion = await transaccionesApi.create(data);
+        await transaccionesApi.create(data);
         const monto = new Intl.NumberFormat('es-ES', {
           style: 'currency',
           currency: 'EUR'

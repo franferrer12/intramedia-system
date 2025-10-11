@@ -2,7 +2,6 @@ import { FC, useState, useRef, useEffect } from 'react';
 import { Bell, Check, CheckCheck, Trash2, X, AlertCircle, Info, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useNotificationStore } from '../../store/notificationStore';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '../ui/Button';
 
 export const NotificationCenter: FC = () => {
   const [isOpen, setIsOpen] = useState(false);

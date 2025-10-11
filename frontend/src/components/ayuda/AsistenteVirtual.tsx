@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Bot,
@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   Check,
   Play,
-  Pause,
   RotateCcw,
   ExternalLink,
   Lightbulb,
@@ -35,16 +34,11 @@ interface GuidedTour {
   steps: Step[];
 }
 
-interface AsistenteVirtualProps {
-  onClose?: () => void;
-}
-
-export const AsistenteVirtual: FC<AsistenteVirtualProps> = ({ onClose }) => {
+export const AsistenteVirtual: FC = () => {
   const navigate = useNavigate();
   const [selectedTour, setSelectedTour] = useState<GuidedTour | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  const [isPlaying, setIsPlaying] = useState(false);
 
   const tours: GuidedTour[] = [
     {
@@ -242,7 +236,6 @@ export const AsistenteVirtual: FC<AsistenteVirtualProps> = ({ onClose }) => {
     setSelectedTour(tour);
     setCurrentStep(0);
     setCompletedSteps([]);
-    setIsPlaying(false);
   };
 
   const handleNextStep = () => {
@@ -274,7 +267,6 @@ export const AsistenteVirtual: FC<AsistenteVirtualProps> = ({ onClose }) => {
   const handleReset = () => {
     setCurrentStep(0);
     setCompletedSteps([]);
-    setIsPlaying(false);
   };
 
   const progressPercentage = selectedTour

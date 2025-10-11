@@ -3,8 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { transaccionesApi } from '../../api/transacciones.api';
 import { dashboardApi } from '../../api/dashboard.api';
 import { Card, CardHeader, CardBody } from '../../components/ui/Card';
-import { TrendingUp, TrendingDown, DollarSign, BarChart3, ShoppingCart, ArrowRightLeft } from 'lucide-react';
-import { Line } from 'recharts';
+import { TrendingUp, TrendingDown, DollarSign, BarChart3 } from 'lucide-react';
 
 export const DashboardFinanzasPage: FC = () => {
   // Obtener transacciones
@@ -14,7 +13,7 @@ export const DashboardFinanzasPage: FC = () => {
   });
 
   // Obtener estadísticas del dashboard
-  const { data: dashboardData, isLoading: loadingDashboard } = useQuery({
+  const { isLoading: loadingDashboard } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: dashboardApi.getStats,
   });
