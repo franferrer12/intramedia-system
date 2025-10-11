@@ -181,7 +181,7 @@ export const AyudaPage: FC = () => {
       </div>
 
       {/* Asistente Virtual Banner */}
-      <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 text-white rounded-lg p-6 shadow-xl relative overflow-hidden group hover:shadow-2xl transition-shadow cursor-pointer" onClick={() => navigate('/ayuda/asistente')}>
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-6 shadow-xl relative overflow-hidden group hover:shadow-2xl transition-shadow cursor-pointer" onClick={() => navigate('/ayuda/asistente')}>
         <div className="absolute top-0 right-0 opacity-10">
           <Bot className="h-32 w-32 group-hover:scale-110 transition-transform" />
         </div>
@@ -191,7 +191,7 @@ export const AyudaPage: FC = () => {
               <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
                 <Bot className="h-6 w-6" />
               </div>
-              <span className="bg-gradient-to-r from-yellow-400 to-orange-400 text-black px-3 py-1 rounded-full text-sm font-bold flex items-center">
+              <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center shadow-lg">
                 <Sparkles className="h-4 w-4 mr-1" />
                 NUEVO
               </span>
@@ -213,7 +213,7 @@ export const AyudaPage: FC = () => {
             </div>
           </div>
           <div className="hidden md:block">
-            <Button size="lg" className="bg-white text-purple-600 hover:bg-blue-50 font-bold">
+            <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 font-bold shadow-lg">
               Comenzar Ahora
               <Sparkles className="h-5 w-5 ml-2" />
             </Button>
