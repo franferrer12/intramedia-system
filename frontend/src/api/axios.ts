@@ -7,7 +7,7 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Necesario para CORS con credenciales
+  // withCredentials: true, // Deshabilitado temporalmente para evitar CORS con Railway
 });
 
 // Interceptor para agregar el token en cada petición

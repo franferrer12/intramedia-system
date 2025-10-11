@@ -23,6 +23,8 @@ import RoiDashboardPage from './pages/activos-fijos/RoiDashboardPage';
 import PosPage from './pages/pos/PosPage';
 import SesionesPage from './pages/pos/SesionesPage';
 import { POSDashboardPage } from './pages/pos/POSDashboardPage';
+import POSTerminalPage from './pages/pos/POSTerminalPage';
+import MonitorSesionesPage from './pages/pos/MonitorSesionesPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,6 +67,8 @@ function App() {
                     <Route path="/inversiones" element={<InversionesPage />} />
                     <Route path="/roi" element={<RoiDashboardPage />} />
                     <Route path="/pos" element={<PosPage />} />
+                    <Route path="/pos-terminal" element={<POSTerminalPage />} />
+                    <Route path="/pos-monitor" element={<MonitorSesionesPage />} />
                     <Route path="/sesiones" element={<SesionesPage />} />
                     <Route path="/pos-dashboard" element={<POSDashboardPage />} />
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />

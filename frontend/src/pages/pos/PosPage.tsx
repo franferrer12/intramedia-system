@@ -1,21 +1,23 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/Button';
-import { Plus, AlertCircle } from 'lucide-react';
+import { Plus, AlertCircle, X } from 'lucide-react';
 import { AbrirSesionModal } from '../../components/pos/AbrirSesionModal';
 import { SesionActiva } from '../../components/pos/SesionActiva';
-import { ConsumosList } from '../../components/pos/ConsumosList';
 import { ProductoGrid } from '../../components/pos/ProductoGrid';
+import { TicketActual, ItemCarrito } from '../../components/pos/TicketActual';
+import { CerrarSesionModal } from '../../components/pos/CerrarSesionModal';
 import { sesionesVentaApi } from '../../api/sesiones-venta.api';
+import { ventaApi, VentaRequest, DetalleVentaRequest } from '../../api/pos-ventas.api';
 import type { Producto } from '../../types';
-import type { RegistrarConsumoRequest } from '../../types/sesion-venta.types';
+import { useAuthStore } from '../../store/authStore';
 
 export default function PosPage() {
+  const { user } = useAuthStore();
   const [modalAbierto, setModalAbierto] = useState(false);
-  const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
-  const [cantidad, setCantidad] = useState('1');
-  const [notasConsumo, setNotasConsumo] = useState('');
+  const [modalCerrarAbierto, setModalCerrarAbierto] = useState(false);
+  const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
   const queryClient = useQueryClient();
 
   // Obtener sesiones abiertas
@@ -25,57 +27,179 @@ export default function PosPage() {
     refetchInterval: 10000, // Actualizar cada 10 segundos
   });
 
-  // Mutación para registrar consumo
-  const registrarConsumoMutation = useMutation({
-    mutationFn: (request: RegistrarConsumoRequest) =>
-      sesionesVentaApi.registrarConsumo(request),
-    onSuccess: () => {
-      toast.success('Consumo registrado correctamente');
+  // Mutación para crear venta
+  const crearVentaMutation = useMutation({
+    mutationFn: (request: VentaRequest) => ventaApi.create(request),
+    onSuccess: (data) => {
+      toast.success(`Venta registrada: ${data.numeroTicket}`);
       queryClient.invalidateQueries({ queryKey: ['sesiones-abiertas'] });
       queryClient.invalidateQueries({ queryKey: ['consumos-sesion'] });
-      setProductoSeleccionado(null);
-      setCantidad('1');
-      setNotasConsumo('');
+      queryClient.invalidateQueries({ queryKey: ['ventas'] });
+      setCarrito([]); // Limpiar carrito
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Error al registrar consumo');
+      console.error('Error al crear venta:', error);
+      toast.error(error.response?.data?.message || 'Error al registrar la venta');
+    },
+  });
+
+  // Mutación para cerrar sesión
+  const cerrarSesionMutation = useMutation({
+    mutationFn: (request: { sesionId: number; notas?: string }) =>
+      sesionesVentaApi.cerrarSesion(request),
+    onSuccess: () => {
+      toast.success('Sesión cerrada correctamente');
+      queryClient.invalidateQueries({ queryKey: ['sesiones-abiertas'] });
+      setModalCerrarAbierto(false);
+      setCarrito([]);
+    },
+    onError: (error: any) => {
+      console.error('Error al cerrar sesión:', error);
+      toast.error(error.response?.data?.message || 'Error al cerrar la sesión');
     },
   });
 
   const sesionActiva = sesionesAbiertas?.[0];
 
+  // Calcular datos de sesión para el modal de cierre
+  const datosSesionCierre = useMemo(() => {
+    if (!sesionActiva) return null;
+
+    return {
+      id: sesionActiva.id,
+      codigo: sesionActiva.codigo,
+      nombre: sesionActiva.nombre,
+      efectivoInicial: 0, // TODO: Obtener del backend cuando se implemente
+      totalVentas: sesionActiva.totalItems,
+      valorTotal: sesionActiva.valorTotal,
+      montoEsperadoEfectivo: sesionActiva.valorTotal * 0.6, // Estimación temporal
+      montoEsperadoTarjeta: sesionActiva.valorTotal * 0.4, // Estimación temporal
+      duracionMinutos: sesionActiva.duracionMinutos,
+      fechaApertura: sesionActiva.fechaApertura,
+    };
+  }, [sesionActiva]);
+
+  // Agregar producto al carrito
   const handleProductoClick = (producto: Producto, cantidadRapida?: number) => {
-    // Si se proporciona cantidad rápida, registrar directamente sin modal
-    if (cantidadRapida !== undefined && sesionActiva) {
-      registrarConsumoMutation.mutate({
-        sesionId: sesionActiva.id,
-        productoId: producto.id,
-        cantidad: cantidadRapida,
-        notas: undefined,
-      });
+    if (!sesionActiva) {
+      toast.error('Debes abrir una sesión primero');
       return;
     }
 
-    // Si no hay cantidad rápida, abrir modal para configurar
-    setProductoSeleccionado(producto);
-    setCantidad('1');
-    setNotasConsumo('');
+    // Verificar stock
+    if (producto.stockActual === 0) {
+      toast.error('Producto sin stock');
+      return;
+    }
+
+    const cantidad = cantidadRapida || 1;
+
+    setCarrito((prevCarrito) => {
+      const itemExistente = prevCarrito.find((item) => item.producto.id === producto.id);
+
+      if (itemExistente) {
+        // Actualizar cantidad si ya existe
+        return prevCarrito.map((item) =>
+          item.producto.id === producto.id
+            ? {
+                ...item,
+                cantidad: item.cantidad + cantidad,
+                subtotal: (item.cantidad + cantidad) * producto.precioVenta,
+              }
+            : item
+        );
+      } else {
+        // Agregar nuevo item
+        return [
+          ...prevCarrito,
+          {
+            producto,
+            cantidad,
+            subtotal: cantidad * producto.precioVenta,
+          },
+        ];
+      }
+    });
+
+    toast.success(`${producto.nombre} agregado al carrito`);
   };
 
-  const handleRegistrarConsumo = () => {
-    if (!sesionActiva || !productoSeleccionado) return;
+  // Cambiar cantidad de un item
+  const handleCantidadChange = (productoId: number, nuevaCantidad: number) => {
+    setCarrito((prevCarrito) =>
+      prevCarrito.map((item) =>
+        item.producto.id === productoId
+          ? {
+              ...item,
+              cantidad: nuevaCantidad,
+              subtotal: nuevaCantidad * item.producto.precioVenta,
+            }
+          : item
+      )
+    );
+  };
 
-    const cantidadNum = parseFloat(cantidad);
-    if (isNaN(cantidadNum) || cantidadNum <= 0) {
-      toast.error('La cantidad debe ser mayor a 0');
+  // Eliminar item del carrito
+  const handleEliminarItem = (productoId: number) => {
+    setCarrito((prevCarrito) => prevCarrito.filter((item) => item.producto.id !== productoId));
+    toast.info('Producto eliminado del carrito');
+  };
+
+  // Limpiar carrito
+  const handleLimpiarCarrito = () => {
+    setCarrito([]);
+    toast.info('Carrito limpiado');
+  };
+
+  // Cobrar (crear venta)
+  const handleCobrar = async (metodoPago: 'EFECTIVO' | 'TARJETA' | 'MIXTO') => {
+    if (!sesionActiva || !user) {
+      toast.error('Error: Sesión o usuario no disponible');
       return;
     }
 
-    registrarConsumoMutation.mutate({
+    if (carrito.length === 0) {
+      toast.error('El carrito está vacío');
+      return;
+    }
+
+    // Preparar detalles de la venta
+    const detalles: DetalleVentaRequest[] = carrito.map((item) => ({
+      productoId: item.producto.id,
+      cantidad: item.cantidad,
+      precioUnitario: item.producto.precioVenta,
+      descuento: 0,
+    }));
+
+    // Calcular totales
+    const subtotal = carrito.reduce((sum, item) => sum + item.subtotal, 0);
+    const total = subtotal;
+
+    // Preparar request
+    const request: VentaRequest = {
+      sesionCajaId: sesionActiva.id,
+      empleadoId: user.id,
+      metodoPago,
+      montoEfectivo: metodoPago === 'EFECTIVO' ? total : undefined,
+      montoTarjeta: metodoPago === 'TARJETA' ? total : undefined,
+      detalles,
+    };
+
+    crearVentaMutation.mutate(request);
+  };
+
+  // Cerrar sesión
+  const handleCerrarSesion = async (notas?: string) => {
+    if (!sesionActiva) return;
+
+    if (carrito.length > 0) {
+      toast.error('Debes cobrar o limpiar el carrito antes de cerrar la sesión');
+      return;
+    }
+
+    await cerrarSesionMutation.mutateAsync({
       sesionId: sesionActiva.id,
-      productoId: productoSeleccionado.id,
-      cantidad: cantidadNum,
-      notas: notasConsumo || undefined,
+      notas,
     });
   };
 
@@ -97,16 +221,28 @@ export default function PosPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Punto de Venta (POS)</h1>
           <p className="text-gray-600 mt-1">
-            Gestiona las ventas y consumos en tiempo real
+            Gestiona las ventas en tiempo real
           </p>
         </div>
 
-        {!sesionActiva && (
-          <Button onClick={() => setModalAbierto(true)} className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Abrir Nueva Sesión
-          </Button>
-        )}
+        <div className="flex gap-3">
+          {sesionActiva && (
+            <Button
+              onClick={() => setModalCerrarAbierto(true)}
+              variant="outline"
+              className="flex items-center gap-2 border-red-300 text-red-600 hover:bg-red-50"
+            >
+              <X className="h-5 w-5" />
+              Cerrar Sesión
+            </Button>
+          )}
+          {!sesionActiva && (
+            <Button onClick={() => setModalAbierto(true)} className="flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Abrir Nueva Sesión
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Mensaje si no hay sesión activa */}
@@ -116,7 +252,7 @@ export default function PosPage() {
             <AlertCircle className="h-4 w-4 text-blue-600" />
             <p className="text-sm text-blue-800">
               No hay ninguna sesión abierta. Abre una nueva sesión para comenzar a registrar
-              consumos.
+              ventas.
             </p>
           </div>
         </div>
@@ -124,15 +260,24 @@ export default function PosPage() {
 
       {/* Contenido principal */}
       {sesionActiva && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Columna izquierda: Sesión activa y consumos */}
-          <div className="lg:col-span-1 space-y-6">
-            <SesionActiva sesion={sesionActiva} />
-            <ConsumosList sesionId={sesionActiva.id} />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Columna izquierda: Ticket actual */}
+          <div className="lg:col-span-4">
+            <div className="sticky top-4 space-y-4">
+              <SesionActiva sesion={sesionActiva} />
+              <TicketActual
+                items={carrito}
+                onCantidadChange={handleCantidadChange}
+                onEliminarItem={handleEliminarItem}
+                onLimpiarCarrito={handleLimpiarCarrito}
+                onCobrar={handleCobrar}
+                isProcessing={crearVentaMutation.isPending}
+              />
+            </div>
           </div>
 
           {/* Columna derecha: Grid de productos */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-8">
             <ProductoGrid onProductoClick={handleProductoClick} />
           </div>
         </div>
@@ -141,94 +286,14 @@ export default function PosPage() {
       {/* Modal para abrir sesión */}
       <AbrirSesionModal isOpen={modalAbierto} onClose={() => setModalAbierto(false)} />
 
-      {/* Dialog para registrar consumo */}
-      {productoSeleccionado && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-            <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                Registrar Consumo
-              </h3>
-
-              <div className="space-y-4">
-                {/* Producto */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Producto
-                  </label>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {productoSeleccionado.nombre}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Precio: €{productoSeleccionado.precioVenta.toFixed(2)}
-                  </p>
-                </div>
-
-                {/* Cantidad */}
-                <div>
-                  <label htmlFor="cantidad" className="block text-sm font-medium text-gray-700 mb-1">
-                    Cantidad *
-                  </label>
-                  <input
-                    id="cantidad"
-                    type="number"
-                    min="0.1"
-                    step="0.1"
-                    value={cantidad}
-                    onChange={(e) => setCantidad(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    autoFocus
-                  />
-                </div>
-
-                {/* Subtotal */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-700 mb-1">Subtotal</p>
-                  <p className="text-2xl font-bold text-blue-900">
-                    €
-                    {(
-                      productoSeleccionado.precioVenta * (parseFloat(cantidad) || 0)
-                    ).toFixed(2)}
-                  </p>
-                </div>
-
-                {/* Notas */}
-                <div>
-                  <label htmlFor="notas" className="block text-sm font-medium text-gray-700 mb-1">
-                    Notas (opcional)
-                  </label>
-                  <textarea
-                    id="notas"
-                    value={notasConsumo}
-                    onChange={(e) => setNotasConsumo(e.target.value)}
-                    rows={2}
-                    placeholder="Ej: Sin hielo, extra limón..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              {/* Botones */}
-              <div className="flex gap-3 mt-6">
-                <Button
-                  variant="outline"
-                  onClick={() => setProductoSeleccionado(null)}
-                  className="flex-1"
-                  disabled={registrarConsumoMutation.isPending}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={handleRegistrarConsumo}
-                  className="flex-1"
-                  disabled={registrarConsumoMutation.isPending}
-                >
-                  {registrarConsumoMutation.isPending ? 'Registrando...' : 'Registrar'}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Modal para cerrar sesión */}
+      {datosSesionCierre && (
+        <CerrarSesionModal
+          isOpen={modalCerrarAbierto}
+          onClose={() => setModalCerrarAbierto(false)}
+          onConfirm={handleCerrarSesion}
+          sesion={datosSesionCierre}
+        />
       )}
     </div>
   );
