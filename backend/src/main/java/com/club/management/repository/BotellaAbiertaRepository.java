@@ -10,7 +10,11 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Repository
+/**
+ * TEMPORALMENTE DESHABILITADO - Pendiente de completar implementación
+ * TODO: Habilitar cuando se implemente completamente el módulo Botellas VIP
+ */
+// @Repository
 public interface BotellaAbiertaRepository extends JpaRepository<BotellaAbierta, Long> {
 
     /**

@@ -15,9 +15,12 @@ import java.util.List;
 /**
  * Controller REST para gestión de botellas abiertas en barra
  * Sistema VIP Bottles - Tracking de copas servidas y stock dual
+ *
+ * TEMPORALMENTE DESHABILITADO - Pendiente de completar implementación
+ * TODO: Habilitar cuando se implemente completamente el módulo Botellas VIP
  */
-@RestController
-@RequestMapping("/api/botellas-abiertas")
+// @RestController
+// @RequestMapping("/api/botellas-abiertas")
 @RequiredArgsConstructor
 @Slf4j
 public class BotellaAbiertaController {

@@ -20,7 +20,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
+/**
+ * TEMPORALMENTE DESHABILITADO - Pendiente de completar implementación
+ * TODO: Habilitar cuando se implemente completamente el módulo Botellas VIP
+ */
+// @Service
 @RequiredArgsConstructor
 @Slf4j
 public class BotellaAbiertaService {
