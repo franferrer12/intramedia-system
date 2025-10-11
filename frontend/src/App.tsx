@@ -9,6 +9,7 @@ import { EventosPage } from './pages/eventos/EventosPage';
 import { UsuariosPage } from './pages/usuarios/UsuariosPage';
 import { ProveedoresPage } from './pages/proveedores/ProveedoresPage';
 import { TransaccionesPage } from './pages/transacciones/TransaccionesPage';
+import { DashboardFinanzasPage } from './pages/finanzas/DashboardFinanzasPage';
 import { EmpleadosPage } from './pages/empleados/EmpleadosPage';
 import { NominasPage } from './pages/nominas/NominasPage';
 import { JornadasPage } from './pages/jornadas/JornadasPage';
@@ -56,6 +57,7 @@ function App() {
                     <Route path="/dashboard" element={<DashboardPage />} />
                     <Route path="/eventos" element={<EventosPage />} />
                     <Route path="/finanzas" element={<TransaccionesPage />} />
+                    <Route path="/finanzas/dashboard" element={<DashboardFinanzasPage />} />
                     <Route path="/personal" element={<EmpleadosPage />} />
                     <Route path="/nominas" element={<NominasPage />} />
                     <Route path="/turnos" element={<JornadasPage />} />

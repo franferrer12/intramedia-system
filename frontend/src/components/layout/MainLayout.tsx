@@ -70,6 +70,7 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
         { name: 'Terminal POS', href: '/pos-terminal', icon: ShoppingCart },
         { name: 'Dashboard POS', href: '/pos-dashboard', icon: Monitor },
         { name: 'Sesiones de Caja', href: '/sesiones', icon: ClipboardList },
+        { name: 'Dashboard Finanzas', href: '/finanzas/dashboard', icon: BarChart3 },
         { name: 'Transacciones', href: '/finanzas', icon: DollarSign },
         { name: 'Activos e Inversiones', href: '/activos-fijos', icon: Building2 },
       ]
