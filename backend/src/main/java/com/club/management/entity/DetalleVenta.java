@@ -107,17 +107,9 @@ public class DetalleVenta {
             throw new IllegalStateException("Debe especificar un producto");
         }
 
-        // Si el producto tiene inventario asociado, verificar stock
-        if (producto.getInventario() != null) {
-            Integer stockActual = producto.getInventario().getCantidadActual();
-
-            if (stockActual != null && stockActual < cantidad) {
-                throw new IllegalStateException(
-                    String.format("Stock insuficiente para '%s'. Disponible: %d, Solicitado: %d",
-                        producto.getNombre(), stockActual, cantidad)
-                );
-            }
-        }
+        // Nota: La validación de stock se hace a nivel de base de datos
+        // mediante el trigger descontar_stock_venta que verifica stock disponible
+        // antes de descontar. Si no hay stock, el trigger lanzará una excepción.
     }
 
     /**

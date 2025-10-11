@@ -129,7 +129,7 @@ public class VentaService {
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado con id: " + detalleReq.getProductoId()));
 
             // Validar que el producto esté activo
-            if (!producto.isActivo()) {
+            if (producto.getActivo() != null && !producto.getActivo()) {
                 throw new RuntimeException("El producto '" + producto.getNombre() + "' no está activo");
             }
 
@@ -206,8 +206,7 @@ public class VentaService {
                 .id(detalle.getId())
                 .productoId(detalle.getProducto().getId())
                 .productoNombre(detalle.getProducto().getNombre())
-                .productoCategoria(detalle.getProducto().getCategoria() != null ?
-                        detalle.getProducto().getCategoria().getNombre() : null)
+                .productoCategoria(detalle.getProducto().getCategoria())
                 .cantidad(detalle.getCantidad())
                 .precioUnitario(detalle.getPrecioUnitario())
                 .subtotal(detalle.getSubtotal())
