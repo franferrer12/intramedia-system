@@ -91,6 +91,22 @@ public class Producto {
 
     // ========== FIN CAMPOS OCIO NOCTURNO ==========
 
+    // ========== CAMPOS PARA SISTEMA BOTELLAS VIP ==========
+
+    @Column(name = "copas_por_botella")
+    private Integer copasPorBotella;
+
+    @Column(name = "precio_copa", precision = 10, scale = 2)
+    private BigDecimal precioCopa;
+
+    @Column(name = "precio_botella_vip", precision = 10, scale = 2)
+    private BigDecimal precioBotellaVip;
+
+    @Column(name = "es_botella", nullable = false)
+    private Boolean esBotella = false;
+
+    // ========== FIN CAMPOS BOTELLAS VIP ==========
+
     @Column(name = "stock_actual", nullable = false, precision = 10, scale = 2)
     private BigDecimal stockActual = BigDecimal.ZERO;
 
@@ -200,5 +216,68 @@ public class Producto {
     @Transient
     public Boolean isSinStock() {
         return stockActual.compareTo(BigDecimal.ZERO) <= 0;
+    }
+
+    // ========== MÉTODOS SISTEMA BOTELLAS VIP ==========
+
+    /**
+     * Verifica si el producto es una botella con venta por copas
+     */
+    @Transient
+    public Boolean isBotella() {
+        return esBotella != null && esBotella;
+    }
+
+    /**
+     * Calcula el ingreso potencial si se vende por copas
+     */
+    @Transient
+    public BigDecimal getIngresoPotencialCopas() {
+        if (!isBotella() || precioCopa == null || copasPorBotella == null) {
+            return BigDecimal.ZERO;
+        }
+        return precioCopa.multiply(BigDecimal.valueOf(copasPorBotella));
+    }
+
+    /**
+     * Calcula la diferencia de ingresos entre venta por copas vs pack VIP
+     */
+    @Transient
+    public BigDecimal getDiferenciaCopasVsVip() {
+        if (!isBotella() || precioBotellaVip == null) {
+            return BigDecimal.ZERO;
+        }
+        return getIngresoPotencialCopas().subtract(precioBotellaVip);
+    }
+
+    /**
+     * Calcula el porcentaje de descuento del pack VIP vs venta por copas
+     */
+    @Transient
+    public BigDecimal getPorcentajeDescuentoVip() {
+        if (!isBotella() || precioBotellaVip == null) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal ingresoCopas = getIngresoPotencialCopas();
+        if (ingresoCopas.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+        return getDiferenciaCopasVsVip()
+            .divide(ingresoCopas, 4, java.math.RoundingMode.HALF_UP)
+            .multiply(BigDecimal.valueOf(100));
+    }
+
+    /**
+     * Valida la configuración de botella VIP
+     */
+    public void validarConfiguracionBotella() {
+        if (isBotella()) {
+            if (copasPorBotella == null || copasPorBotella <= 0) {
+                throw new IllegalStateException("Una botella debe tener copas_por_botella configurado");
+            }
+            if (capacidadMl == null || capacidadMl.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalStateException("Una botella debe tener capacidad_ml configurada");
+            }
+        }
     }
 }
