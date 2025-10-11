@@ -21,6 +21,7 @@ import {
   ShoppingCart,
   ClipboardList,
   Monitor,
+  HelpCircle,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../ui/Button';
@@ -40,25 +41,61 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
     navigate('/login');
   };
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'POS Dashboard', href: '/pos-dashboard', icon: Monitor },
-    { name: 'POS', href: '/pos', icon: ShoppingCart },
-    { name: 'Sesiones', href: '/sesiones', icon: ClipboardList },
-    { name: 'Eventos', href: '/eventos', icon: Calendar },
-    { name: 'Inventario', href: '/inventario', icon: Package },
-    { name: 'Dashboard Inventario', href: '/inventario/dashboard', icon: BarChart3 },
-    { name: 'Movimientos', href: '/movimientos-stock', icon: ArrowRightLeft },
-    { name: 'Alertas', href: '/alertas-stock', icon: Bell },
-    { name: 'Finanzas', href: '/finanzas', icon: DollarSign },
-    { name: 'Activos Fijos', href: '/activos-fijos', icon: Building2 },
-    { name: 'Inversiones', href: '/inversiones', icon: TrendingUp },
-    { name: 'ROI Dashboard', href: '/roi', icon: Percent },
-    { name: 'Personal', href: '/personal', icon: Users },
-    { name: 'Turnos', href: '/turnos', icon: Clock },
-    { name: 'Nóminas', href: '/nominas', icon: DollarSign },
-    { name: 'Análisis', href: '/analytics', icon: BarChart3 },
-    { name: 'Proveedores', href: '/proveedores', icon: TruckIcon },
+  const navigationSections = [
+    {
+      title: 'Principal',
+      items: [
+        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        { name: 'Centro de Ayuda', href: '/ayuda', icon: HelpCircle, highlight: true },
+      ]
+    },
+    {
+      title: 'Punto de Venta',
+      items: [
+        { name: 'POS Dashboard', href: '/pos-dashboard', icon: Monitor },
+        { name: 'POS', href: '/pos', icon: ShoppingCart },
+        { name: 'Sesiones', href: '/sesiones', icon: ClipboardList },
+      ]
+    },
+    {
+      title: 'Operaciones',
+      items: [
+        { name: 'Eventos', href: '/eventos', icon: Calendar },
+        { name: 'Proveedores', href: '/proveedores', icon: TruckIcon },
+      ]
+    },
+    {
+      title: 'Inventario',
+      items: [
+        { name: 'Inventario', href: '/inventario', icon: Package },
+        { name: 'Dashboard', href: '/inventario/dashboard', icon: BarChart3 },
+        { name: 'Movimientos', href: '/movimientos-stock', icon: ArrowRightLeft },
+        { name: 'Alertas', href: '/alertas-stock', icon: Bell },
+      ]
+    },
+    {
+      title: 'Finanzas',
+      items: [
+        { name: 'Finanzas', href: '/finanzas', icon: DollarSign },
+        { name: 'Activos Fijos', href: '/activos-fijos', icon: Building2 },
+        { name: 'Inversiones', href: '/inversiones', icon: TrendingUp },
+        { name: 'ROI Dashboard', href: '/roi', icon: Percent },
+      ]
+    },
+    {
+      title: 'Personal',
+      items: [
+        { name: 'Mi Equipo', href: '/personal', icon: Users },
+        { name: 'Turnos', href: '/turnos', icon: Clock },
+        { name: 'Nóminas', href: '/nominas', icon: DollarSign },
+      ]
+    },
+    {
+      title: 'Análisis',
+      items: [
+        { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+      ]
+    }
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -82,25 +119,44 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
               <X className="h-6 w-6" />
             </button>
           </div>
-          <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-                    isActive(item.href)
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <Icon className="h-5 w-5 mr-3" />
-                  {item.name}
-                </Link>
-              );
-            })}
+          <nav className="flex-1 px-4 py-4 space-y-4 overflow-y-auto">
+            {navigationSections.map((section) => (
+              <div key={section.title}>
+                <h3 className="px-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  {section.title}
+                </h3>
+                <div className="space-y-1">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const isHighlighted = item.highlight;
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        onClick={() => setSidebarOpen(false)}
+                        className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                          isActive(item.href)
+                            ? isHighlighted
+                              ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                              : 'bg-blue-50 text-blue-700'
+                            : isHighlighted
+                            ? 'bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 hover:from-blue-200 hover:to-purple-200'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        <Icon className="h-5 w-5 mr-3" />
+                        {item.name}
+                        {isHighlighted && !isActive(item.href) && (
+                          <span className="ml-auto text-xs bg-blue-500 text-white px-2 py-1 rounded-full">
+                            Nuevo
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </nav>
         </div>
       </div>
@@ -111,24 +167,43 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
           <div className="flex items-center px-6 py-5 border-b">
             <h2 className="text-2xl font-bold text-gray-900">Club Management</h2>
           </div>
-          <nav className="flex-1 px-4 py-4 space-y-2">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-                    isActive(item.href)
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <Icon className="h-5 w-5 mr-3" />
-                  {item.name}
-                </Link>
-              );
-            })}
+          <nav className="flex-1 px-4 py-4 space-y-4">
+            {navigationSections.map((section) => (
+              <div key={section.title}>
+                <h3 className="px-4 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  {section.title}
+                </h3>
+                <div className="space-y-1">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const isHighlighted = item.highlight;
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                          isActive(item.href)
+                            ? isHighlighted
+                              ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
+                              : 'bg-blue-50 text-blue-700'
+                            : isHighlighted
+                            ? 'bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 hover:from-blue-200 hover:to-purple-200'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        <Icon className="h-5 w-5 mr-3" />
+                        {item.name}
+                        {isHighlighted && !isActive(item.href) && (
+                          <span className="ml-auto text-xs bg-blue-500 text-white px-2 py-1 rounded-full font-medium">
+                            Nuevo
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </nav>
         </div>
       </div>
