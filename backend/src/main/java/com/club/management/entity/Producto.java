@@ -91,8 +91,9 @@ public class Producto {
 
     // ========== FIN CAMPOS OCIO NOCTURNO ==========
 
-    // ========== CAMPOS PARA SISTEMA BOTELLAS VIP ==========
-
+    // ========== CAMPOS PARA SISTEMA BOTELLAS VIP (TEMPORALMENTE DESHABILITADOS) ==========
+    // TODO: Habilitar cuando se implemente correctamente el módulo Botellas VIP
+    /*
     @Column(name = "copas_por_botella")
     private Integer copasPorBotella;
 
@@ -104,6 +105,7 @@ public class Producto {
 
     @Column(name = "es_botella", nullable = false)
     private Boolean esBotella = false;
+    */
 
     // ========== FIN CAMPOS BOTELLAS VIP ==========
 
@@ -218,19 +220,14 @@ public class Producto {
         return stockActual.compareTo(BigDecimal.ZERO) <= 0;
     }
 
-    // ========== MÉTODOS SISTEMA BOTELLAS VIP ==========
-
-    /**
-     * Verifica si el producto es una botella con venta por copas
-     */
+    // ========== MÉTODOS SISTEMA BOTELLAS VIP (TEMPORALMENTE DESHABILITADOS) ==========
+    // TODO: Habilitar cuando se implemente correctamente el módulo Botellas VIP
+    /*
     @Transient
     public Boolean isBotella() {
         return esBotella != null && esBotella;
     }
 
-    /**
-     * Calcula el ingreso potencial si se vende por copas
-     */
     @Transient
     public BigDecimal getIngresoPotencialCopas() {
         if (!isBotella() || precioCopa == null || copasPorBotella == null) {
@@ -239,9 +236,6 @@ public class Producto {
         return precioCopa.multiply(BigDecimal.valueOf(copasPorBotella));
     }
 
-    /**
-     * Calcula la diferencia de ingresos entre venta por copas vs pack VIP
-     */
     @Transient
     public BigDecimal getDiferenciaCopasVsVip() {
         if (!isBotella() || precioBotellaVip == null) {
@@ -250,9 +244,6 @@ public class Producto {
         return getIngresoPotencialCopas().subtract(precioBotellaVip);
     }
 
-    /**
-     * Calcula el porcentaje de descuento del pack VIP vs venta por copas
-     */
     @Transient
     public BigDecimal getPorcentajeDescuentoVip() {
         if (!isBotella() || precioBotellaVip == null) {
@@ -267,9 +258,6 @@ public class Producto {
             .multiply(BigDecimal.valueOf(100));
     }
 
-    /**
-     * Valida la configuración de botella VIP
-     */
     public void validarConfiguracionBotella() {
         if (isBotella()) {
             if (copasPorBotella == null || copasPorBotella <= 0) {
@@ -280,4 +268,5 @@ public class Producto {
             }
         }
     }
+    */
 }
