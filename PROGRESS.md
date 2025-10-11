@@ -25,8 +25,9 @@
 - 🔄 Sprint 7: Mejoras Continuas (80%)
 
 ### Pendientes
-- ⏳ Sprint 9: Activos Fijos y ROI
+- 📋 Sprint 9: Sistema de Botellas VIP (2 semanas) - **PRÓXIMO**
 - ⏳ Sprint 10: Optimización Final
+- ⏳ Sprint 11: Activos Fijos y ROI (opcional)
 
 ---
 
@@ -440,8 +441,62 @@ Sección: **Agente 3: Mago del Backend**
 - Health: `https://club-manegament-production.up.railway.app/actuator/health` → ✅ HTTP 200
 - POS Stats: `https://club-manegament-production.up.railway.app/api/pos/estadisticas/hoy` → ✅ HTTP 200
 
-### Sprint 9: Activos Fijos y ROI (Semanas 18-19)
+## 📋 Sprint 9: Sistema de Botellas VIP - **PLANIFICADO**
+**Duración:** Semanas 17-18 (2 semanas / 10 días)
+**Estado:** 📋 PLANIFICADO - Próxima sesión
+**Documento de diseño:** `BOTELLAS_VIP_CASO_USO.md`
+**Tareas detalladas:** `TAREAS_PENDIENTES.md`
+
+### Objetivos Principales
+- [ ] Implementar venta dual: botellas completas vs copas individuales
+- [ ] Sistema de botellas abiertas con tracking de copas
+- [ ] Precios diferenciados: botella completa, pack VIP, copa individual
+- [ ] Actualizar módulo de inventario con stock dual (almacén + barra)
+- [ ] Dashboard de botellas abiertas en tiempo real
+
+### Impacto en Módulos
+- 🍾 **POS**: Tipos de venta (BOTELLA_COMPLETA, COPA, PACK_VIP)
+- 📦 **Inventario**: Vista dual (stock cerrado + abierto), botellas abiertas, conteo físico
+- 💰 **Finanzas**: Registro automático con tipo de venta
+- 📊 **Reportes**: Rentabilidad por tipo de venta, análisis de desperdicio
+
+### Entregables Técnicos
+- [ ] 3 migraciones de base de datos (V020, V021, V022)
+- [ ] 2 triggers: descuento inteligente de stock, validación de copas
+- [ ] 2 nuevos servicios: BotellaAbiertaService, actualización de VentaService
+- [ ] 5 nuevos endpoints REST para gestión de botellas
+- [ ] 2 páginas frontend: /pos/botellas-abiertas, inventario actualizado
+- [ ] 10+ componentes React nuevos/actualizados
+- [ ] Tests unitarios e integración (>80% cobertura)
+- [ ] Documentación de usuario completa
+
+### Métricas de Éxito
+- ✅ Reducción de 30% en desperdicio de botellas
+- ✅ Mayor margen con venta de copas vs botellas completas
+- ✅ Control preciso de inventario en barra
+- ✅ Dashboard de botellas carga en < 1 segundo
+- ✅ Venta registrada en < 500ms
+
+---
+
+## ⏳ Sprint 10: Optimización Final - **PENDIENTE**
+**Duración:** Semana 19 (5 días)
 **Estado:** PENDIENTE ⏳
+
+**Objetivos:**
+- [ ] Auditoría completa de seguridad
+- [ ] Optimización de rendimiento final
+- [ ] Cobertura de tests > 85%
+- [ ] Documentación completa de API
+- [ ] Guías de usuario final
+- [ ] Plan de mantenimiento
+- [ ] Backup automático
+
+---
+
+## ⏳ Sprint 11: Activos Fijos y ROI (Opcional)
+**Duración:** Semanas 20-21 (2 semanas)
+**Estado:** OPCIONAL ⏳
 
 **Objetivos:**
 - [ ] Gestión de activos fijos del club
