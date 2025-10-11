@@ -122,10 +122,19 @@ export const EmpleadosPage = () => {
     try {
       if (selectedEmpleado) {
         await empleadosApi.update(selectedEmpleado.id, data);
-        notify.success('Empleado actualizado correctamente');
+        notify.success(`✅ ${data.nombre} ${data.apellidos} actualizado`);
       } else {
         await empleadosApi.create(data);
-        notify.success('Empleado creado correctamente');
+        notify.success(`👋 ${data.nombre} ${data.apellidos} agregado al equipo`, {
+          duration: 5000,
+          action: {
+            label: 'Ver turnos',
+            onClick: () => {
+              // Navigate to turnos
+              window.location.href = '/turnos';
+            }
+          }
+        });
       }
       loadEmpleados();
     } catch (error) {

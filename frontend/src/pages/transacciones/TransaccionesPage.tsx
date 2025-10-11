@@ -84,10 +84,26 @@ export const TransaccionesPage = () => {
     try {
       if (selectedTransaccion) {
         await transaccionesApi.update(selectedTransaccion.id, data);
-        notify.success('Transacción actualizada correctamente');
+        notify.success(`✅ Transacción actualizada: ${data.concepto}`);
       } else {
-        await transaccionesApi.create(data);
-        notify.success('Transacción creada correctamente');
+        const nuevaTransaccion = await transaccionesApi.create(data);
+        const monto = new Intl.NumberFormat('es-ES', {
+          style: 'currency',
+          currency: 'EUR'
+        }).format(data.monto);
+
+        notify.success(
+          `${data.tipo === 'INGRESO' ? '💰' : '💸'} ${data.tipo === 'INGRESO' ? 'Ingreso' : 'Gasto'} registrado: ${monto}`,
+          {
+            duration: 5000,
+            action: {
+              label: 'Ver análisis',
+              onClick: () => {
+                window.location.href = '/analytics';
+              }
+            }
+          }
+        );
       }
       loadTransacciones();
     } catch (error) {

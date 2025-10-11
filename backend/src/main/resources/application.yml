@@ -39,7 +39,7 @@ spring:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:club-management-dev-secret-ONLY-FOR-DEV-CHANGE-IN-PROD}
+  secret: ${JWT_SECRET:uDrvWrxtiKHNKrs69wcuWMQY/Yf7OYReIWAme+OCddoH+t0RHlRbcYpYY9pklCeBljNs7O7lbWXEqf7q698ZTA==}
   expiration: 86400000 # 24 horas en milisegundos
 
 # Application Configuration
@@ -141,7 +141,7 @@ app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:https://club-management-frontend-production.up.railway.app}
   security:
-    bcrypt-strength: 4  # Reducido para mejor performance en producción remota
+    bcrypt-strength: 12  # Recomendación OWASP (2^12 = 4096 iteraciones) - Sprint 10 Security Audit
 
 # Caching configuration (moved under spring in prod profile)
 # See line 74 for the spring: key
@@ -154,6 +154,11 @@ server:
     min-response-size: 1024
   http2:
     enabled: true
+  # Security: Limit payload sizes to prevent DoS attacks - Sprint 10
+  tomcat:
+    max-http-post-size: 2MB
+    max-http-request-header-size: 16KB
+  max-http-header-size: 16KB
 
 # Actuator (production)
 management:

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { X, ShoppingCart, Check, Search, ArrowLeft } from 'lucide-react';
+import { X, ShoppingCart, Check, Search, ArrowLeft, Plus, Minus, Trash2 } from 'lucide-react';
 import { sesionesVentaApi } from '../../api/sesiones-venta.api';
 import { ventaApi, VentaRequest, DetalleVentaRequest } from '../../api/pos-ventas.api';
 import { productosApi } from '../../api/productos.api';
@@ -101,6 +101,34 @@ export default function POSTerminalPage() {
       return [...prev, { producto, cantidad: 1, subtotal: producto.precioVenta }];
     });
     toast.success(`➕ ${producto.nombre}`, { duration: 1000 });
+  };
+
+  // Incrementar cantidad
+  const handleIncrementarCantidad = (productoId: number) => {
+    setCarrito(prev =>
+      prev.map(item =>
+        item.producto.id === productoId
+          ? { ...item, cantidad: item.cantidad + 1, subtotal: (item.cantidad + 1) * item.producto.precioVenta }
+          : item
+      )
+    );
+  };
+
+  // Decrementar cantidad
+  const handleDecrementarCantidad = (productoId: number) => {
+    setCarrito(prev =>
+      prev.map(item =>
+        item.producto.id === productoId && item.cantidad > 1
+          ? { ...item, cantidad: item.cantidad - 1, subtotal: (item.cantidad - 1) * item.producto.precioVenta }
+          : item
+      )
+    );
+  };
+
+  // Eliminar item del carrito
+  const handleEliminarItem = (productoId: number) => {
+    setCarrito(prev => prev.filter(item => item.producto.id !== productoId));
+    toast.info('Producto eliminado del carrito', { duration: 1000 });
   };
 
   // Limpiar carrito
@@ -281,17 +309,47 @@ export default function POSTerminalPage() {
                 {carrito.map(item => (
                   <div
                     key={item.producto.id}
-                    className="bg-gray-700 rounded-lg p-3 flex items-center justify-between"
+                    className="bg-gray-700 rounded-lg p-3"
                   >
-                    <div className="flex-1">
-                      <h4 className="text-white font-semibold text-lg">{item.producto.nombre}</h4>
-                      <p className="text-gray-400 text-sm">
-                        {item.cantidad} x {formatCurrency(item.producto.precioVenta)}
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <h4 className="text-white font-semibold text-lg">{item.producto.nombre}</h4>
+                        <p className="text-gray-400 text-sm">
+                          {formatCurrency(item.producto.precioVenta)} /ud
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleEliminarItem(item.producto.id)}
+                        className="text-red-400 hover:text-red-300 p-1"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
+                        <button
+                          onClick={() => handleDecrementarCantidad(item.producto.id)}
+                          disabled={item.cantidad <= 1}
+                          className="w-8 h-8 flex items-center justify-center bg-gray-600 hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed rounded text-white font-bold transition-colors"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <span className="text-white font-bold text-xl min-w-[3rem] text-center">
+                          {item.cantidad}
+                        </span>
+                        <button
+                          onClick={() => handleIncrementarCantidad(item.producto.id)}
+                          className="w-8 h-8 flex items-center justify-center bg-blue-600 hover:bg-blue-500 rounded text-white font-bold transition-colors"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <p className="text-green-400 font-bold text-xl">
+                        {formatCurrency(item.subtotal)}
                       </p>
                     </div>
-                    <p className="text-green-400 font-bold text-xl ml-3">
-                      {formatCurrency(item.subtotal)}
-                    </p>
                   </div>
                 ))}
               </div>

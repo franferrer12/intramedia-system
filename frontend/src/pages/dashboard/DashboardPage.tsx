@@ -1,9 +1,14 @@
 import { Card, CardHeader, CardBody } from '../../components/ui/Card';
-import { Calendar, Users, TruckIcon, DollarSign } from 'lucide-react';
+import { Calendar, Users, TruckIcon, DollarSign, Plus, ShoppingCart, FileDown, AlertTriangle, Package } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { dashboardApi } from '../../api/dashboard.api';
+import { productosApi } from '../../api/productos.api';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '../../components/ui/Button';
 
 export const DashboardPage = () => {
+  const navigate = useNavigate();
+
   const { data: dashboardData, isLoading, error } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: dashboardApi.getStats,
@@ -11,6 +16,16 @@ export const DashboardPage = () => {
     refetchInterval: 5 * 60 * 1000, // Refrescar cada 5 minutos
     refetchOnWindowFocus: false, // No refrescar al cambiar de ventana
   });
+
+  // Obtener productos para alertas de stock
+  const { data: productos = [] } = useQuery({
+    queryKey: ['productos'],
+    queryFn: productosApi.getAll,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const productosSinStock = productos.filter(p => p.sinStock).length;
+  const productosBajoStock = productos.filter(p => p.bajoStock && !p.sinStock).length;
 
   if (isLoading) {
     return (
@@ -67,6 +82,107 @@ export const DashboardPage = () => {
         <h1 className="text-3xl font-bold text-gray-900">Inicio</h1>
         <p className="text-gray-600 mt-2">Resumen de tu club</p>
       </div>
+
+      {/* Alertas Críticas */}
+      {(productosSinStock > 0 || productosBajoStock > 0) && (
+        <div className="space-y-3">
+          {productosSinStock > 0 && (
+            <Card className="border-l-4 border-red-500 bg-red-50">
+              <CardBody className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="p-3 bg-red-100 rounded-lg mr-4">
+                    <AlertTriangle className="h-6 w-6 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-red-900">
+                      {productosSinStock} producto{productosSinStock > 1 ? 's' : ''} sin stock
+                    </h3>
+                    <p className="text-sm text-red-700">
+                      Necesitas reponer urgentemente
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/inventario')}
+                  className="border-red-300 text-red-700 hover:bg-red-100"
+                >
+                  Ver productos
+                </Button>
+              </CardBody>
+            </Card>
+          )}
+
+          {productosBajoStock > 0 && (
+            <Card className="border-l-4 border-yellow-500 bg-yellow-50">
+              <CardBody className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="p-3 bg-yellow-100 rounded-lg mr-4">
+                    <Package className="h-6 w-6 text-yellow-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-yellow-900">
+                      {productosBajoStock} producto{productosBajoStock > 1 ? 's' : ''} con stock bajo
+                    </h3>
+                    <p className="text-sm text-yellow-700">
+                      Considera hacer pedido pronto
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/alertas-stock')}
+                  className="border-yellow-300 text-yellow-700 hover:bg-yellow-100"
+                >
+                  Ver alertas
+                </Button>
+              </CardBody>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* Acciones Rápidas */}
+      <Card>
+        <CardHeader>
+          <h2 className="text-lg font-semibold">Acciones Rápidas</h2>
+        </CardHeader>
+        <CardBody>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <button
+              onClick={() => navigate('/pos-terminal')}
+              className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg transition-all transform hover:scale-105 shadow-md"
+            >
+              <ShoppingCart className="h-8 w-8 mb-2" />
+              <span className="font-semibold">Nueva Venta</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/eventos')}
+              className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-lg transition-all transform hover:scale-105 shadow-md"
+            >
+              <Calendar className="h-8 w-8 mb-2" />
+              <span className="font-semibold">Crear Evento</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/finanzas')}
+              className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg transition-all transform hover:scale-105 shadow-md"
+            >
+              <Plus className="h-8 w-8 mb-2" />
+              <span className="font-semibold">Registrar Ingreso/Gasto</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/inventario')}
+              className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg transition-all transform hover:scale-105 shadow-md"
+            >
+              <Package className="h-8 w-8 mb-2" />
+              <span className="font-semibold">Ver Inventario</span>
+            </button>
+          </div>
+        </CardBody>
+      </Card>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">

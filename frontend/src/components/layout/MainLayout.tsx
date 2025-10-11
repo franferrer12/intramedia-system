@@ -1,4 +1,4 @@
-import { FC, ReactNode } from 'react';
+import { FC, ReactNode, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import {
@@ -22,9 +22,11 @@ import {
   ClipboardList,
   Monitor,
   HelpCircle,
+  Search,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../ui/Button';
+import { GlobalSearch } from './GlobalSearch';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -35,51 +37,56 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  // Global search keyboard shortcut (Ctrl+K or Cmd+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const navigationSections = [
     {
       title: 'Principal',
       items: [
-        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-        { name: 'Centro de Ayuda', href: '/ayuda', icon: HelpCircle, highlight: true },
+        { name: 'Inicio', href: '/dashboard', icon: LayoutDashboard },
       ]
     },
     {
-      title: 'Punto de Venta',
+      title: 'Ventas y Finanzas',
       items: [
-        { name: 'POS Dashboard', href: '/pos-dashboard', icon: Monitor },
-        { name: 'POS', href: '/pos', icon: ShoppingCart },
-        { name: 'Sesiones', href: '/sesiones', icon: ClipboardList },
+        { name: 'Terminal POS', href: '/pos-terminal', icon: ShoppingCart },
+        { name: 'Dashboard POS', href: '/pos-dashboard', icon: Monitor },
+        { name: 'Sesiones de Caja', href: '/sesiones', icon: ClipboardList },
+        { name: 'Transacciones', href: '/finanzas', icon: DollarSign },
+        { name: 'Activos e Inversiones', href: '/activos-fijos', icon: Building2 },
       ]
     },
     {
-      title: 'Operaciones',
+      title: 'Eventos',
       items: [
-        { name: 'Eventos', href: '/eventos', icon: Calendar },
-        { name: 'Proveedores', href: '/proveedores', icon: TruckIcon },
+        { name: 'Eventos y Fiestas', href: '/eventos', icon: Calendar },
       ]
     },
     {
       title: 'Inventario',
       items: [
-        { name: 'Inventario', href: '/inventario', icon: Package },
-        { name: 'Dashboard', href: '/inventario/dashboard', icon: BarChart3 },
+        { name: 'Productos', href: '/inventario', icon: Package },
+        { name: 'Proveedores', href: '/proveedores', icon: TruckIcon },
         { name: 'Movimientos', href: '/movimientos-stock', icon: ArrowRightLeft },
-        { name: 'Alertas', href: '/alertas-stock', icon: Bell },
-      ]
-    },
-    {
-      title: 'Finanzas',
-      items: [
-        { name: 'Finanzas', href: '/finanzas', icon: DollarSign },
-        { name: 'Activos Fijos', href: '/activos-fijos', icon: Building2 },
-        { name: 'Inversiones', href: '/inversiones', icon: TrendingUp },
-        { name: 'ROI Dashboard', href: '/roi', icon: Percent },
+        { name: 'Alertas de Stock', href: '/alertas-stock', icon: Bell },
       ]
     },
     {
@@ -91,9 +98,10 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
       ]
     },
     {
-      title: 'Análisis',
+      title: 'Análisis y Ayuda',
       items: [
-        { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+        { name: 'Análisis del Negocio', href: '/analytics', icon: BarChart3 },
+        { name: 'Centro de Ayuda', href: '/ayuda', icon: HelpCircle, highlight: true },
       ]
     }
   ];
@@ -219,7 +227,20 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
             >
               <Menu className="h-6 w-6" />
             </button>
-            <div className="flex items-center ml-auto space-x-4">
+
+            {/* Search button */}
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="hidden lg:flex items-center gap-2 px-3 py-2 text-sm text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <Search className="h-4 w-4" />
+              <span>Buscar...</span>
+              <kbd className="hidden sm:inline-block px-2 py-1 text-xs font-semibold text-gray-600 bg-white border border-gray-300 rounded">
+                ⌘K
+              </kbd>
+            </button>
+
+            <div className="flex items-center ml-auto lg:ml-0 space-x-4">
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">{user?.username}</p>
                 <p className="text-xs text-gray-500">{user?.rol}</p>
@@ -242,6 +263,9 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
           {children}
         </main>
       </div>
+
+      {/* Global Search */}
+      <GlobalSearch isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 };

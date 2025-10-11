@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { Card, CardBody } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { EventoModal } from '../../components/eventos/EventoModal';
+import { CalendarioEventos } from '../../components/eventos/CalendarioEventos';
 import { eventosApi } from '../../api/eventos.api';
 import { reportesApi } from '../../api/reportes.api';
 import { Evento, EventoFormData, EstadoEvento } from '../../types';
-import { Plus, Calendar, Users, Edit2, Trash2, DollarSign, FileDown, FileText } from 'lucide-react';
+import { Plus, Calendar, Users, Edit2, Trash2, DollarSign, FileDown, FileText, List, CalendarDays } from 'lucide-react';
 import { notify, handleApiError } from '../../utils/notifications';
 
 export const EventosPage = () => {
@@ -13,6 +14,7 @@ export const EventosPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvento, setSelectedEvento] = useState<Evento | undefined>();
+  const [vistaActual, setVistaActual] = useState<'lista' | 'calendario'>('lista');
 
   useEffect(() => {
     loadEventos();
@@ -42,11 +44,12 @@ export const EventosPage = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('¿Estás seguro de eliminar este evento?')) return;
+    const evento = eventos.find(e => e.id === id);
+    if (!confirm(`¿Estás seguro de eliminar el evento "${evento?.nombre}"? Esta acción no se puede deshacer.`)) return;
 
     try {
       await eventosApi.delete(id);
-      notify.success('Evento eliminado correctamente');
+      notify.success(`🗑️ Evento "${evento?.nombre}" eliminado`);
       loadEventos();
     } catch (error) {
       console.error('Error al eliminar evento:', error);
@@ -58,10 +61,21 @@ export const EventosPage = () => {
     try {
       if (selectedEvento) {
         await eventosApi.update(selectedEvento.id, data);
-        notify.success('Evento actualizado correctamente');
+        notify.success(`✅ Evento "${data.nombre}" actualizado`, {
+          action: {
+            label: 'Ver calendario',
+            onClick: () => {} // TODO: Implementar vista de calendario
+          }
+        });
       } else {
-        await eventosApi.create(data);
-        notify.success('Evento creado correctamente');
+        const nuevoEvento = await eventosApi.create(data);
+        notify.success(`🎉 Evento "${data.nombre}" creado para el ${data.fecha}`, {
+          duration: 6000,
+          action: {
+            label: 'Ver detalles',
+            onClick: () => handleEdit(nuevoEvento)
+          }
+        });
       }
       loadEventos();
     } catch (error) {
@@ -144,13 +158,39 @@ export const EventosPage = () => {
           <p className="text-gray-600 mt-2">Todas tus fiestas y eventos</p>
         </div>
         <div className="flex gap-2">
+          {/* Toggle Vista */}
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setVistaActual('lista')}
+              className={`flex items-center gap-2 px-3 py-2 rounded transition-colors ${
+                vistaActual === 'lista'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <List className="h-4 w-4" />
+              <span className="hidden sm:inline">Lista</span>
+            </button>
+            <button
+              onClick={() => setVistaActual('calendario')}
+              className={`flex items-center gap-2 px-3 py-2 rounded transition-colors ${
+                vistaActual === 'calendario'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <CalendarDays className="h-4 w-4" />
+              <span className="hidden sm:inline">Calendario</span>
+            </button>
+          </div>
+
           <Button variant="outline" onClick={handleExportExcel} className="flex items-center">
             <FileDown className="h-4 w-4 mr-2" />
-            Excel
+            <span className="hidden sm:inline">Excel</span>
           </Button>
           <Button variant="outline" onClick={handleExportPdf} className="flex items-center">
             <FileText className="h-4 w-4 mr-2" />
-            PDF
+            <span className="hidden sm:inline">PDF</span>
           </Button>
           <Button variant="primary" onClick={handleCreate} className="flex items-center">
             <Plus className="h-4 w-4 mr-2" />
@@ -159,7 +199,13 @@ export const EventosPage = () => {
         </div>
       </div>
 
-      {eventos.length === 0 ? (
+      {/* Vista de Calendario */}
+      {vistaActual === 'calendario' && (
+        <CalendarioEventos eventos={eventos} onEventClick={handleEdit} />
+      )}
+
+      {/* Vista de Lista */}
+      {vistaActual === 'lista' && eventos.length === 0 ? (
         <Card>
           <CardBody>
             <div className="text-center py-12">
@@ -176,7 +222,7 @@ export const EventosPage = () => {
             </div>
           </CardBody>
         </Card>
-      ) : (
+      ) : vistaActual === 'lista' ? (
         <div className="grid grid-cols-1 gap-6">
           {eventos.map((evento) => (
             <Card key={evento.id}>
@@ -261,7 +307,7 @@ export const EventosPage = () => {
             </Card>
           ))}
         </div>
-      )}
+      ) : null}
 
       <EventoModal
         isOpen={isModalOpen}

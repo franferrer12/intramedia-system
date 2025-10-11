@@ -73,6 +73,26 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // Security Headers - Sprint 10 Security Audit
+                .headers(headers -> headers
+                        // HSTS: Force HTTPS for 1 year including subdomains
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000)
+                        )
+                        // Prevent MIME sniffing attacks
+                        .contentTypeOptions(contentType -> {})
+                        // Prevent clickjacking attacks
+                        .frameOptions(frame -> frame.deny())
+                        // XSS Protection (legacy but still useful)
+                        .xssProtection(xss -> {})
+                        // Content Security Policy
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:")
+                        )
+                )
+
                 .authorizeHttpRequests(auth -> auth
                         // Permitir OPTIONS para CORS preflight (PRIMERO)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
