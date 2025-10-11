@@ -170,7 +170,9 @@ public class DetalleVenta {
 
     /**
      * Configura el precio según el tipo de venta de botella
+     * TEMPORALMENTE DESHABILITADO - Pendiente de completar implementación Botellas VIP
      */
+    /*
     public void configurarPrecioBotella() {
         if (producto == null || !Boolean.TRUE.equals(producto.getEsBotella())) {
             return;
@@ -193,6 +195,7 @@ public class DetalleVenta {
                 setPrecioDesdeProducto();
         }
     }
+    */
 
     /**
      * Verifica si es una venta de botella VIP
