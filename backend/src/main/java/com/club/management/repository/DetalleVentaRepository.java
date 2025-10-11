@@ -74,11 +74,11 @@ public interface DetalleVentaRepository extends JpaRepository<DetalleVenta, Long
     /**
      * Obtiene productos vendidos agrupados por categoría
      */
-    @Query("SELECT p.categoria.nombre, SUM(d.cantidad) as cantidad, SUM(d.total) as ingresos " +
+    @Query("SELECT p.categoria, SUM(d.cantidad) as cantidad, SUM(d.total) as ingresos " +
            "FROM DetalleVenta d " +
            "JOIN d.producto p " +
            "WHERE d.venta.fecha >= :fechaInicio AND d.venta.fecha <= :fechaFin " +
-           "GROUP BY p.categoria.nombre " +
+           "GROUP BY p.categoria " +
            "ORDER BY ingresos DESC")
     List<Object[]> findVentasPorCategoria(
         @Param("fechaInicio") LocalDateTime fechaInicio,
