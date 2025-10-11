@@ -3,15 +3,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productosApi } from '../../api/productos.api';
 import { reportesApi } from '../../api/reportes.api';
 import { Producto } from '../../types';
-import { Package, Plus, Edit, Trash2, AlertTriangle, TrendingDown, FileDown, CheckCircle2, XCircle, Wine, Droplet } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, AlertTriangle, TrendingDown, FileDown, CheckCircle2, XCircle, Wine, Droplet, LayoutGrid, List } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { notify, handleApiError } from '../../utils/notifications';
 import { useConfirmation, confirmDelete } from '../../hooks/useConfirmation';
 import { ProductoModal } from '../../components/productos/ProductoModal';
+import { ProductoCard } from '../../components/productos/ProductoCard';
+import { useIsMobile } from '../../hooks/useMediaQuery';
 
 export const ProductosPage: FC = () => {
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const [filtroCategoria, setFiltroCategoria] = useState<string>('');
+  const [vistaActual, setVistaActual] = useState<'tabla' | 'tarjetas'>('tabla');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
   const { confirm, ConfirmationDialog } = useConfirmation();
@@ -236,27 +240,78 @@ export const ProductosPage: FC = () => {
         </div>
       </div>
 
-      {/* Filtros */}
+      {/* Filtros y Vista */}
       <div className="bg-white rounded-lg shadow p-4">
-        <div className="flex items-center space-x-4">
-          <label className="text-sm font-medium text-gray-700">Categoría:</label>
-          <select
-            value={filtroCategoria}
-            onChange={(e) => setFiltroCategoria(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md"
-          >
-            <option value="">Todas</option>
-            {categorias.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center space-x-4">
+            <label className="text-sm font-medium text-gray-700">Categoría:</label>
+            <select
+              value={filtroCategoria}
+              onChange={(e) => setFiltroCategoria(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md"
+            >
+              <option value="">Todas</option>
+              {categorias.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Toggle vista (solo en desktop) */}
+          {!isMobile && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700 mr-2">Vista:</span>
+              <div className="inline-flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setVistaActual('tabla')}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    vistaActual === 'tabla'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <List className="h-4 w-4" />
+                  <span>Tabla</span>
+                </button>
+                <button
+                  onClick={() => setVistaActual('tarjetas')}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    vistaActual === 'tarjetas'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  <span>Tarjetas</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Tabla de productos */}
+      {/* Productos - Vista adaptativa */}
       {isLoading ? (
         <div className="text-center py-12">Cargando...</div>
+      ) : isMobile || vistaActual === 'tarjetas' ? (
+        /* Vista de tarjetas (móvil o seleccionada) */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {productosFiltrados.map(producto => (
+            <ProductoCard
+              key={producto.id}
+              producto={producto}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          ))}
+          {productosFiltrados.length === 0 && (
+            <div className="col-span-full text-center py-12 text-gray-500">
+              No hay productos para mostrar
+            </div>
+          )}
+        </div>
       ) : (
+        /* Vista de tabla (desktop) */
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">

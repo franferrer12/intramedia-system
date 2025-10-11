@@ -27,6 +27,7 @@ import {
 import { useState } from 'react';
 import { Button } from '../ui/Button';
 import { GlobalSearch } from './GlobalSearch';
+import { NotificationCenter } from './NotificationCenter';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -242,6 +243,9 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
             </button>
 
             <div className="flex items-center ml-auto lg:ml-0 space-x-4">
+              {/* Notification Center */}
+              <NotificationCenter />
+
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">{user?.username}</p>
                 <p className="text-xs text-gray-500">{user?.rol}</p>
