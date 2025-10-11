@@ -11,12 +11,27 @@ import {
   Calendar,
   BarChart3,
   AlertCircle,
+  Download,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { DatePicker } from '../../components/ui/DatePicker';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LineChart as RechartsLineChart,
+  Line,
+} from 'recharts';
 
 export const AnalyticsPage: FC = () => {
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
+  const [selectedPeriodo, setSelectedPeriodo] = useState<string | null>(null);
+  const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
 
   // Query para el dashboard principal
   const { data: dashboardData, isLoading: loadingDashboard } = useQuery<DashboardMetrics>({
@@ -48,6 +63,59 @@ export const AnalyticsPage: FC = () => {
 
   const formatPercentage = (value: number) => {
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+  };
+
+  // Función para exportar datos a CSV
+  const exportToCSV = () => {
+    if (!rentabilidadData || rentabilidadData.length === 0) return;
+
+    const headers = [
+      'Evento',
+      'Fecha',
+      'Tipo',
+      'Ingresos',
+      'Costes Personal',
+      'Otros Gastos',
+      'Margen Bruto',
+      '% Margen',
+      'Estado',
+    ];
+
+    const rows = rentabilidadData.map((item) => [
+      item.eventoNombre,
+      new Date(item.eventoFecha).toLocaleDateString('es-ES'),
+      item.eventoTipo,
+      item.ingresosEvento.toFixed(2),
+      item.costesPersonal.toFixed(2),
+      item.otrosGastos.toFixed(2),
+      item.margenBruto.toFixed(2),
+      item.porcentajeMargen.toFixed(2),
+      item.eventoEstado,
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `rentabilidad_eventos_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Función para exportar gráfico como imagen
+  const exportChartAsImage = (chartId: string) => {
+    const chartElement = document.getElementById(chartId);
+    if (!chartElement) return;
+
+    // Usamos html2canvas o similar (necesitaría instalarse)
+    // Por ahora, mostramos un mensaje
+    alert('Funcionalidad de exportación de gráfico como imagen disponible próximamente');
   };
 
   // Componente MetricCard
@@ -92,40 +160,88 @@ export const AnalyticsPage: FC = () => {
     </div>
   );
 
-  // Componente LineChart simple con CSS
-  const LineChart: FC<{ data: Array<{ periodo: string; total: number }> }> = ({ data }) => {
+  // Componente de gráfico interactivo mejorado
+  const InteractiveChart: FC<{ data: Array<{ periodo: string; total: number }> }> = ({ data }) => {
     if (!data || data.length === 0) return null;
 
-    const maxValue = Math.max(...data.map((d) => d.total));
-    const minValue = Math.min(...data.map((d) => d.total));
-    const range = maxValue - minValue || 1;
+    const chartData = data.map((item) => ({
+      periodo: `${item.periodo.split('-')[1]}/${item.periodo.split('-')[0].slice(-2)}`,
+      periodoCompleto: item.periodo,
+      total: item.total,
+    }));
+
+    const handleBarClick = (data: any) => {
+      if (data && data.periodoCompleto) {
+        setSelectedPeriodo(data.periodoCompleto);
+        alert(`Detalles del período ${data.periodoCompleto}:\n\nTotal: ${formatCurrency(data.total)}`);
+      }
+    };
 
     return (
-      <div className="w-full h-64 relative">
-        <div className="absolute inset-0 flex items-end justify-around pb-8">
-          {data.map((item, index) => {
-            const height = ((item.total - minValue) / range) * 100;
-            return (
-              <div key={index} className="flex flex-col items-center flex-1 mx-1">
-                <div className="w-full relative group">
-                  <div
-                    className="w-full bg-blue-500 rounded-t hover:bg-blue-600 transition-all cursor-pointer"
-                    style={{ height: `${Math.max(height, 5)}%` }}
-                  >
-                    <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap transition-opacity">
-                      {formatCurrency(item.total)}
-                    </div>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-600 mt-2 text-center">
-                  {item.periodo.split('-')[1]}/{item.periodo.split('-')[0].slice(-2)}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gray-300" />
-      </div>
+      <ResponsiveContainer width="100%" height={300}>
+        {chartType === 'bar' ? (
+          <BarChart data={chartData} onClick={handleBarClick}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              dataKey="periodo"
+              stroke="#6b7280"
+              style={{ fontSize: '12px' }}
+            />
+            <YAxis
+              stroke="#6b7280"
+              style={{ fontSize: '12px' }}
+              tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: '#1f2937',
+                border: 'none',
+                borderRadius: '8px',
+                color: '#fff'
+              }}
+              formatter={(value: any) => [formatCurrency(value), 'Total']}
+              cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
+            />
+            <Bar
+              dataKey="total"
+              fill="#3b82f6"
+              radius={[8, 8, 0, 0]}
+              cursor="pointer"
+            />
+          </BarChart>
+        ) : (
+          <RechartsLineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              dataKey="periodo"
+              stroke="#6b7280"
+              style={{ fontSize: '12px' }}
+            />
+            <YAxis
+              stroke="#6b7280"
+              style={{ fontSize: '12px' }}
+              tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: '#1f2937',
+                border: 'none',
+                borderRadius: '8px',
+                color: '#fff'
+              }}
+              formatter={(value: any) => [formatCurrency(value), 'Total']}
+            />
+            <Line
+              type="monotone"
+              dataKey="total"
+              stroke="#3b82f6"
+              strokeWidth={3}
+              dot={{ fill: '#3b82f6', r: 5 }}
+              activeDot={{ r: 7, cursor: 'pointer' }}
+            />
+          </RechartsLineChart>
+        )}
+      </ResponsiveContainer>
     );
   };
 
@@ -196,17 +312,52 @@ export const AnalyticsPage: FC = () => {
                 Evolución de Costes Laborales
               </h2>
               <p className="text-sm text-gray-600 mt-1">
-                Últimos 6 meses
+                Últimos 6 meses • {selectedPeriodo ? `Período seleccionado: ${selectedPeriodo}` : 'Haz clic en una barra para ver detalles'}
               </p>
             </div>
-            <BarChart3 className="h-6 w-6 text-blue-600" />
+            <div className="flex items-center gap-2">
+              {/* Toggle de tipo de gráfico */}
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setChartType('bar')}
+                  className={`px-3 py-1 rounded text-sm transition-colors ${
+                    chartType === 'bar'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="Gráfico de barras"
+                >
+                  Barras
+                </button>
+                <button
+                  onClick={() => setChartType('line')}
+                  className={`px-3 py-1 rounded text-sm transition-colors ${
+                    chartType === 'line'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="Gráfico de líneas"
+                >
+                  Líneas
+                </button>
+              </div>
+              <button
+                onClick={() => exportChartAsImage('chart-container')}
+                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Exportar gráfico"
+              >
+                <Download className="h-5 w-5" />
+              </button>
+            </div>
           </div>
           {loadingCostes ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           ) : (
-            <LineChart data={dashboardData.ultimos6MesesTendencia} />
+            <div id="chart-container">
+              <InteractiveChart data={dashboardData.ultimos6MesesTendencia} />
+            </div>
           )}
         </div>
       )}
@@ -248,9 +399,20 @@ export const AnalyticsPage: FC = () => {
 
       {/* Filtros para rentabilidad */}
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
-          Análisis de Rentabilidad por Eventos
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900">
+            Análisis de Rentabilidad por Eventos
+          </h2>
+          {rentabilidadData && rentabilidadData.length > 0 && (
+            <button
+              onClick={exportToCSV}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              Exportar CSV
+            </button>
+          )}
+        </div>
         <div className="flex flex-wrap gap-4 mb-6">
           <div className="flex-1 min-w-[200px]">
             <DatePicker

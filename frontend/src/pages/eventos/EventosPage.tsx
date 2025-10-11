@@ -3,17 +3,20 @@ import { Card, CardBody } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { EventoModal } from '../../components/eventos/EventoModal';
 import { CalendarioEventos } from '../../components/eventos/CalendarioEventos';
+import { PlantillaSelector, EventoPlantilla } from '../../components/eventos/PlantillaSelector';
 import { eventosApi } from '../../api/eventos.api';
 import { reportesApi } from '../../api/reportes.api';
 import { Evento, EventoFormData, EstadoEvento } from '../../types';
-import { Plus, Calendar, Users, Edit2, Trash2, DollarSign, FileDown, FileText, List, CalendarDays } from 'lucide-react';
+import { Plus, Calendar, Users, Edit2, Trash2, DollarSign, FileDown, FileText, List, CalendarDays, Copy, Sparkles } from 'lucide-react';
 import { notify, handleApiError } from '../../utils/notifications';
 
 export const EventosPage = () => {
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPlantillaSelectorOpen, setIsPlantillaSelectorOpen] = useState(false);
   const [selectedEvento, setSelectedEvento] = useState<Evento | undefined>();
+  const [plantillaDefaults, setPlantillaDefaults] = useState<Partial<EventoFormData> | undefined>();
   const [vistaActual, setVistaActual] = useState<'lista' | 'calendario'>('lista');
 
   useEffect(() => {
@@ -35,12 +38,63 @@ export const EventosPage = () => {
 
   const handleCreate = () => {
     setSelectedEvento(undefined);
+    setPlantillaDefaults(undefined);
+    setIsModalOpen(true);
+  };
+
+  const handleCreateFromTemplate = () => {
+    setIsPlantillaSelectorOpen(true);
+  };
+
+  const handleSelectPlantilla = (plantilla: EventoPlantilla) => {
+    setIsPlantillaSelectorOpen(false);
+    setSelectedEvento(undefined);
+
+    // Convertir defaults de plantilla a formato EventoFormData
+    const defaults: Partial<EventoFormData> = {
+      tipo: plantilla.tipo as any,
+      estado: (plantilla.defaults.estado || 'PLANIFICADO') as EstadoEvento,
+    };
+
+    if (plantilla.defaults.capacidad) {
+      defaults.aforoEsperado = plantilla.defaults.capacidad;
+    }
+
+    if (plantilla.defaults.precioEntrada !== undefined) {
+      defaults.precioEntrada = plantilla.defaults.precioEntrada;
+    }
+
+    setPlantillaDefaults(defaults);
     setIsModalOpen(true);
   };
 
   const handleEdit = (evento: Evento) => {
     setSelectedEvento(evento);
+    setPlantillaDefaults(undefined);
     setIsModalOpen(true);
+  };
+
+  const handleDuplicate = (evento: Evento) => {
+    // Copiar todos los datos excepto id, fecha y hora
+    const duplicateData: Partial<EventoFormData> = {
+      nombre: `${evento.nombre} (copia)`,
+      descripcion: evento.descripcion,
+      tipo: evento.tipo as any,
+      estado: 'PLANIFICADO' as EstadoEvento,
+      aforoEsperado: evento.aforoEsperado,
+      precioEntrada: evento.precioEntrada,
+      artista: evento.artista,
+      // Fecha y hora se dejarán vacías para que el usuario las configure
+    };
+
+    setSelectedEvento(undefined);
+    setPlantillaDefaults(duplicateData);
+    setIsModalOpen(true);
+
+    notify.info(`📋 Duplicando evento "${evento.nombre}"`, {
+      description: 'Configura la nueva fecha y hora',
+      duration: 3000,
+    });
   };
 
   const handleDelete = async (id: number) => {
@@ -192,9 +246,22 @@ export const EventosPage = () => {
             <FileText className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">PDF</span>
           </Button>
+
+          {/* Botón de plantillas */}
+          <Button
+            variant="outline"
+            onClick={handleCreateFromTemplate}
+            className="flex items-center bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200 hover:from-purple-100 hover:to-blue-100"
+          >
+            <Sparkles className="h-4 w-4 mr-2 text-purple-600" />
+            <span className="hidden sm:inline">Usar Plantilla</span>
+            <span className="sm:hidden">Plantilla</span>
+          </Button>
+
           <Button variant="primary" onClick={handleCreate} className="flex items-center">
             <Plus className="h-4 w-4 mr-2" />
-            Crear Evento
+            <span className="hidden sm:inline">Crear Evento</span>
+            <span className="sm:hidden">Crear</span>
           </Button>
         </div>
       </div>
@@ -289,7 +356,16 @@ export const EventosPage = () => {
                     <Button
                       variant="ghost"
                       size="sm"
+                      onClick={() => handleDuplicate(evento)}
+                      title="Duplicar evento"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => handleEdit(evento)}
+                      title="Editar evento"
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
@@ -298,6 +374,7 @@ export const EventosPage = () => {
                       size="sm"
                       onClick={() => handleDelete(evento.id)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Eliminar evento"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -309,11 +386,23 @@ export const EventosPage = () => {
         </div>
       ) : null}
 
+      {/* Modal de Plantillas */}
+      <PlantillaSelector
+        onSelect={handleSelectPlantilla}
+        onCancel={() => setIsPlantillaSelectorOpen(false)}
+        isOpen={isPlantillaSelectorOpen}
+      />
+
+      {/* Modal de Evento */}
       <EventoModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setPlantillaDefaults(undefined);
+        }}
         onSubmit={handleSubmit}
         evento={selectedEvento}
+        initialData={plantillaDefaults}
       />
     </div>
   );

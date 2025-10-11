@@ -21,11 +21,14 @@ import {
   Monitor,
   HelpCircle,
   Search,
+  Keyboard,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../ui/Button';
 import { GlobalSearch } from './GlobalSearch';
 import { NotificationCenter } from './NotificationCenter';
+import { KeyboardShortcutsModal } from '../ui/KeyboardShortcutsModal';
+import { useGlobalNavigationShortcuts } from '../../hooks/useKeyboardShortcuts';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -37,24 +40,51 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false);
+
+  // Activar atajos de navegación globales
+  useGlobalNavigationShortcuts();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  // Global search keyboard shortcut (Ctrl+K or Cmd+K)
+  // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+K / Cmd+K = Búsqueda global
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         setSearchOpen(true);
+      }
+
+      // ? = Mostrar ayuda de atajos
+      if (e.key === '?' && !e.ctrlKey && !e.metaKey) {
+        const target = e.target as HTMLElement;
+        // Solo si no está escribiendo
+        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          setShortcutsModalOpen(true);
+        }
+      }
+
+      // F2 = Abrir Terminal POS
+      if (e.key === 'F2') {
+        e.preventDefault();
+        navigate('/pos-terminal');
+      }
+
+      // Esc = Cerrar modales
+      if (e.key === 'Escape') {
+        setSearchOpen(false);
+        setShortcutsModalOpen(false);
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [navigate]);
 
   const navigationSections = [
     {
@@ -102,6 +132,12 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
       items: [
         { name: 'Análisis del Negocio', href: '/analytics', icon: BarChart3 },
         { name: 'Centro de Ayuda', href: '/ayuda', icon: HelpCircle, highlight: true },
+      ]
+    },
+    {
+      title: 'Configuración',
+      items: [
+        { name: 'Automatizaciones', href: '/configuracion/automatizacion', icon: Clock, highlight: true },
       ]
     }
   ];
@@ -240,7 +276,16 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
               </kbd>
             </button>
 
-            <div className="flex items-center ml-auto lg:ml-0 space-x-4">
+            <div className="flex items-center ml-auto lg:ml-0 space-x-2">
+              {/* Keyboard Shortcuts Button */}
+              <button
+                onClick={() => setShortcutsModalOpen(true)}
+                className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Atajos de teclado (?)"
+              >
+                <Keyboard className="h-5 w-5" />
+              </button>
+
               {/* Notification Center */}
               <NotificationCenter />
 
@@ -269,6 +314,9 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
 
       {/* Global Search */}
       <GlobalSearch isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsModal isOpen={shortcutsModalOpen} onClose={() => setShortcutsModalOpen(false)} />
     </div>
   );
 };

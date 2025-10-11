@@ -29,6 +29,7 @@ import MonitorSesionesPage from './pages/pos/MonitorSesionesPage';
 import { AyudaPage } from './pages/ayuda/AyudaPage';
 import { NovedadesPage } from './pages/ayuda/NovedadesPage';
 import { AsistenteVirtualPage } from './pages/ayuda/AsistenteVirtualPage';
+import { AutomacionPage } from './pages/configuracion/AutomacionPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,6 +80,7 @@ function App() {
                     <Route path="/ayuda" element={<AyudaPage />} />
                     <Route path="/ayuda/asistente" element={<AsistenteVirtualPage />} />
                     <Route path="/ayuda/novedades" element={<NovedadesPage />} />
+                    <Route path="/configuracion/automatizacion" element={<AutomacionPage />} />
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 </MainLayout>

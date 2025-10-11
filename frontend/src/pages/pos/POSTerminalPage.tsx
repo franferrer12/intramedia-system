@@ -7,6 +7,7 @@ import { ventaApi, VentaRequest, DetalleVentaRequest } from '../../api/pos-venta
 import { productosApi } from '../../api/productos.api';
 import type { Producto } from '../../types';
 import { useAuthStore } from '../../store/authStore';
+import { useFunctionKeyShortcuts } from '../../hooks/useKeyboardShortcuts';
 
 interface ItemCarrito {
   producto: Producto;
@@ -170,6 +171,30 @@ export default function POSTerminalPage() {
       minimumFractionDigits: 2
     }).format(value);
   };
+
+  // Atajos de teclado para POS
+  useFunctionKeyShortcuts({
+    'F5': () => {
+      if (carrito.length > 0 && !crearVentaMutation.isPending) {
+        handleCobrar('EFECTIVO');
+      }
+    },
+    'F6': () => {
+      if (carrito.length > 0 && !crearVentaMutation.isPending) {
+        handleCobrar('TARJETA');
+      }
+    },
+    'F7': () => {
+      if (carrito.length > 0 && !crearVentaMutation.isPending) {
+        handleCobrar('MIXTO');
+      }
+    },
+    'F9': () => {
+      if (carrito.length > 0) {
+        handleLimpiar();
+      }
+    },
+  });
 
   if (!sesionActiva) {
     return (
@@ -368,27 +393,30 @@ export default function POSTerminalPage() {
                 <button
                   onClick={() => handleCobrar('EFECTIVO')}
                   disabled={crearVentaMutation.isPending}
-                  className="w-full h-20 bg-green-600 hover:bg-green-700 text-white font-bold text-2xl rounded-xl flex items-center justify-center gap-3 transition-colors disabled:opacity-50"
+                  className="w-full h-20 bg-green-600 hover:bg-green-700 text-white font-bold text-2xl rounded-xl flex items-center justify-center gap-3 transition-colors disabled:opacity-50 relative"
                 >
                   <Check className="h-8 w-8" />
                   EFECTIVO
+                  <kbd className="absolute top-2 right-2 px-2 py-1 text-xs font-semibold bg-green-700 rounded">F5</kbd>
                 </button>
 
                 <button
                   onClick={() => handleCobrar('TARJETA')}
                   disabled={crearVentaMutation.isPending}
-                  className="w-full h-20 bg-blue-600 hover:bg-blue-700 text-white font-bold text-2xl rounded-xl flex items-center justify-center gap-3 transition-colors disabled:opacity-50"
+                  className="w-full h-20 bg-blue-600 hover:bg-blue-700 text-white font-bold text-2xl rounded-xl flex items-center justify-center gap-3 transition-colors disabled:opacity-50 relative"
                 >
                   <Check className="h-8 w-8" />
                   TARJETA
+                  <kbd className="absolute top-2 right-2 px-2 py-1 text-xs font-semibold bg-blue-700 rounded">F6</kbd>
                 </button>
 
                 <button
                   onClick={() => handleCobrar('MIXTO')}
                   disabled={crearVentaMutation.isPending}
-                  className="w-full h-16 bg-gray-700 hover:bg-gray-600 text-white font-bold text-xl rounded-xl transition-colors disabled:opacity-50"
+                  className="w-full h-16 bg-gray-700 hover:bg-gray-600 text-white font-bold text-xl rounded-xl transition-colors disabled:opacity-50 relative"
                 >
                   PAGO MIXTO
+                  <kbd className="absolute top-2 right-2 px-2 py-1 text-xs font-semibold bg-gray-800 rounded">F7</kbd>
                 </button>
               </div>
             </div>

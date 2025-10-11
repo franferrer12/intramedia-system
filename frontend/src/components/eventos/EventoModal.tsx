@@ -9,9 +9,10 @@ interface EventoModalProps {
   onClose: () => void;
   onSubmit: (data: EventoFormData) => Promise<void>;
   evento?: Evento;
+  initialData?: Partial<EventoFormData>;
 }
 
-export const EventoModal = ({ isOpen, onClose, onSubmit, evento }: EventoModalProps) => {
+export const EventoModal = ({ isOpen, onClose, onSubmit, evento, initialData }: EventoModalProps) => {
   const [formData, setFormData] = useState<EventoFormData>({
     nombre: '',
     fecha: '',
@@ -22,6 +23,7 @@ export const EventoModal = ({ isOpen, onClose, onSubmit, evento }: EventoModalPr
 
   useEffect(() => {
     if (evento) {
+      // Modo edición: cargar datos del evento existente
       setFormData({
         nombre: evento.nombre,
         fecha: evento.fecha,
@@ -31,6 +33,7 @@ export const EventoModal = ({ isOpen, onClose, onSubmit, evento }: EventoModalPr
         aforoEsperado: evento.aforoEsperado,
         aforoReal: evento.aforoReal,
         estado: evento.estado,
+        precioEntrada: evento.precioEntrada,
         artista: evento.artista,
         cacheArtista: evento.cacheArtista,
         ingresosEstimados: evento.ingresosEstimados,
@@ -40,14 +43,23 @@ export const EventoModal = ({ isOpen, onClose, onSubmit, evento }: EventoModalPr
         descripcion: evento.descripcion,
         notas: evento.notas,
       });
+    } else if (initialData) {
+      // Modo creación con datos iniciales (plantilla o duplicado)
+      setFormData({
+        nombre: '',
+        fecha: '',
+        tipo: 'REGULAR',
+        ...initialData,
+      });
     } else {
+      // Modo creación vacío
       setFormData({
         nombre: '',
         fecha: '',
         tipo: 'REGULAR',
       });
     }
-  }, [evento, isOpen]);
+  }, [evento, initialData, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,6 +193,21 @@ export const EventoModal = ({ isOpen, onClose, onSubmit, evento }: EventoModalPr
                 value={formData.aforoEsperado || ''}
                 onChange={(e) => setFormData({ ...formData, aforoEsperado: parseInt(e.target.value) || undefined })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Precio Entrada (€)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.precioEntrada || ''}
+                onChange={(e) => setFormData({ ...formData, precioEntrada: parseFloat(e.target.value) || undefined })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                placeholder="0.00"
               />
             </div>
 

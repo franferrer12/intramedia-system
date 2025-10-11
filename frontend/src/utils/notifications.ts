@@ -6,6 +6,7 @@ export interface NotificationOptions {
   duration?: number;
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'top-center' | 'bottom-center';
   dismissible?: boolean;
+  description?: string;
   action?: {
     label: string;
     onClick: () => void;
@@ -23,6 +24,7 @@ export const notify = {
     return toast.success(message, {
       duration: options?.duration || 4000,
       dismissible: options?.dismissible !== false,
+      description: options?.description,
       action: options?.action,
     });
   },
@@ -34,6 +36,7 @@ export const notify = {
     return toast.error(message, {
       duration: options?.duration || 6000,
       dismissible: options?.dismissible !== false,
+      description: options?.description,
       action: options?.action,
     });
   },
@@ -45,6 +48,7 @@ export const notify = {
     return toast.warning(message, {
       duration: options?.duration || 5000,
       dismissible: options?.dismissible !== false,
+      description: options?.description,
       action: options?.action,
     });
   },
@@ -56,6 +60,7 @@ export const notify = {
     return toast.info(message, {
       duration: options?.duration || 4000,
       dismissible: options?.dismissible !== false,
+      description: options?.description,
       action: options?.action,
     });
   },

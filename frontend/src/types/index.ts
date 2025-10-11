@@ -47,6 +47,7 @@ export interface Evento {
   aforoEsperado?: number;
   aforoReal?: number;
   estado: EstadoEvento;
+  precioEntrada?: number;
   artista?: string;
   cacheArtista?: number;
   ingresosEstimados?: number;
@@ -70,6 +71,7 @@ export interface EventoFormData {
   aforoEsperado?: number;
   aforoReal?: number;
   estado?: EstadoEvento;
+  precioEntrada?: number;
   artista?: string;
   cacheArtista?: number;
   ingresosEstimados?: number;
