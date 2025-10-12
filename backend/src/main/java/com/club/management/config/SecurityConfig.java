@@ -69,6 +69,7 @@ public class SecurityConfig {
     }
 
     @Bean
+    @Order(2)  // Ejecuta DESPUÉS del PublicSecurityConfig
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
