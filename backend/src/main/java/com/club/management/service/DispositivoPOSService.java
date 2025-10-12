@@ -315,7 +315,7 @@ public class DispositivoPOSService {
         dispositivo.setEmpleadoAsignado(empleado);
         dispositivo = dispositivoPOSRepository.save(dispositivo);
 
-        registrarLogInterno(dispositivo, DispositivoPOSLog.TipoEvento.CONFIGURACION,
+        registrarLogInterno(dispositivo, DispositivoPOSLog.TipoEvento.ACTUALIZACION,
                 "Vinculación temporal: " + empleado.getNombre(), null);
 
         log.info("✅ Quick Start: {} vinculado temporalmente a {}",
@@ -341,7 +341,7 @@ public class DispositivoPOSService {
         dispositivo.setEmpleadoAsignado(null);
         dispositivo = dispositivoPOSRepository.save(dispositivo);
 
-        registrarLogInterno(dispositivo, DispositivoPOSLog.TipoEvento.CONFIGURACION,
+        registrarLogInterno(dispositivo, DispositivoPOSLog.TipoEvento.ACTUALIZACION,
                 "Desvinculación: " + empleadoNombre, null);
 
         log.info("🔓 Dispositivo desvinculado: {} (empleado: {})",
