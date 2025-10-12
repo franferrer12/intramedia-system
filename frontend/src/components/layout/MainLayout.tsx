@@ -22,6 +22,7 @@ import {
   HelpCircle,
   Search,
   Keyboard,
+  Smartphone,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../ui/Button';
@@ -98,6 +99,7 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
       items: [
         { name: 'Terminal POS', href: '/pos-terminal', icon: ShoppingCart },
         { name: 'Dashboard POS', href: '/pos-dashboard', icon: Monitor },
+        { name: 'Dispositivos POS', href: '/dispositivos-pos', icon: Smartphone },
         { name: 'Sesiones de Caja', href: '/sesiones', icon: ClipboardList },
         { name: 'Dashboard Finanzas', href: '/finanzas/dashboard', icon: BarChart3 },
         { name: 'Transacciones', href: '/finanzas', icon: DollarSign },
