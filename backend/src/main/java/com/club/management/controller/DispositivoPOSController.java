@@ -23,7 +23,7 @@ public class DispositivoPOSController {
     // ============================================
 
     @PostMapping("/registrar")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE')")
     public ResponseEntity<DispositivoPOSDTO> registrarDispositivo(
             @Valid @RequestBody DispositivoPOSRequest request) {
         DispositivoPOSDTO dispositivo = dispositivoPOSService.registrar(request);
@@ -31,25 +31,25 @@ public class DispositivoPOSController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE')")
     public ResponseEntity<List<DispositivoPOSDTO>> listarTodos() {
         return ResponseEntity.ok(dispositivoPOSService.listarTodos());
     }
 
     @GetMapping("/activos")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ENCARGADO')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE', 'ROLE_ENCARGADO')")
     public ResponseEntity<List<DispositivoPOSDTO>> listarActivos() {
         return ResponseEntity.ok(dispositivoPOSService.listarActivos());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE', 'ENCARGADO')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE', 'ROLE_ENCARGADO')")
     public ResponseEntity<DispositivoPOSDTO> obtenerPorId(@PathVariable Long id) {
         return ResponseEntity.ok(dispositivoPOSService.obtenerPorId(id));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE')")
     public ResponseEntity<DispositivoPOSDTO> actualizar(
             @PathVariable Long id,
             @Valid @RequestBody DispositivoPOSRequest request) {
@@ -57,7 +57,7 @@ public class DispositivoPOSController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         dispositivoPOSService.eliminar(id);
         return ResponseEntity.noContent().build();
@@ -109,7 +109,7 @@ public class DispositivoPOSController {
     // ============================================
 
     @GetMapping("/{id}/logs")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'GERENTE')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE')")
     public ResponseEntity<List<DispositivoLogDTO>> obtenerLogs(
             @PathVariable Long id,
             @RequestParam(defaultValue = "100") int limit) {
