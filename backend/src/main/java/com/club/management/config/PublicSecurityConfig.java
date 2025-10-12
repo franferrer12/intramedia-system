@@ -1,49 +1,84 @@
 package com.club.management.config;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
 
 /**
- * Configuración de seguridad SEPARADA para endpoints públicos.
+ * Configuración para excluir completamente /public/** de Spring Security.
  *
- * CRITICAL: Este filtro se ejecuta ANTES del filtro principal (@Order(1))
- * y maneja ÚNICAMENTE los endpoints /public/** sin ninguna autenticación.
+ * CRITICAL: Esta es la única forma garantizada de bypasear COMPLETAMENTE
+ * Spring Security para ciertos paths. WebSecurityCustomizer se ejecuta
+ * ANTES de cualquier SecurityFilterChain y excluye los paths del
+ * procesamiento de seguridad por completo.
  *
- * Esto es necesario porque Spring Security 6.x tiene un bug donde
- * incluso con .permitAll(), algunos requests se bloquean con 403.
+ * Esto es diferente a .permitAll() que aún pasa por los filtros de seguridad.
+ * Con WebSecurityCustomizer, Spring Security IGNORA completamente estos paths.
  */
 @Configuration
 @EnableWebSecurity
 public class PublicSecurityConfig {
 
     /**
-     * Filtro de seguridad para endpoints públicos.
+     * Excluye /public/** de TODO el procesamiento de Spring Security.
      *
-     * @Order(1) = Se ejecuta ANTES del filtro principal
-     * .securityMatchers("/public/**") = Solo aplica a /public/**
-     * .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()) = Permite TODO sin autenticación
+     * Esto significa:
+     * - No pasa por ningún SecurityFilterChain
+     * - No pasa por JwtAuthenticationFilter
+     * - No pasa por AuthorizationFilter
+     * - Va directamente al controller
+     *
+     * Es como si estos endpoints no tuvieran Spring Security habilitado.
      */
     @Bean
-    @Order(1)
-    public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
-        http
-            // CRITICAL: Use securityMatchers() to match ONLY /public/** paths
-            .securityMatchers(matchers -> matchers
-                .requestMatchers("/public/**")
-            )
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.disable())  // CORS se maneja en el filtro principal
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth ->
-                auth.anyRequest().permitAll()  // Permitir TODO sin verificación
-            );
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring()
+            .requestMatchers("/public/**");
+    }
 
-        return http.build();
+    /**
+     * Filtro CORS para endpoints públicos.
+     *
+     * Como /public/** se salta Spring Security con web.ignoring(),
+     * necesitamos un filtro separado para manejar CORS.
+     */
+    @Component
+    @Order(Integer.MIN_VALUE)  // Ejecuta PRIMERO
+    public static class PublicCorsFilter extends OncePerRequestFilter {
+
+        @Override
+        protected void doFilterInternal(HttpServletRequest request,
+                                        HttpServletResponse response,
+                                        FilterChain filterChain) throws ServletException, IOException {
+            String path = request.getRequestURI();
+
+            // Solo aplicar a endpoints públicos
+            if (path.startsWith("/public/")) {
+                // Configurar headers CORS
+                response.setHeader("Access-Control-Allow-Origin", "*");
+                response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+                response.setHeader("Access-Control-Max-Age", "3600");
+
+                // Si es preflight (OPTIONS), responder inmediatamente
+                if ("OPTIONS".equals(request.getMethod())) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    return;
+                }
+            }
+
+            filterChain.doFilter(request, response);
+        }
     }
 }
