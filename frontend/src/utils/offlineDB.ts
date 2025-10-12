@@ -26,6 +26,8 @@ export interface VentaOfflineDB {
   items: VentaItemDB[];
   total: number;
   metodoPago?: string;
+  empleadoId?: number;
+  empleadoNombre?: string;
   sincronizada: boolean;
   intentosSincronizacion: number;
   ultimoIntento?: number;

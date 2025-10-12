@@ -83,6 +83,10 @@ public class DispositivoPOS {
     @Builder.Default
     private Boolean modoOfflineHabilitado = true;
 
+    @Column(name = "modo_tablet_compartida")
+    @Builder.Default
+    private Boolean modoTabletCompartida = false;
+
     // Tracking
     @Column(name = "ultima_conexion")
     private LocalDateTime ultimaConexion;

@@ -30,6 +30,7 @@ public class DispositivoPOSDTO {
     private Map<String, Object> permisos;
     private Boolean activo;
     private Boolean modoOfflineHabilitado;
+    private Boolean modoTabletCompartida;
     private LocalDateTime ultimaConexion;
     private LocalDateTime ultimaSincronizacion;
     private String ipAddress;

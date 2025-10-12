@@ -70,6 +70,7 @@ public class DispositivoPOSService {
                 .permisos(request.getPermisos())
                 .activo(true)
                 .modoOfflineHabilitado(true)
+                .modoTabletCompartida(request.getModoTabletCompartida())
                 .build();
 
         dispositivo = dispositivoPOSRepository.save(dispositivo);
@@ -133,6 +134,7 @@ public class DispositivoPOSService {
         dispositivo.setTieneLectorBarras(request.getTieneLectorBarras());
         dispositivo.setTieneCajonDinero(request.getTieneCajonDinero());
         dispositivo.setTienePantallaCliente(request.getTienePantallaCliente());
+        dispositivo.setModoTabletCompartida(request.getModoTabletCompartida());
         dispositivo.setPermisos(request.getPermisos());
 
         dispositivo = dispositivoPOSRepository.save(dispositivo);
@@ -206,6 +208,14 @@ public class DispositivoPOSService {
                 .map(this::mapProductoToDTO)
                 .collect(Collectors.toList());
 
+        // Obtener empleados activos si está en modo tablet compartida
+        List<EmpleadoSimpleDTO> empleadosActivos = null;
+        if (Boolean.TRUE.equals(dispositivo.getModoTabletCompartida())) {
+            empleadosActivos = empleadoRepository.findByActivoTrue().stream()
+                    .map(this::mapEmpleadoSimpleToDTO)
+                    .collect(Collectors.toList());
+        }
+
         // Buscar sesión de caja activa
         Long sesionActiva = null;
         var sesiones = sesionVentaRepository.findByActivaTrue();
@@ -222,7 +232,9 @@ public class DispositivoPOSService {
                 .tieneCajonDinero(dispositivo.getTieneCajonDinero())
                 .tienePantallaCliente(dispositivo.getTienePantallaCliente())
                 .modoOfflineHabilitado(dispositivo.getModoOfflineHabilitado())
+                .modoTabletCompartida(dispositivo.getModoTabletCompartida())
                 .productosPrecargados(productos)
+                .empleadosActivos(empleadosActivos)
                 .sesionCajaActiva(sesionActiva)
                 .build();
     }
@@ -383,6 +395,7 @@ public class DispositivoPOSService {
                 .permisos(dispositivo.getPermisos())
                 .activo(dispositivo.getActivo())
                 .modoOfflineHabilitado(dispositivo.getModoOfflineHabilitado())
+                .modoTabletCompartida(dispositivo.getModoTabletCompartida())
                 .ultimaConexion(dispositivo.getUltimaConexion())
                 .ultimaSincronizacion(dispositivo.getUltimaSincronizacion())
                 .ipAddress(dispositivo.getIpAddress())
@@ -415,5 +428,17 @@ public class DispositivoPOSService {
         dto.setStock(producto.getStock());
         dto.setActivo(producto.getActivo());
         return dto;
+    }
+
+    private EmpleadoSimpleDTO mapEmpleadoSimpleToDTO(Empleado empleado) {
+        String iniciales = (empleado.getNombre().substring(0, 1) + empleado.getApellido().substring(0, 1)).toUpperCase();
+        return EmpleadoSimpleDTO.builder()
+                .id(empleado.getId())
+                .nombre(empleado.getNombre())
+                .apellido(empleado.getApellido())
+                .iniciales(iniciales)
+                .puesto(empleado.getPuesto())
+                .activo(empleado.getActivo())
+                .build();
     }
 }

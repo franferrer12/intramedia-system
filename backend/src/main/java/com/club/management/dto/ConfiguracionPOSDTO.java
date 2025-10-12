@@ -21,6 +21,8 @@ public class ConfiguracionPOSDTO {
     private Boolean tieneCajonDinero;
     private Boolean tienePantallaCliente;
     private Boolean modoOfflineHabilitado;
+    private Boolean modoTabletCompartida;
     private List<ProductoDTO> productosPrecargados; // Para caché offline
+    private List<EmpleadoSimpleDTO> empleadosActivos; // Para selector en modo compartido
     private Long sesionCajaActiva; // ID de sesión activa si existe
 }

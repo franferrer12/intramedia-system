@@ -17,6 +17,7 @@ export interface DispositivoPOS {
   permisos?: Record<string, any>;
   activo: boolean;
   modoOfflineHabilitado?: boolean;
+  modoTabletCompartida?: boolean;
   ultimaConexion?: string;
   ultimaSincronizacion?: string;
   ipAddress?: string;
@@ -36,6 +37,7 @@ export interface DispositivoPOSRequest {
   tieneLectorBarras?: boolean;
   tieneCajonDinero?: boolean;
   tienePantallaCliente?: boolean;
+  modoTabletCompartida?: boolean;
   permisos?: Record<string, any>;
 }
 
@@ -44,6 +46,15 @@ export interface AuthDispositivoResponse {
   type: string;
   dispositivo: DispositivoPOS;
   configuracion: ConfiguracionPOS;
+}
+
+export interface EmpleadoSimple {
+  id: number;
+  nombre: string;
+  apellido: string;
+  iniciales: string;
+  puesto?: string;
+  activo: boolean;
 }
 
 export interface ConfiguracionPOS {
@@ -55,7 +66,9 @@ export interface ConfiguracionPOS {
   tieneCajonDinero?: boolean;
   tienePantallaCliente?: boolean;
   modoOfflineHabilitado?: boolean;
+  modoTabletCompartida?: boolean;
   productosPrecargados?: any[];
+  empleadosActivos?: EmpleadoSimple[];
   sesionCajaActiva?: number;
 }
 

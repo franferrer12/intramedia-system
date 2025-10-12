@@ -5,6 +5,7 @@ import { Button } from '../../../components/ui/Button';
 import { DispositivoPOS, ConfiguracionPOS } from '../../../api/dispositivos-pos.api';
 import { useOfflineSync } from '../../../hooks/useOfflineSync';
 import { addVentaPendiente, VentaOfflineDB } from '../../../utils/offlineDB';
+import { EmpleadoQuickSelect } from './EmpleadoQuickSelect';
 
 interface POSStandaloneTerminalProps {
   dispositivo: DispositivoPOS;
@@ -37,6 +38,7 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showEmpleadoSelector, setShowEmpleadoSelector] = useState(false);
 
   // Hook de sincronización offline
   const { isSyncing, pendingCount, triggerSync, updatePendingCount } = useOfflineSync(
@@ -132,9 +134,25 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
     setCarrito([]);
   };
 
-  const procesarVenta = async () => {
+  const handleEmpleadoSelect = (empleadoId: number, empleadoNombre: string) => {
+    setShowEmpleadoSelector(false);
+    // Procesar venta con el empleado seleccionado
+    procesarVenta(empleadoId, empleadoNombre);
+  };
+
+  const handleEmpleadoCancel = () => {
+    setShowEmpleadoSelector(false);
+  };
+
+  const procesarVenta = async (empleadoId?: number, empleadoNombre?: string) => {
     if (carrito.length === 0) {
       toast.error('El carrito está vacío');
+      return;
+    }
+
+    // Si está en modo tablet compartida y no hay empleado seleccionado, mostrar selector
+    if (configuracion.modoTabletCompartida && !empleadoId) {
+      setShowEmpleadoSelector(true);
       return;
     }
 
@@ -158,6 +176,8 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
         })),
         total,
         metodoPago: 'EFECTIVO', // Por defecto
+        empleadoId: empleadoId,
+        empleadoNombre: empleadoNombre,
         sincronizada: false,
         intentosSincronizacion: 0,
       };
@@ -393,7 +413,7 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
             {/* Botones de Acción */}
             <div className="space-y-2">
               <Button
-                onClick={procesarVenta}
+                onClick={() => procesarVenta()}
                 disabled={carrito.length === 0 || isProcessing}
                 variant="primary"
                 className="w-full h-12 text-lg font-semibold"
@@ -447,6 +467,16 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
             Todas las ventas están sincronizadas
           </span>
         </div>
+      )}
+
+      {/* Modal de selección de empleado */}
+      {showEmpleadoSelector && configuracion.empleadosActivos && (
+        <EmpleadoQuickSelect
+          isOpen={showEmpleadoSelector}
+          empleados={configuracion.empleadosActivos}
+          onSelect={handleEmpleadoSelect}
+          onCancel={handleEmpleadoCancel}
+        />
       )}
     </div>
   );

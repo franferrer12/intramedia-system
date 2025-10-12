@@ -32,6 +32,7 @@ import { AsistenteVirtualPage } from './pages/ayuda/AsistenteVirtualPage';
 import { AutomacionPage } from './pages/configuracion/AutomacionPage';
 import { StandalonePOSPage } from './pages/pos/standalone/StandalonePOSPage';
 import { WelcomePage } from './pages/welcome/WelcomePage';
+import { DispositivosPOSPage } from './pages/dispositivos/DispositivosPOSPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -77,6 +78,7 @@ function App() {
           <Route path="/pos-monitor" element={<ProtectedRoute><MainLayout><MonitorSesionesPage /></MainLayout></ProtectedRoute>} />
           <Route path="/sesiones" element={<ProtectedRoute><MainLayout><SesionesPage /></MainLayout></ProtectedRoute>} />
           <Route path="/pos-dashboard" element={<ProtectedRoute><MainLayout><POSDashboardPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/dispositivos-pos" element={<ProtectedRoute><MainLayout><DispositivosPOSPage /></MainLayout></ProtectedRoute>} />
           <Route path="/ayuda" element={<ProtectedRoute><MainLayout><AyudaPage /></MainLayout></ProtectedRoute>} />
           <Route path="/ayuda/asistente" element={<ProtectedRoute><MainLayout><AsistenteVirtualPage /></MainLayout></ProtectedRoute>} />
           <Route path="/ayuda/novedades" element={<ProtectedRoute><MainLayout><NovedadesPage /></MainLayout></ProtectedRoute>} />

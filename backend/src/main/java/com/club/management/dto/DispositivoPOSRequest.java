@@ -48,5 +48,8 @@ public class DispositivoPOSRequest {
     @Builder.Default
     private Boolean tienePantallaCliente = false;
 
+    @Builder.Default
+    private Boolean modoTabletCompartida = false;
+
     private Map<String, Object> permisos;
 }
