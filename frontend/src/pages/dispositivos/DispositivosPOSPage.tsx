@@ -17,7 +17,7 @@ export const DispositivosPOSPage: FC = () => {
   const { data: dispositivos = [], isLoading } = useQuery({
     queryKey: ['dispositivos-pos'],
     queryFn: dispositivosPosApi.listarTodos,
-    refetchInterval: 10000, // Auto-refresh cada 10 segundos
+    refetchInterval: isModalOpen ? false : 10000, // Solo auto-refresh cuando el modal está cerrado
   });
 
   // Mutation para eliminar
