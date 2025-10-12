@@ -94,6 +94,9 @@ spring:
     activate:
       on-profile: prod
 
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/club_management}
     username: ${DB_USER:club_admin}
