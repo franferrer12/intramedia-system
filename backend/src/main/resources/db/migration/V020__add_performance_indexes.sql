@@ -140,16 +140,13 @@ ON productos(nombre);
 -- (No necesario - inventario ya tiene producto_id como FK)
 
 -- ============================================================================
--- 8. ÍNDICES EN TABLA: inventario
+-- 8. ÍNDICES EN TABLA: inventarios
 -- ============================================================================
 
--- Índice para join con productos
-CREATE INDEX IF NOT EXISTS idx_inventario_producto_id
-ON inventario(producto_id);
-
--- Índice para productos con stock bajo (alertas)
-CREATE INDEX IF NOT EXISTS idx_inventario_stock_actual
-ON inventario(stock_actual);
+-- NOTA: La tabla inventarios ya no se usa para stock actual
+-- El stock actual se mantiene en productos.stock_actual
+-- La tabla inventarios se usa solo para conteos físicos periódicos
+-- Por lo tanto, no necesitamos índices de performance aquí
 
 -- ============================================================================
 -- 9. ÍNDICES EN TABLA: movimientos_stock
