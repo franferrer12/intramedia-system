@@ -87,6 +87,11 @@ public class DispositivoPOS {
     @Builder.Default
     private Boolean modoTabletCompartida = false;
 
+    // Tipo de asignación de empleado
+    @Column(name = "asignacion_permanente")
+    @Builder.Default
+    private Boolean asignacionPermanente = false; // false = temporal (quick start), true = permanente
+
     // Tracking
     @Column(name = "ultima_conexion")
     private LocalDateTime ultimaConexion;

@@ -51,5 +51,8 @@ public class DispositivoPOSRequest {
     @Builder.Default
     private Boolean modoTabletCompartida = false;
 
+    @Builder.Default
+    private Boolean asignacionPermanente = false; // false = quick start, true = asignación fija
+
     private Map<String, Object> permisos;
 }

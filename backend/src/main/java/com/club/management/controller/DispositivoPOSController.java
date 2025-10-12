@@ -75,6 +75,30 @@ public class DispositivoPOSController {
         return ResponseEntity.ok(auth);
     }
 
+    // ============================================
+    // VINCULACIÓN TEMPORAL (QUICK START)
+    // ============================================
+
+    /**
+     * Vincula temporalmente un empleado a un dispositivo no asignado permanentemente.
+     * Permite que cualquier empleado use cualquier dispositivo disponible (modo Quick Start).
+     */
+    @PostMapping("/{id}/vincular-temporal")
+    public ResponseEntity<DispositivoPOSDTO> vincularTemporalmente(
+            @PathVariable Long id,
+            @RequestParam Long empleadoId) {
+        return ResponseEntity.ok(dispositivoPOSService.vincularTemporalmente(id, empleadoId));
+    }
+
+    /**
+     * Desvincula el empleado actualmente asignado temporalmente a un dispositivo.
+     * Útil cuando un empleado termina su turno o sesión.
+     */
+    @PostMapping("/{id}/desvincular")
+    public ResponseEntity<DispositivoPOSDTO> desvincular(@PathVariable Long id) {
+        return ResponseEntity.ok(dispositivoPOSService.desvincular(id));
+    }
+
     @GetMapping("/{id}/configuracion")
     public ResponseEntity<ConfiguracionPOSDTO> obtenerConfiguracion(@PathVariable Long id) {
         return ResponseEntity.ok(dispositivoPOSService.obtenerConfiguracion(id));

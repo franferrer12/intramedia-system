@@ -53,6 +53,18 @@ public class DispositivoPOSService {
         if (request.getEmpleadoAsignadoId() != null) {
             empleado = empleadoRepository.findById(request.getEmpleadoAsignadoId())
                     .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado"));
+
+            // Si es asignación permanente, verificar que el empleado no esté asignado a otro dispositivo
+            if (Boolean.TRUE.equals(request.getAsignacionPermanente())) {
+                Optional<DispositivoPOS> otroDispositivo = dispositivoPOSRepository
+                        .findByEmpleadoAsignadoAndAsignacionPermanente(empleado, true);
+
+                if (otroDispositivo.isPresent()) {
+                    throw new IllegalArgumentException(
+                        "El empleado ya está asignado permanentemente al dispositivo: " +
+                        otroDispositivo.get().getNombre());
+                }
+            }
         }
 
         DispositivoPOS dispositivo = DispositivoPOS.builder()
@@ -72,10 +84,14 @@ public class DispositivoPOSService {
                 .activo(true)
                 .modoOfflineHabilitado(true)
                 .modoTabletCompartida(request.getModoTabletCompartida())
+                .asignacionPermanente(request.getAsignacionPermanente())
                 .build();
 
         dispositivo = dispositivoPOSRepository.save(dispositivo);
-        log.info("✅ Dispositivo POS registrado: {} (UUID: {})", dispositivo.getNombre(), dispositivo.getUuid());
+        log.info("✅ Dispositivo POS registrado: {} (UUID: {}, Asignación: {})",
+                dispositivo.getNombre(),
+                dispositivo.getUuid(),
+                Boolean.TRUE.equals(dispositivo.getAsignacionPermanente()) ? "Permanente" : "Temporal");
 
         return mapToDTO(dispositivo);
     }
@@ -117,9 +133,24 @@ public class DispositivoPOSService {
         dispositivo.setTipo(request.getTipo());
         dispositivo.setUbicacion(request.getUbicacion());
 
+        // Validación de asignación de empleado
         if (request.getEmpleadoAsignadoId() != null) {
             Empleado empleado = empleadoRepository.findById(request.getEmpleadoAsignadoId())
                     .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado"));
+
+            // Si es asignación permanente, verificar que el empleado no esté asignado a otro dispositivo
+            if (Boolean.TRUE.equals(request.getAsignacionPermanente())) {
+                Optional<DispositivoPOS> otroDispositivo = dispositivoPOSRepository
+                        .findByEmpleadoAsignadoAndAsignacionPermanenteAndIdNot(
+                                empleado, true, id);
+
+                if (otroDispositivo.isPresent()) {
+                    throw new IllegalArgumentException(
+                        "El empleado ya está asignado permanentemente al dispositivo: " +
+                        otroDispositivo.get().getNombre());
+                }
+            }
+
             dispositivo.setEmpleadoAsignado(empleado);
         } else {
             dispositivo.setEmpleadoAsignado(null);
@@ -136,10 +167,13 @@ public class DispositivoPOSService {
         dispositivo.setTieneCajonDinero(request.getTieneCajonDinero());
         dispositivo.setTienePantallaCliente(request.getTienePantallaCliente());
         dispositivo.setModoTabletCompartida(request.getModoTabletCompartida());
+        dispositivo.setAsignacionPermanente(request.getAsignacionPermanente());
         dispositivo.setPermisos(request.getPermisos());
 
         dispositivo = dispositivoPOSRepository.save(dispositivo);
-        log.info("✅ Dispositivo POS actualizado: {}", dispositivo.getNombre());
+        log.info("✅ Dispositivo POS actualizado: {} (Asignación: {})",
+                dispositivo.getNombre(),
+                Boolean.TRUE.equals(dispositivo.getAsignacionPermanente()) ? "Permanente" : "Temporal");
 
         return mapToDTO(dispositivo);
     }
@@ -247,6 +281,73 @@ public class DispositivoPOSService {
 
         dispositivo.setUltimaConexion(LocalDateTime.now());
         dispositivoPOSRepository.save(dispositivo);
+    }
+
+    // ============================================
+    // VINCULACIÓN TEMPORAL (QUICK START)
+    // ============================================
+
+    @Transactional
+    public DispositivoPOSDTO vincularTemporalmente(Long dispositivoId, Long empleadoId) {
+        DispositivoPOS dispositivo = dispositivoPOSRepository.findById(dispositivoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Dispositivo no encontrado"));
+
+        // Verificar que el dispositivo NO tenga asignación permanente
+        if (Boolean.TRUE.equals(dispositivo.getAsignacionPermanente())) {
+            throw new IllegalStateException(
+                "Este dispositivo tiene asignación permanente. No se puede usar Quick Start. " +
+                "Usa el dispositivo asignado o cambia el modo a temporal.");
+        }
+
+        Empleado empleado = empleadoRepository.findById(empleadoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado"));
+
+        // Desvincular empleado de cualquier otro dispositivo temporal
+        dispositivoPOSRepository.findByEmpleadoAsignado(empleadoId).forEach(d -> {
+            if (Boolean.FALSE.equals(d.getAsignacionPermanente())) {
+                d.setEmpleadoAsignado(null);
+                dispositivoPOSRepository.save(d);
+                log.info("🔄 Empleado desvinculado automáticamente de: {}", d.getNombre());
+            }
+        });
+
+        // Vincular temporalmente
+        dispositivo.setEmpleadoAsignado(empleado);
+        dispositivo = dispositivoPOSRepository.save(dispositivo);
+
+        registrarLogInterno(dispositivo, DispositivoPOSLog.TipoEvento.CONFIGURACION,
+                "Vinculación temporal: " + empleado.getNombre(), null);
+
+        log.info("✅ Quick Start: {} vinculado temporalmente a {}",
+                empleado.getNombre(), dispositivo.getNombre());
+
+        return mapToDTO(dispositivo);
+    }
+
+    @Transactional
+    public DispositivoPOSDTO desvincular(Long dispositivoId) {
+        DispositivoPOS dispositivo = dispositivoPOSRepository.findById(dispositivoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Dispositivo no encontrado"));
+
+        // Solo desvincular si NO tiene asignación permanente
+        if (Boolean.TRUE.equals(dispositivo.getAsignacionPermanente())) {
+            throw new IllegalStateException(
+                "Este dispositivo tiene asignación permanente. No se puede desvincular automáticamente.");
+        }
+
+        String empleadoNombre = dispositivo.getEmpleadoAsignado() != null ?
+                dispositivo.getEmpleadoAsignado().getNombre() : "ninguno";
+
+        dispositivo.setEmpleadoAsignado(null);
+        dispositivo = dispositivoPOSRepository.save(dispositivo);
+
+        registrarLogInterno(dispositivo, DispositivoPOSLog.TipoEvento.CONFIGURACION,
+                "Desvinculación: " + empleadoNombre, null);
+
+        log.info("🔓 Dispositivo desvinculado: {} (empleado: {})",
+                dispositivo.getNombre(), empleadoNombre);
+
+        return mapToDTO(dispositivo);
     }
 
     // ============================================
@@ -397,6 +498,7 @@ public class DispositivoPOSService {
                 .activo(dispositivo.getActivo())
                 .modoOfflineHabilitado(dispositivo.getModoOfflineHabilitado())
                 .modoTabletCompartida(dispositivo.getModoTabletCompartida())
+                .asignacionPermanente(dispositivo.getAsignacionPermanente())
                 .ultimaConexion(dispositivo.getUltimaConexion())
                 .ultimaSincronizacion(dispositivo.getUltimaSincronizacion())
                 .ipAddress(dispositivo.getIpAddress())

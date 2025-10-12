@@ -31,6 +31,7 @@ public class DispositivoPOSDTO {
     private Boolean activo;
     private Boolean modoOfflineHabilitado;
     private Boolean modoTabletCompartida;
+    private Boolean asignacionPermanente; // false = vinculación temporal (quick start), true = permanente
     private LocalDateTime ultimaConexion;
     private LocalDateTime ultimaSincronizacion;
     private String ipAddress;

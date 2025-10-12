@@ -1,6 +1,7 @@
 package com.club.management.repository;
 
 import com.club.management.entity.DispositivoPOS;
+import com.club.management.entity.Empleado;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,6 +24,14 @@ public interface DispositivoPOSRepository extends JpaRepository<DispositivoPOS, 
 
     @Query("SELECT d FROM DispositivoPOS d WHERE d.empleadoAsignado.id = :empleadoId AND d.activo = true")
     List<DispositivoPOS> findByEmpleadoAsignado(@Param("empleadoId") Long empleadoId);
+
+    // Buscar dispositivo con empleado asignado permanentemente (excluyendo un ID)
+    Optional<DispositivoPOS> findByEmpleadoAsignadoAndAsignacionPermanenteAndIdNot(
+            Empleado empleado, Boolean asignacionPermanente, Long id);
+
+    // Buscar dispositivo con empleado asignado permanentemente
+    Optional<DispositivoPOS> findByEmpleadoAsignadoAndAsignacionPermanente(
+            Empleado empleado, Boolean asignacionPermanente);
 
     @Query("SELECT d FROM DispositivoPOS d WHERE d.ultimaConexion < :fechaLimite AND d.activo = true")
     List<DispositivoPOS> findInactivosPorTiempo(@Param("fechaLimite") LocalDateTime fechaLimite);
