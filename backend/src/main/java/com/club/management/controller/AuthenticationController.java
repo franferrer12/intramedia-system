@@ -1,6 +1,7 @@
 package com.club.management.controller;
 
 import com.club.management.dto.AuthDispositivoDTO;
+import com.club.management.dto.request.DeviceLoginRequest;
 import com.club.management.dto.request.LoginRequest;
 import com.club.management.dto.response.LoginResponse;
 import com.club.management.dto.response.UsuarioDTO;
@@ -78,9 +79,8 @@ public class AuthenticationController {
     @PostMapping("/device-login")
     @Operation(summary = "Device Login", description = "Autentica un dispositivo POS y retorna un token JWT")
     public ResponseEntity<AuthDispositivoDTO> deviceLogin(
-            @RequestParam String uuid,
-            @RequestParam String pin) {
-        AuthDispositivoDTO auth = dispositivoPOSService.autenticarConPIN(uuid, pin);
+            @Valid @RequestBody DeviceLoginRequest request) {
+        AuthDispositivoDTO auth = dispositivoPOSService.autenticarConPIN(request.getUuid(), request.getPin());
         return ResponseEntity.ok(auth);
     }
 }
