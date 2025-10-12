@@ -34,25 +34,47 @@ public class AuthenticationController {
      * Autentica un usuario o dispositivo POS y retorna un token JWT
      *
      * Para usuarios: {"username": "admin", "password": "admin123"}
-     * Para dispositivos: {"uuid": "...", "pin": "1234", "type": "device"}
+     * Para dispositivos (formato 1): {"uuid": "...", "pin": "1234", "type": "device"}
+     * Para dispositivos (formato 2): {"username": "25f9eb5e-...", "password": "1234"}
      */
     @PostMapping("/login")
     @Operation(summary = "Login", description = "Autentica un usuario o dispositivo POS y retorna un token JWT")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         // Detectar tipo de autenticación
+
+        // Opción 1: Campos uuid/pin explícitos
         if ("device".equals(loginRequest.getType()) ||
             (loginRequest.getUuid() != null && loginRequest.getPin() != null)) {
-            // Autenticación de dispositivo POS
             AuthDispositivoDTO deviceAuth = dispositivoPOSService.autenticarConPIN(
                 loginRequest.getUuid(),
                 loginRequest.getPin()
             );
             return ResponseEntity.ok(deviceAuth);
-        } else {
-            // Autenticación de usuario regular
-            LoginResponse response = authenticationService.login(loginRequest);
-            return ResponseEntity.ok(response);
         }
+
+        // Opción 2: Username es un UUID (formato híbrido)
+        if (loginRequest.getUsername() != null && isUUID(loginRequest.getUsername())) {
+            AuthDispositivoDTO deviceAuth = dispositivoPOSService.autenticarConPIN(
+                loginRequest.getUsername(),  // username ES el UUID
+                loginRequest.getPassword()   // password ES el PIN
+            );
+            return ResponseEntity.ok(deviceAuth);
+        }
+
+        // Opción 3: Autenticación de usuario regular
+        LoginResponse response = authenticationService.login(loginRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Verifica si un string es un UUID válido
+     */
+    private boolean isUUID(String str) {
+        if (str == null || str.length() != 36) {
+            return false;
+        }
+        // Formato: 8-4-4-4-12 caracteres separados por guiones
+        return str.matches("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
     }
 
     /**
