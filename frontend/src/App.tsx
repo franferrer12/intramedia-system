@@ -50,49 +50,38 @@ function App() {
           {/* Ruta principal - Selector */}
           <Route path="/" element={<WelcomePage />} />
 
-          {/* Rutas públicas */}
+          {/* Rutas públicas - DEBEN IR ANTES DEL WILDCARD */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/pos-terminal/standalone" element={<StandalonePOSPage />} />
 
-          {/* Rutas protegidas */}
-          <Route
-            path="/*"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Routes>
-                    <Route path="/dashboard" element={<DashboardPage />} />
-                    <Route path="/eventos" element={<EventosPage />} />
-                    <Route path="/finanzas" element={<TransaccionesPage />} />
-                    <Route path="/finanzas/dashboard" element={<DashboardFinanzasPage />} />
-                    <Route path="/personal" element={<EmpleadosPage />} />
-                    <Route path="/nominas" element={<NominasPage />} />
-                    <Route path="/turnos" element={<JornadasPage />} />
-                    <Route path="/analytics" element={<AnalyticsPage />} />
-                    <Route path="/usuarios" element={<UsuariosPage />} />
-                    <Route path="/proveedores" element={<ProveedoresPage />} />
-                    <Route path="/inventario" element={<ProductosPage />} />
-                    <Route path="/inventario/dashboard" element={<DashboardInventarioPage />} />
-                    <Route path="/movimientos-stock" element={<MovimientosPage />} />
-                    <Route path="/alertas-stock" element={<AlertasPage />} />
-                    <Route path="/activos-fijos" element={<ActivosFijosPage />} />
-                    <Route path="/inversiones" element={<InversionesPage />} />
-                    <Route path="/roi" element={<RoiDashboardPage />} />
-                    <Route path="/pos" element={<PosPage />} />
-                    <Route path="/pos-terminal" element={<POSTerminalPage />} />
-                    <Route path="/pos-monitor" element={<MonitorSesionesPage />} />
-                    <Route path="/sesiones" element={<SesionesPage />} />
-                    <Route path="/pos-dashboard" element={<POSDashboardPage />} />
-                    <Route path="/ayuda" element={<AyudaPage />} />
-                    <Route path="/ayuda/asistente" element={<AsistenteVirtualPage />} />
-                    <Route path="/ayuda/novedades" element={<NovedadesPage />} />
-                    <Route path="/configuracion/automatizacion" element={<AutomacionPage />} />
-                    <Route path="/backoffice" element={<Navigate to="/dashboard" replace />} />
-                  </Routes>
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
+          {/* Rutas protegidas del backoffice */}
+          <Route path="/dashboard" element={<ProtectedRoute><MainLayout><DashboardPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/eventos" element={<ProtectedRoute><MainLayout><EventosPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/finanzas" element={<ProtectedRoute><MainLayout><TransaccionesPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/finanzas/dashboard" element={<ProtectedRoute><MainLayout><DashboardFinanzasPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/personal" element={<ProtectedRoute><MainLayout><EmpleadosPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/nominas" element={<ProtectedRoute><MainLayout><NominasPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/turnos" element={<ProtectedRoute><MainLayout><JornadasPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/analytics" element={<ProtectedRoute><MainLayout><AnalyticsPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/usuarios" element={<ProtectedRoute><MainLayout><UsuariosPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/proveedores" element={<ProtectedRoute><MainLayout><ProveedoresPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/inventario" element={<ProtectedRoute><MainLayout><ProductosPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/inventario/dashboard" element={<ProtectedRoute><MainLayout><DashboardInventarioPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/movimientos-stock" element={<ProtectedRoute><MainLayout><MovimientosPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/alertas-stock" element={<ProtectedRoute><MainLayout><AlertasPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/activos-fijos" element={<ProtectedRoute><MainLayout><ActivosFijosPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/inversiones" element={<ProtectedRoute><MainLayout><InversionesPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/roi" element={<ProtectedRoute><MainLayout><RoiDashboardPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/pos" element={<ProtectedRoute><MainLayout><PosPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/pos-terminal" element={<ProtectedRoute><MainLayout><POSTerminalPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/pos-monitor" element={<ProtectedRoute><MainLayout><MonitorSesionesPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/sesiones" element={<ProtectedRoute><MainLayout><SesionesPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/pos-dashboard" element={<ProtectedRoute><MainLayout><POSDashboardPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/ayuda" element={<ProtectedRoute><MainLayout><AyudaPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/ayuda/asistente" element={<ProtectedRoute><MainLayout><AsistenteVirtualPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/ayuda/novedades" element={<ProtectedRoute><MainLayout><NovedadesPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/configuracion/automatizacion" element={<ProtectedRoute><MainLayout><AutomacionPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/backoffice" element={<Navigate to="/dashboard" replace />} />
         </Routes>
         <Toaster position="top-right" richColors />
       </BrowserRouter>
