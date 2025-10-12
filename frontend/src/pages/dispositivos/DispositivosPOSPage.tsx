@@ -1,17 +1,21 @@
 import { FC, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Monitor, Smartphone, Package, Edit, Trash2, Power, Wifi, WifiOff, User, Clock, CheckCircle, AlertTriangle, Zap } from 'lucide-react';
+import { Plus, Monitor, Smartphone, Package, Edit, Trash2, Power, Wifi, WifiOff, User, Clock, CheckCircle, AlertTriangle, Zap, RefreshCw, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/Button';
 import { dispositivosPosApi, DispositivoPOS } from '../../api/dispositivos-pos.api';
 import { DispositivoPOSModal } from './DispositivoPOSModal';
 import { QuickStartModal } from './QuickStartModal';
+import { SyncModal } from './SyncModal';
+import { PairingModal } from './PairingModal';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export const DispositivosPOSPage: FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQuickStartModalOpen, setIsQuickStartModalOpen] = useState(false);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [isPairingModalOpen, setIsPairingModalOpen] = useState(false);
   const [selectedDispositivo, setSelectedDispositivo] = useState<DispositivoPOS | undefined>();
   const queryClient = useQueryClient();
 
@@ -53,6 +57,16 @@ export const DispositivosPOSPage: FC = () => {
   const handleQuickStart = (dispositivo: DispositivoPOS) => {
     setSelectedDispositivo(dispositivo);
     setIsQuickStartModalOpen(true);
+  };
+
+  const handleSync = (dispositivo: DispositivoPOS) => {
+    setSelectedDispositivo(dispositivo);
+    setIsSyncModalOpen(true);
+  };
+
+  const handlePairing = (dispositivo: DispositivoPOS) => {
+    setSelectedDispositivo(dispositivo);
+    setIsPairingModalOpen(true);
   };
 
   const getIconByTipo = (tipo: string) => {
@@ -317,6 +331,26 @@ export const DispositivosPOSPage: FC = () => {
 
                     {/* Acciones */}
                     <div className="flex items-center gap-2 ml-4">
+                      {/* Botón Emparejamiento QR/Link */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handlePairing(dispositivo)}
+                        className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                        title="Emparejamiento: QR, Link o Login con Empleado"
+                      >
+                        <QrCode className="h-4 w-4" />
+                      </Button>
+                      {/* Botón Sincronización */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleSync(dispositivo)}
+                        className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                        title="Sincronización offline"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
                       {/* Botón Quick Start - solo para dispositivos con vinculación temporal */}
                       {!dispositivo.asignacionPermanente && (
                         <Button
@@ -367,6 +401,24 @@ export const DispositivosPOSPage: FC = () => {
         <QuickStartModal
           isOpen={isQuickStartModalOpen}
           onClose={() => setIsQuickStartModalOpen(false)}
+          dispositivo={selectedDispositivo}
+        />
+      )}
+
+      {/* Modal de Sincronización */}
+      {isSyncModalOpen && selectedDispositivo && (
+        <SyncModal
+          isOpen={isSyncModalOpen}
+          onClose={() => setIsSyncModalOpen(false)}
+          dispositivo={selectedDispositivo}
+        />
+      )}
+
+      {/* Modal de Emparejamiento */}
+      {isPairingModalOpen && selectedDispositivo && (
+        <PairingModal
+          isOpen={isPairingModalOpen}
+          onClose={() => setIsPairingModalOpen(false)}
           dispositivo={selectedDispositivo}
         />
       )}

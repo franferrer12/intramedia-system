@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Base64;
 
 @Service
 @RequiredArgsConstructor
@@ -195,8 +196,153 @@ public class DispositivoPOSService {
     }
 
     // ============================================
-    // AUTENTICACIÓN
+    // AUTENTICACIÓN Y PAIRING
     // ============================================
+
+    /**
+     * Genera un token de emparejamiento para simplificar la vinculación inicial del dispositivo.
+     * El token puede usarse para:
+     * - Generar un código QR que el dispositivo escanea
+     * - Crear un enlace que se abre en el dispositivo
+     * El token contiene: UUID del dispositivo y PIN cifrado
+     */
+    @Transactional
+    public PairingTokenDTO generarTokenEmparejamiento(Long dispositivoId) {
+        DispositivoPOS dispositivo = dispositivoPOSRepository.findById(dispositivoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Dispositivo no encontrado"));
+
+        // Generar token que contiene uuid y pin (válido por 24 horas)
+        LocalDateTime expiracion = LocalDateTime.now().plusHours(24);
+        String pairingData = dispositivo.getUuid() + ":" + expiracion.toString();
+        String pairingToken = Base64.getEncoder().encodeToString(pairingData.getBytes());
+
+        // URL de pairing que puede abrirse en el navegador del dispositivo
+        // El frontend procesará esto y llamará a /autenticar-con-token
+        String pairingUrl = "/pos/pair?token=" + pairingToken;
+
+        log.info("📱 Token de emparejamiento generado para: {} (válido hasta: {})",
+                dispositivo.getNombre(), expiracion);
+
+        return PairingTokenDTO.builder()
+                .pairingToken(pairingToken)
+                .pairingUrl(pairingUrl)
+                .qrCodeData(pairingUrl) // El QR contendrá la URL completa
+                .dispositivoId(dispositivo.getId())
+                .dispositivoNombre(dispositivo.getNombre())
+                .expiresAt(expiracion)
+                .build();
+    }
+
+    /**
+     * Autentica un dispositivo usando un token de emparejamiento.
+     * Permite al dispositivo conectarse sin tener que ingresar manualmente UUID y PIN.
+     */
+    @Transactional
+    public AuthDispositivoDTO autenticarConToken(String pairingToken) {
+        try {
+            // Decodificar token
+            String decoded = new String(Base64.getDecoder().decode(pairingToken));
+            String[] parts = decoded.split(":");
+            if (parts.length != 2) {
+                throw new UnauthorizedException("Token de emparejamiento inválido");
+            }
+
+            String uuid = parts[0];
+            LocalDateTime expiracion = LocalDateTime.parse(parts[1]);
+
+            // Verificar expiración
+            if (LocalDateTime.now().isAfter(expiracion)) {
+                throw new UnauthorizedException("Token de emparejamiento expirado");
+            }
+
+            // Buscar dispositivo
+            DispositivoPOS dispositivo = dispositivoPOSRepository.findByUuid(uuid)
+                    .orElseThrow(() -> new UnauthorizedException("Dispositivo no encontrado"));
+
+            if (!dispositivo.getActivo()) {
+                throw new UnauthorizedException("Dispositivo desactivado");
+            }
+
+            // Actualizar última conexión
+            dispositivo.setUltimaConexion(LocalDateTime.now());
+            dispositivoPOSRepository.save(dispositivo);
+
+            // Registrar log exitoso
+            registrarLogInterno(dispositivo, DispositivoPOSLog.TipoEvento.LOGIN,
+                    "Autenticación con token de emparejamiento", null);
+
+            // Generar token JWT
+            String jwtToken = jwtTokenProvider.generateTokenFromUsername(dispositivo.getUuid());
+
+            log.info("✅ Dispositivo emparejado y autenticado: {} ({})",
+                    dispositivo.getNombre(), dispositivo.getUuid());
+
+            return AuthDispositivoDTO.builder()
+                    .token(jwtToken)
+                    .type("Bearer")
+                    .dispositivo(mapToDTO(dispositivo))
+                    .configuracion(obtenerConfiguracion(dispositivo.getId()))
+                    .build();
+
+        } catch (IllegalArgumentException e) {
+            throw new UnauthorizedException("Token de emparejamiento inválido");
+        }
+    }
+
+    /**
+     * Autentica un dispositivo usando email o DNI de empleado.
+     * Permite al POS terminal autenticarse directamente con el identificador del empleado,
+     * sin necesidad de conocer el UUID del dispositivo.
+     * Solo funciona con dispositivos en modo Quick Start (asignación temporal).
+     *
+     * @param identifier Email o DNI del empleado
+     * @return Autenticación del dispositivo con token JWT
+     */
+    @Transactional
+    public AuthDispositivoDTO autenticarConIdentificadorEmpleado(String identifier) {
+
+        // Buscar empleado por email o DNI
+        Empleado empleado = empleadoRepository.findByEmail(identifier)
+                .or(() -> empleadoRepository.findByDni(identifier))
+                .orElseThrow(() -> new UnauthorizedException("Empleado no encontrado"));
+
+        if (!empleado.getActivo()) {
+            throw new UnauthorizedException("Empleado inactivo");
+        }
+
+        // Buscar un dispositivo disponible (sin asignación permanente y sin empleado asignado)
+        List<DispositivoPOS> dispositivosDisponibles = dispositivoPOSRepository
+                .findByActivoTrueAndAsignacionPermanenteFalseAndEmpleadoAsignadoNull();
+
+        if (dispositivosDisponibles.isEmpty()) {
+            throw new UnauthorizedException("No hay dispositivos disponibles para Quick Start");
+        }
+
+        // Seleccionar el primer dispositivo disponible
+        DispositivoPOS dispositivo = dispositivosDisponibles.get(0);
+
+        // Vincular temporalmente el empleado al dispositivo
+        dispositivo.setEmpleadoAsignado(empleado);
+        dispositivo.setUltimaConexion(LocalDateTime.now());
+        dispositivo = dispositivoPOSRepository.save(dispositivo);
+
+        // Registrar log exitoso
+        registrarLogInterno(dispositivo, DispositivoPOSLog.TipoEvento.LOGIN,
+                "Login Quick Start con identificador: " + empleado.getNombre(), null);
+
+        // Generar token JWT para el dispositivo
+        String jwtToken = jwtTokenProvider.generateTokenFromUsername(dispositivo.getUuid());
+
+        log.info("✅ Empleado {} autenticado en dispositivo {} via Quick Start",
+                empleado.getNombre(), dispositivo.getNombre());
+
+        return AuthDispositivoDTO.builder()
+                .token(jwtToken)
+                .type("Bearer")
+                .dispositivo(mapToDTO(dispositivo))
+                .configuracion(obtenerConfiguracion(dispositivo.getId()))
+                .build();
+    }
 
     @Transactional
     public AuthDispositivoDTO autenticarConPIN(String uuid, String pin) {

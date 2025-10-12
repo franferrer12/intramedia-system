@@ -89,6 +89,15 @@ export interface ResultadoSincronizacion {
   error?: string;
 }
 
+export interface PairingToken {
+  pairingToken: string;
+  pairingUrl: string;
+  qrCodeData: string;
+  dispositivoId: number;
+  dispositivoNombre: string;
+  expiresAt: string;
+}
+
 export const dispositivosPosApi = {
   // GESTIÓN DE DISPOSITIVOS (Admin)
   registrar: async (data: DispositivoPOSRequest): Promise<DispositivoPOS> => {
@@ -120,7 +129,26 @@ export const dispositivosPosApi = {
     await axios.delete(`/dispositivos-pos/${id}`);
   },
 
-  // AUTENTICACIÓN
+  // AUTENTICACIÓN Y EMPAREJAMIENTO
+  generarTokenPairing: async (dispositivoId: number): Promise<PairingToken> => {
+    const response = await axios.post(`/dispositivos-pos/${dispositivoId}/generar-token-pairing`);
+    return response.data;
+  },
+
+  autenticarConToken: async (pairingToken: string): Promise<AuthDispositivoResponse> => {
+    const response = await axios.post('/dispositivos-pos/autenticar-con-token', null, {
+      params: { pairingToken }
+    });
+    return response.data;
+  },
+
+  autenticarConEmpleado: async (identifier: string): Promise<AuthDispositivoResponse> => {
+    const response = await axios.post('/dispositivos-pos/autenticar-con-empleado', null, {
+      params: { identifier }
+    });
+    return response.data;
+  },
+
   autenticarConPIN: async (uuid: string, pin: string): Promise<AuthDispositivoResponse> => {
     const response = await axios.post('/dispositivos-pos/autenticar', null, {
       params: { uuid, pin }

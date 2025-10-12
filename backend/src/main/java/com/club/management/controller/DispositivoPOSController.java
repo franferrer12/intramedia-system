@@ -64,9 +64,45 @@ public class DispositivoPOSController {
     }
 
     // ============================================
-    // AUTENTICACIÓN DE DISPOSITIVOS
+    // AUTENTICACIÓN Y EMPAREJAMIENTO DE DISPOSITIVOS
     // ============================================
 
+    /**
+     * Genera un token de emparejamiento para vincular un dispositivo de forma sencilla.
+     * El token puede usarse para generar un QR o un enlace que el dispositivo escanea/abre.
+     */
+    @PostMapping("/{id}/generar-token-pairing")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE')")
+    public ResponseEntity<PairingTokenDTO> generarTokenEmparejamiento(@PathVariable Long id) {
+        return ResponseEntity.ok(dispositivoPOSService.generarTokenEmparejamiento(id));
+    }
+
+    /**
+     * Autentica un dispositivo usando un token de emparejamiento.
+     * Permite al dispositivo conectarse sin ingresar manualmente UUID y PIN.
+     */
+    @PostMapping("/autenticar-con-token")
+    public ResponseEntity<AuthDispositivoDTO> autenticarConToken(
+            @RequestParam String pairingToken) {
+        AuthDispositivoDTO auth = dispositivoPOSService.autenticarConToken(pairingToken);
+        return ResponseEntity.ok(auth);
+    }
+
+    /**
+     * Autentica un dispositivo usando email o DNI de empleado.
+     * Permite al POS terminal iniciar sesión con identificador de empleado sin conocer UUID.
+     * Solo funciona con dispositivos en modo Quick Start (asignación temporal).
+     */
+    @PostMapping("/autenticar-con-empleado")
+    public ResponseEntity<AuthDispositivoDTO> autenticarConIdentificadorEmpleado(
+            @RequestParam String identifier) {
+        AuthDispositivoDTO auth = dispositivoPOSService.autenticarConIdentificadorEmpleado(identifier);
+        return ResponseEntity.ok(auth);
+    }
+
+    /**
+     * Autentica un dispositivo usando UUID y PIN (método tradicional).
+     */
     @PostMapping("/autenticar")
     public ResponseEntity<AuthDispositivoDTO> autenticarConPIN(
             @RequestParam String uuid,

@@ -4,6 +4,100 @@
 
 ---
 
+## 2025-10-12 - Implementación Sistema de Venta Dual
+
+### Sistema de Venta Dual (Copa + Botella VIP)
+
+**Feature Implementada:**
+Sistema completo de venta dual que permite vender el mismo producto de dos formas diferentes: copa individual en barra o botella completa en zona VIP.
+
+**Archivos Modificados/Creados:**
+
+Backend:
+- ✅ `backend/src/main/java/com/club/management/entity/Producto.java` - Agregados campos venta dual
+- ✅ `backend/src/main/java/com/club/management/service/ProductoService.java` - Mapeo de campos duales
+- ✅ `backend/src/main/java/com/club/management/dto/response/ProductoDTO.java` - DTOs con campos calculados
+- ✅ `backend/src/main/resources/db/migration/V023__add_venta_dual.sql` - Schema + vista valor_inventario_dual
+
+Frontend:
+- ✅ `frontend/src/types/index.ts` - Interfaces TypeScript actualizadas
+- ✅ `frontend/src/components/productos/ProductoModal.tsx` - Sección de venta dual con validación
+- ✅ `frontend/src/components/pos/ModalTipoVenta.tsx` - Modal de selección copa/VIP (NUEVO)
+- ✅ `frontend/src/pages/pos/POSTerminalPage.tsx` - Integración con carrito
+
+Ayuda/Documentación:
+- ✅ `frontend/src/pages/ayuda/AyudaPage.tsx` - Tutorial completo (41 pasos)
+- ✅ `frontend/src/components/tours/tour-configs.ts` - Tour interactivo (7 pasos)
+
+**Características Implementadas:**
+1. **Configuración de producto dual:**
+   - Copas por botella (ej: 15 copas)
+   - Precio por copa (ej: 8.00€)
+   - Precio botella VIP (ej: 120.00€)
+   - Comparación visual automática de rentabilidad
+
+2. **Modal de selección en POS:**
+   - Se abre automáticamente al agregar producto con venta dual
+   - Muestra comparación lado a lado (Copa vs VIP)
+   - Badge "RECOMENDADO" en la opción más rentable
+   - Cálculo en tiempo real de ingresos potenciales
+
+3. **Gestión en carrito:**
+   - Items separados por tipo de venta (COPA vs VIP)
+   - Badge visual en carrito mostrando el tipo
+   - Permite vender ambas modalidades en la misma transacción
+
+4. **Vista de base de datos:**
+   - Vista `valor_inventario_dual` para análisis
+   - Índice en productos con venta dual
+   - Recomendación automática de mejor opción
+
+5. **Sistema de ayuda:**
+   - Tutorial completo de 6 minutos con 41 pasos
+   - Tour interactivo con 7 pasos guiados
+   - Atributos data-tour para navegación
+
+**Validaciones Implementadas:**
+- ✅ Campos obligatorios cuando esVentaDual = true
+- ✅ Copas por botella > 0
+- ✅ Precio copa > 0
+- ✅ Precio botella VIP > 0
+- ✅ Capacidad ML obligatoria para venta dual
+
+**Testing:**
+- ✅ Build frontend exitoso (1,323 KB bundle)
+- ✅ No hay errores de compilación
+- ✅ TypeScript validación completa
+
+**Commit:**
+```
+feat: Implementar sistema de venta dual (Copa + Botella VIP)
+
+Backend:
+- Agregados campos venta dual a Producto entity
+- Métodos @Transient para cálculos (ingreso potencial, margen, mejor opción)
+- Migración V023 con vista valor_inventario_dual
+- DTOs actualizados con campos calculados
+
+Frontend:
+- Sección venta dual en ProductoModal con validación
+- ModalTipoVenta para selección copa/VIP en POS
+- Integración con carrito (items separados por tipo)
+- Badges visuales y comparación en tiempo real
+
+Ayuda:
+- Tutorial completo de 6 minutos (41 pasos)
+- Tour interactivo con 7 pasos guiados
+- data-tour attributes para navegación
+
+Permite vender mismo producto como:
+- COPA: Servicio individual en barra
+- VIP: Botella completa en zona reservados
+Con recomendación automática de opción más rentable
+```
+
+---
+
 ## 2025-10-11 - Errores de Compilación en Sistema POS
 
 ### 1. Llamadas a Método Inexistente `producto.getInventario()`

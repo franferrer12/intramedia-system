@@ -594,7 +594,7 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
 
                 {/* === SECCIÓN VENTA DUAL (COPA + BOTELLA VIP) === */}
                 {mostrarVentaDual && (
-                  <div className="border-t pt-4 mt-4">
+                  <div className="border-t pt-4 mt-4" data-tour="venta-dual-section">
                     <div className="flex items-center gap-2 mb-4">
                       <Wine className="w-5 h-5 text-amber-600" />
                       <h4 className="font-semibold text-gray-900">Venta Dual (Copa + Botella VIP)</h4>
@@ -611,7 +611,7 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
+                      <div data-tour="copas-botella">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Copas por Botella <span className="text-red-500">*</span>
                         </label>
@@ -631,7 +631,7 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
                         <p className="text-xs text-gray-500 mt-1">Cantidad de copas que salen por botella</p>
                       </div>
 
-                      <div>
+                      <div data-tour="precio-copa">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Precio Copa (€) <span className="text-red-500">*</span>
                         </label>
@@ -652,7 +652,7 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
                         <p className="text-xs text-gray-500 mt-1">Precio por servicio en barra</p>
                       </div>
 
-                      <div>
+                      <div data-tour="precio-vip">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Precio Botella VIP (€) <span className="text-red-500">*</span>
                         </label>
@@ -676,7 +676,7 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
 
                     {/* Comparación visual si hay datos */}
                     {formData.copasPorBotella && formData.precioCopa && formData.precioBotellaVip && (
-                      <div className="mt-4 grid grid-cols-2 gap-4">
+                      <div className="mt-4 grid grid-cols-2 gap-4" data-tour="comparacion-visual">
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                           <div className="text-xs text-blue-600 font-medium mb-1">VENTA EN COPAS</div>
                           <div className="text-2xl font-bold text-blue-700">
@@ -685,6 +685,11 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
                           <div className="text-xs text-gray-600 mt-1">
                             {formData.copasPorBotella} copas × {formData.precioCopa.toFixed(2)}€
                           </div>
+                          {(formData.copasPorBotella * formData.precioCopa) > formData.precioBotellaVip && (
+                            <div className="mt-2 text-xs font-bold text-green-600" data-tour="mejor-opcion">
+                              ⭐ MÁS RENTABLE
+                            </div>
+                          )}
                         </div>
 
                         <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
@@ -693,6 +698,11 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
                             {formData.precioBotellaVip.toFixed(2)}€
                           </div>
                           <div className="text-xs text-gray-600 mt-1">Botella completa</div>
+                          {formData.precioBotellaVip > (formData.copasPorBotella * formData.precioCopa) && (
+                            <div className="mt-2 text-xs font-bold text-green-600" data-tour="mejor-opcion">
+                              ⭐ MÁS RENTABLE
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -833,7 +843,7 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
                     </label>
                   </div>
 
-                  <div className="flex items-center">
+                  <div className="flex items-center" data-tour="venta-dual-checkbox">
                     <input
                       type="checkbox"
                       id="ventaDual"

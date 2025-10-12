@@ -26,6 +26,8 @@ public interface EmpleadoRepository extends JpaRepository<Empleado, Long> {
 
     Optional<Empleado> findByDni(String dni);
 
+    Optional<Empleado> findByEmail(String email);
+
     @Query("SELECT DISTINCT e.cargo FROM Empleado e ORDER BY e.cargo")
     List<String> findAllCargos();
 

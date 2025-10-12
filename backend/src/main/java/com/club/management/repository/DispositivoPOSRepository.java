@@ -45,4 +45,7 @@ public interface DispositivoPOSRepository extends JpaRepository<DispositivoPOS, 
     boolean existsByUuid(String uuid);
 
     boolean existsByNombre(String nombre);
+
+    // Buscar dispositivos disponibles para Quick Start (activos, sin asignación permanente, sin empleado asignado)
+    List<DispositivoPOS> findByActivoTrueAndAsignacionPermanenteFalseAndEmpleadoAsignadoNull();
 }

@@ -387,6 +387,52 @@ export const analyticsTour: TourStep[] = [
   }
 ];
 
+// Tour para Venta Dual
+export const ventaDualTour: TourStep[] = [
+  {
+    target: '[data-tour="venta-dual-checkbox"]',
+    title: '🍾 Sistema de Venta Dual',
+    content: 'Activa esta opción para vender el mismo producto de dos formas: por copa individual (barra) o botella completa (VIP).',
+    placement: 'bottom'
+  },
+  {
+    target: '[data-tour="venta-dual-section"]',
+    title: 'Configuración de Precios',
+    content: 'Define 3 valores clave: copas por botella, precio por copa, y precio de botella VIP. El sistema calculará automáticamente cuál opción es más rentable.',
+    placement: 'top'
+  },
+  {
+    target: '[data-tour="copas-botella"]',
+    title: 'Copas por Botella',
+    content: 'Indica cuántas copas se pueden servir de una botella. Ejemplo: una botella de 750ml puede dar 15 copas de 50ml.',
+    placement: 'right'
+  },
+  {
+    target: '[data-tour="precio-copa"]',
+    title: 'Precio por Copa',
+    content: 'Precio de venta individual por copa. Ejemplo: 8.00€ por copa de ron.',
+    placement: 'right'
+  },
+  {
+    target: '[data-tour="precio-vip"]',
+    title: 'Precio Botella VIP',
+    content: 'Precio premium de la botella completa en zona VIP. Ejemplo: 120.00€ por botella completa.',
+    placement: 'right'
+  },
+  {
+    target: '[data-tour="comparacion-visual"]',
+    title: 'Comparación Automática',
+    content: 'El sistema calcula y muestra visualmente qué opción genera más ingresos. Verde = más rentable, con diferencia exacta en euros.',
+    placement: 'top'
+  },
+  {
+    target: '[data-tour="mejor-opcion"]',
+    title: 'Recomendación Inteligente',
+    content: 'Badge "MÁS RENTABLE" aparece automáticamente en la opción que maximiza tus ingresos según los precios configurados.',
+    placement: 'top'
+  }
+];
+
 // Mapa de tours por ruta
 export const toursByRoute: Record<string, TourStep[]> = {
   '/': dashboardTour,
@@ -400,5 +446,6 @@ export const toursByRoute: Record<string, TourStep[]> = {
   '/inventario': inventarioTour,
   '/pos': posTour,
   '/botellas-abiertas': botellasVipTour,
-  '/analytics': analyticsTour
+  '/analytics': analyticsTour,
+  '/venta-dual': ventaDualTour
 };
