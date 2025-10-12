@@ -223,6 +223,15 @@ export const DispositivosPOSPage: FC = () => {
                           <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
                             {dispositivo.tipo}
                           </span>
+                          {dispositivo.empleadoAsignadoNombre && (
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              dispositivo.asignacionPermanente
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {dispositivo.asignacionPermanente ? '🔒 Fijo' : '⚡ Quick Start'}
+                            </span>
+                          )}
                         </div>
 
                         {dispositivo.descripcion && (

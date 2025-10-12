@@ -33,11 +33,13 @@ export const DispositivoPOSModal: FC<DispositivoPOSModalProps> = ({
       tieneLectorBarras: dispositivo.tieneLectorBarras || false,
       tieneCajonDinero: dispositivo.tieneCajonDinero || false,
       tienePantallaCliente: dispositivo.tienePantallaCliente || false,
+      asignacionPermanente: dispositivo.asignacionPermanente || false,
     } : {
       tipo: 'MOVIL',
       tieneLectorBarras: false,
       tieneCajonDinero: false,
       tienePantallaCliente: false,
+      asignacionPermanente: false,
     },
   });
 
@@ -85,6 +87,8 @@ export const DispositivoPOSModal: FC<DispositivoPOSModalProps> = ({
   if (!isOpen) return null;
 
   const tipo = watch('tipo');
+  const asignacionPermanente = watch('asignacionPermanente');
+  const empleadoAsignadoId = watch('empleadoAsignadoId');
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -191,6 +195,39 @@ export const DispositivoPOSModal: FC<DispositivoPOSModalProps> = ({
                 }
               </p>
             </div>
+
+            {/* Modo de Asignación */}
+            {empleadoAsignadoId && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    {...register('asignacionPermanente')}
+                    className="mt-1 w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-amber-900">
+                        🔒 Asignación Permanente (Fija)
+                      </span>
+                    </div>
+                    <p className="text-xs text-amber-700 mt-1">
+                      {asignacionPermanente ? (
+                        <>
+                          <strong>Modo Activo:</strong> SOLO este empleado puede usar este dispositivo.
+                          No se permite vinculación temporal (Quick Start).
+                        </>
+                      ) : (
+                        <>
+                          <strong>Quick Start:</strong> Cualquier empleado puede usar este dispositivo
+                          escaneando su código. La asignación es temporal y se actualiza automáticamente.
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </label>
+              </div>
+            )}
           </div>
 
           {/* Seguridad */}

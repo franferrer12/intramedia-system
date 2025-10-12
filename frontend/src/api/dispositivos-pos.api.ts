@@ -18,6 +18,7 @@ export interface DispositivoPOS {
   activo: boolean;
   modoOfflineHabilitado?: boolean;
   modoTabletCompartida?: boolean;
+  asignacionPermanente?: boolean; // false = Quick Start (temporal), true = Asignación Fija
   ultimaConexion?: string;
   ultimaSincronizacion?: string;
   ipAddress?: string;
@@ -38,6 +39,7 @@ export interface DispositivoPOSRequest {
   tieneCajonDinero?: boolean;
   tienePantallaCliente?: boolean;
   modoTabletCompartida?: boolean;
+  asignacionPermanente?: boolean; // false = Quick Start, true = Asignación Fija
   permisos?: Record<string, any>;
 }
 
@@ -168,5 +170,18 @@ export const dispositivosPosApi = {
     await axios.post(`/dispositivos-pos/${id}/log`, metadata || {}, {
       params: { tipoEvento, descripcion }
     });
+  },
+
+  // VINCULACIÓN TEMPORAL (QUICK START)
+  vincularTemporalmente: async (dispositivoId: number, empleadoId: number): Promise<DispositivoPOS> => {
+    const response = await axios.post(`/dispositivos-pos/${dispositivoId}/vincular-temporal`, null, {
+      params: { empleadoId }
+    });
+    return response.data;
+  },
+
+  desvincular: async (dispositivoId: number): Promise<DispositivoPOS> => {
+    const response = await axios.post(`/dispositivos-pos/${dispositivoId}/desvincular`);
+    return response.data;
   },
 };
