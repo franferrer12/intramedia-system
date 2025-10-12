@@ -7,15 +7,21 @@ import lombok.NoArgsConstructor;
 
 /**
  * DTO para solicitud de login
+ * Soporta autenticación de usuarios (username/password) y dispositivos POS (uuid/pin)
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginRequest {
 
-    @NotBlank(message = "El username es obligatorio")
+    // Para autenticación de usuarios
     private String username;
-
-    @NotBlank(message = "El password es obligatorio")
     private String password;
+
+    // Para autenticación de dispositivos POS
+    private String uuid;
+    private String pin;
+
+    // Tipo de autenticación: "user" o "device"
+    private String type;
 }

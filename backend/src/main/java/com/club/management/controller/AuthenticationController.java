@@ -31,13 +31,28 @@ public class AuthenticationController {
 
     /**
      * POST /api/auth/login
-     * Autentica un usuario y retorna un token JWT
+     * Autentica un usuario o dispositivo POS y retorna un token JWT
+     *
+     * Para usuarios: {"username": "admin", "password": "admin123"}
+     * Para dispositivos: {"uuid": "...", "pin": "1234", "type": "device"}
      */
     @PostMapping("/login")
-    @Operation(summary = "Login", description = "Autentica un usuario y retorna un token JWT")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
-        LoginResponse response = authenticationService.login(loginRequest);
-        return ResponseEntity.ok(response);
+    @Operation(summary = "Login", description = "Autentica un usuario o dispositivo POS y retorna un token JWT")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        // Detectar tipo de autenticación
+        if ("device".equals(loginRequest.getType()) ||
+            (loginRequest.getUuid() != null && loginRequest.getPin() != null)) {
+            // Autenticación de dispositivo POS
+            AuthDispositivoDTO deviceAuth = dispositivoPOSService.autenticarConPIN(
+                loginRequest.getUuid(),
+                loginRequest.getPin()
+            );
+            return ResponseEntity.ok(deviceAuth);
+        } else {
+            // Autenticación de usuario regular
+            LoginResponse response = authenticationService.login(loginRequest);
+            return ResponseEntity.ok(response);
+        }
     }
 
     /**
@@ -70,17 +85,5 @@ public class AuthenticationController {
                 .build();
 
         return ResponseEntity.ok(response);
-    }
-
-    /**
-     * POST /api/auth/device-login
-     * Autentica un dispositivo POS usando UUID y PIN
-     */
-    @PostMapping("/device-login")
-    @Operation(summary = "Device Login", description = "Autentica un dispositivo POS y retorna un token JWT")
-    public ResponseEntity<AuthDispositivoDTO> deviceLogin(
-            @Valid @RequestBody DeviceLoginRequest request) {
-        AuthDispositivoDTO auth = dispositivoPOSService.autenticarConPIN(request.getUuid(), request.getPin());
-        return ResponseEntity.ok(auth);
     }
 }
