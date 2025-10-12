@@ -1,8 +1,11 @@
-import { FC, useState, useMemo } from 'react';
-import { LogOut, User, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { FC, useState, useMemo, useEffect } from 'react';
+import { LogOut, User, Wifi, WifiOff, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '../../../components/ui/Button';
 import { DispositivoPOS, ConfiguracionPOS } from '../../../api/dispositivos-pos.api';
 import { ProductoDTO } from '../../../types';
+import { useOfflineSync } from '../../../hooks/useOfflineSync';
+import { addVentaPendiente, VentaOfflineDB } from '../../../utils/offlineDB';
 
 interface POSStandaloneTerminalProps {
   dispositivo: DispositivoPOS;
@@ -26,6 +29,13 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
   const [carrito, setCarrito] = useState<CarritoItem[]>([]);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Hook de sincronización offline
+  const { isSyncing, pendingCount, triggerSync, updatePendingCount } = useOfflineSync(
+    dispositivo.id,
+    isOnline
+  );
 
   // Productos desde la configuración precargada
   const productos = useMemo(() => {
@@ -53,9 +63,20 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
   }, [carrito]);
 
   // Monitor de conexión
-  useState(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      toast.success('Conexión restaurada', {
+        description: 'Las ventas pendientes se sincronizarán automáticamente',
+      });
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast.warning('Modo offline activado', {
+        description: 'Las ventas se guardarán localmente',
+      });
+    };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -64,7 +85,7 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  });
+  }, []);
 
   const agregarAlCarrito = (producto: ProductoDTO) => {
     setCarrito(prev => {
@@ -106,15 +127,63 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
 
   const procesarVenta = async () => {
     if (carrito.length === 0) {
-      alert('El carrito está vacío');
+      toast.error('El carrito está vacío');
       return;
     }
 
-    // TODO: Implementar lógica de venta real con API
-    // Por ahora solo limpia el carrito
-    if (confirm(`¿Procesar venta por ${total.toFixed(2)}€?`)) {
+    setIsProcessing(true);
+
+    try {
+      // Generar UUID para la venta
+      const uuid = `${dispositivo.uuid}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      // Preparar datos de la venta
+      const ventaOffline: VentaOfflineDB = {
+        uuid,
+        dispositivoId: dispositivo.id,
+        timestamp: Date.now(),
+        items: carrito.map(item => ({
+          productoId: item.producto.id,
+          productoNombre: item.producto.nombre,
+          cantidad: item.cantidad,
+          precioUnitario: item.precioUnitario,
+          subtotal: item.cantidad * item.precioUnitario,
+        })),
+        total,
+        metodoPago: 'EFECTIVO', // Por defecto
+        sincronizada: false,
+        intentosSincronizacion: 0,
+      };
+
+      // Guardar en IndexedDB
+      await addVentaPendiente(ventaOffline);
+
+      // Actualizar contador de ventas pendientes
+      await updatePendingCount();
+
+      // Limpiar carrito
       limpiarCarrito();
-      alert('Venta procesada (demo)');
+
+      // Mostrar notificación
+      if (isOnline) {
+        toast.success('Venta registrada', {
+          description: `Total: ${total.toFixed(2)}€ - Sincronizando...`,
+        });
+        // Trigger sync inmediatamente si estamos online
+        triggerSync();
+      } else {
+        toast.success('Venta guardada offline', {
+          description: `Total: ${total.toFixed(2)}€ - Se sincronizará automáticamente`,
+          icon: <AlertCircle className="h-5 w-5" />,
+        });
+      }
+    } catch (error: any) {
+      console.error('Error al procesar venta:', error);
+      toast.error('Error al procesar venta', {
+        description: error.message || 'Intenta nuevamente',
+      });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -149,6 +218,18 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
                 </>
               )}
             </div>
+
+            {/* Ventas pendientes de sincronización */}
+            {pendingCount > 0 && (
+              <div className="flex items-center gap-2 bg-yellow-500 px-3 py-1 rounded-full text-sm text-white">
+                {isSyncing ? (
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                ) : (
+                  <AlertCircle className="h-4 w-4" />
+                )}
+                <span>{pendingCount} pendiente{pendingCount > 1 ? 's' : ''}</span>
+              </div>
+            )}
 
             {/* Usuario asignado */}
             {dispositivo.empleadoAsignadoNombre && (
@@ -306,15 +387,22 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
             <div className="space-y-2">
               <Button
                 onClick={procesarVenta}
-                disabled={carrito.length === 0}
+                disabled={carrito.length === 0 || isProcessing}
                 variant="primary"
                 className="w-full h-12 text-lg font-semibold"
               >
-                Cobrar
+                {isProcessing ? (
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className="h-5 w-5 animate-spin" />
+                    <span>Procesando...</span>
+                  </div>
+                ) : (
+                  'Cobrar'
+                )}
               </Button>
               <Button
                 onClick={limpiarCarrito}
-                disabled={carrito.length === 0}
+                disabled={carrito.length === 0 || isProcessing}
                 variant="outline"
                 className="w-full"
               >
@@ -331,7 +419,7 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
           <div className="flex items-center gap-2 text-yellow-800">
             <WifiOff className="h-4 w-4" />
             <span className="text-sm font-medium">
-              Modo Offline - Las ventas se sincronizarán automáticamente
+              Modo Offline - {pendingCount > 0 ? `${pendingCount} venta${pendingCount > 1 ? 's' : ''} pendiente${pendingCount > 1 ? 's' : ''} de sincronización` : 'Las ventas se sincronizarán automáticamente'}
             </span>
           </div>
           <button
@@ -341,6 +429,16 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
             <RefreshCw className="h-4 w-4" />
             <span>Reintentar</span>
           </button>
+        </div>
+      )}
+
+      {/* Banner de sincronización exitosa */}
+      {isOnline && pendingCount === 0 && isSyncing && (
+        <div className="bg-green-100 border-t border-green-300 px-4 py-2 flex items-center gap-2 text-green-800">
+          <CheckCircle className="h-4 w-4" />
+          <span className="text-sm font-medium">
+            Todas las ventas están sincronizadas
+          </span>
         </div>
       )}
     </div>
