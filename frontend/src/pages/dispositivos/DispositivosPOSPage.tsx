@@ -1,15 +1,17 @@
 import { FC, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Monitor, Smartphone, Package, Edit, Trash2, Power, Wifi, WifiOff, User, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Plus, Monitor, Smartphone, Package, Edit, Trash2, Power, Wifi, WifiOff, User, Clock, CheckCircle, AlertTriangle, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/Button';
 import { dispositivosPosApi, DispositivoPOS } from '../../api/dispositivos-pos.api';
 import { DispositivoPOSModal } from './DispositivoPOSModal';
+import { QuickStartModal } from './QuickStartModal';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export const DispositivosPOSPage: FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isQuickStartModalOpen, setIsQuickStartModalOpen] = useState(false);
   const [selectedDispositivo, setSelectedDispositivo] = useState<DispositivoPOS | undefined>();
   const queryClient = useQueryClient();
 
@@ -46,6 +48,11 @@ export const DispositivosPOSPage: FC = () => {
     if (confirm(`¿Eliminar dispositivo "${nombre}"?`)) {
       eliminarMutation.mutate(id);
     }
+  };
+
+  const handleQuickStart = (dispositivo: DispositivoPOS) => {
+    setSelectedDispositivo(dispositivo);
+    setIsQuickStartModalOpen(true);
   };
 
   const getIconByTipo = (tipo: string) => {
@@ -310,6 +317,18 @@ export const DispositivosPOSPage: FC = () => {
 
                     {/* Acciones */}
                     <div className="flex items-center gap-2 ml-4">
+                      {/* Botón Quick Start - solo para dispositivos con vinculación temporal */}
+                      {!dispositivo.asignacionPermanente && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleQuickStart(dispositivo)}
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          title="Quick Start: Vincular/Desvincular empleado"
+                        >
+                          <Zap className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -334,11 +353,20 @@ export const DispositivosPOSPage: FC = () => {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal de Edición/Creación */}
       {isModalOpen && (
         <DispositivoPOSModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
+          dispositivo={selectedDispositivo}
+        />
+      )}
+
+      {/* Modal de Quick Start */}
+      {isQuickStartModalOpen && selectedDispositivo && (
+        <QuickStartModal
+          isOpen={isQuickStartModalOpen}
+          onClose={() => setIsQuickStartModalOpen(false)}
           dispositivo={selectedDispositivo}
         />
       )}
