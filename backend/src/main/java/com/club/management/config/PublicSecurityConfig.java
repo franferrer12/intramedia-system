@@ -27,7 +27,6 @@ import java.io.IOException;
  * Con WebSecurityCustomizer, Spring Security IGNORA completamente estos paths.
  */
 @Configuration
-@EnableWebSecurity
 public class PublicSecurityConfig {
 
     /**
