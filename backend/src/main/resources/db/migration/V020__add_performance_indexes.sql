@@ -105,21 +105,21 @@ ON jornadas_trabajo(empleado_id, fecha DESC);
 -- 6. ÍNDICES EN TABLA: nominas
 -- ============================================================================
 
--- Índice para join con empleados
-CREATE INDEX IF NOT EXISTS idx_nominas_empleado_id
-ON nominas(empleado_id);
+-- Índice para join con empleados (ya existe: idx_nominas_empleado_id)
+-- CREATE INDEX IF NOT EXISTS idx_nominas_empleado_id
+-- ON nominas(empleado_id);
 
--- Índice para filtrar por mes/año
-CREATE INDEX IF NOT EXISTS idx_nominas_mes_anio
-ON nominas(mes, anio);
+-- Índice para filtrar por periodo (ya existe: idx_nominas_periodo)
+-- CREATE INDEX IF NOT EXISTS idx_nominas_periodo
+-- ON nominas(periodo);
 
--- Índice compuesto: empleado + mes + año (nóminas de un empleado por período)
-CREATE INDEX IF NOT EXISTS idx_nominas_empleado_mes_anio
-ON nominas(empleado_id, anio DESC, mes DESC);
+-- Índice compuesto: empleado + período (ya existe: idx_nominas_empleado_periodo)
+-- CREATE INDEX IF NOT EXISTS idx_nominas_empleado_periodo
+-- ON nominas(empleado_id, periodo DESC);
 
--- Índice para filtrar por estado
-CREATE INDEX IF NOT EXISTS idx_nominas_estado
-ON nominas(estado);
+-- Índice para filtrar por estado (ya existe: idx_nominas_estado)
+-- CREATE INDEX IF NOT EXISTS idx_nominas_estado
+-- ON nominas(estado);
 
 -- ============================================================================
 -- 7. ÍNDICES EN TABLA: productos
