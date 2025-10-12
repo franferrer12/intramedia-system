@@ -212,13 +212,11 @@ public class DispositivoPOSService {
         // Generar código corto aleatorio (6 dígitos)
         String pairingCode = generarCodigoPairing();
 
-        // Generar token JWT temporal (expira en 1 hora)
+        // Generar token único (UUID) - NO es un JWT, es un identificador temporal
+        String token = UUID.randomUUID().toString();
+
+        // Expira en 1 hora
         LocalDateTime expiresAt = LocalDateTime.now().plusHours(1);
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("deviceId", dispositivo.getId());
-        claims.put("deviceUUID", dispositivo.getUuid());
-        claims.put("exp", expiresAt.toString());
-        String token = jwtTokenProvider.generateTokenWithClaims(claims, 3600000); // 1 hora en ms
 
         // Guardar en DB
         dispositivo.setPairingToken(token);
