@@ -31,6 +31,7 @@ import { NovedadesPage } from './pages/ayuda/NovedadesPage';
 import { AsistenteVirtualPage } from './pages/ayuda/AsistenteVirtualPage';
 import { AutomacionPage } from './pages/configuracion/AutomacionPage';
 import { StandalonePOSPage } from './pages/pos/standalone/StandalonePOSPage';
+import { WelcomePage } from './pages/welcome/WelcomePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,6 +47,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
+          {/* Ruta principal - Selector */}
+          <Route path="/" element={<WelcomePage />} />
+
           {/* Rutas públicas */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/pos-terminal/standalone" element={<StandalonePOSPage />} />
@@ -83,7 +87,7 @@ function App() {
                     <Route path="/ayuda/asistente" element={<AsistenteVirtualPage />} />
                     <Route path="/ayuda/novedades" element={<NovedadesPage />} />
                     <Route path="/configuracion/automatizacion" element={<AutomacionPage />} />
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/backoffice" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
                 </MainLayout>
               </ProtectedRoute>
