@@ -100,12 +100,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // Endpoints públicos - MÁS ESPECÍFICOS PRIMERO
+                        .requestMatchers("/public/**").permitAll()  // Public endpoints (POS authentication, etc.)
                         .requestMatchers("/api/auth/**").permitAll()  // Permitir TODO /api/auth/** SIN restricción de método
-                        .requestMatchers("/api/pos-auth/**").permitAll()  // Autenticación pública de dispositivos POS
-
-                        // TEMPORARY: Permit ALL /api/dispositivos-pos/** to debug authentication issue
-                        .requestMatchers("/api/dispositivos-pos/**").permitAll()
-
                         .requestMatchers("/").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
