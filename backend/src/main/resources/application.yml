@@ -160,7 +160,8 @@ app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:https://club-management-frontend-production.up.railway.app}
   security:
-    bcrypt-strength: 12  # Recomendación OWASP (2^12 = 4096 iteraciones) - Sprint 10 Security Audit
+    bcrypt-strength: 4  # Reducido temporalmente para debugging - era 12
+    enabled: ${SECURITY_ENABLED:false}  # TEMPORAL: Deshabilitado para debugging
 
 # Caching configuration (moved under spring in prod profile)
 # See line 74 for the spring: key
