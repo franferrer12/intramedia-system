@@ -10,9 +10,10 @@ import org.springframework.web.bind.annotation.*;
 /**
  * Controlador público para autenticación de dispositivos POS.
  * Estos endpoints NO requieren autenticación JWT previa.
+ * IMPORTANTE: Usa /api/auth/ porque ese path ya está configurado como público en SecurityConfig
  */
 @RestController
-@RequestMapping("/api/pos-auth")
+@RequestMapping("/api/auth/pos")
 @RequiredArgsConstructor
 public class DispositivoAuthController {
 
