@@ -31,6 +31,7 @@ import { NovedadesPage } from './pages/ayuda/NovedadesPage';
 import { AsistenteVirtualPage } from './pages/ayuda/AsistenteVirtualPage';
 import { AutomacionPage } from './pages/configuracion/AutomacionPage';
 import { StandalonePOSPage } from './pages/pos/standalone/StandalonePOSPage';
+import { POSPairPage } from './pages/pos/standalone/POSPairPage';
 import { WelcomePage } from './pages/welcome/WelcomePage';
 import { DispositivosPOSPage } from './pages/dispositivos/DispositivosPOSPage';
 
@@ -54,6 +55,7 @@ function App() {
           {/* Rutas públicas - DEBEN IR ANTES DEL WILDCARD */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/pos-terminal/standalone" element={<StandalonePOSPage />} />
+          <Route path="/pos-terminal/pair" element={<POSPairPage />} />
 
           {/* Rutas protegidas del backoffice */}
           <Route path="/dashboard" element={<ProtectedRoute><MainLayout><DashboardPage /></MainLayout></ProtectedRoute>} />

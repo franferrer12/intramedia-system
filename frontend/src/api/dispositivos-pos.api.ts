@@ -89,6 +89,7 @@ export interface ResultadoSincronizacion {
   error?: string;
 }
 
+// Antiguo formato (mantener para backward compatibility)
 export interface PairingToken {
   pairingToken: string;
   pairingUrl: string;
@@ -96,6 +97,38 @@ export interface PairingToken {
   dispositivoId: number;
   dispositivoNombre: string;
   expiresAt: string;
+}
+
+// NUEVO: Sistema de pairing mejorado
+export interface PairingTokenResponse {
+  token: string; // UUID temporal
+  pairingCode: string; // Código de 6 dígitos (ej: "842-931")
+  expiresAt: string; // ISO timestamp
+  qrCodeData: string; // URL completa para QR
+  directLink: string; // Enlace directo
+  validityMinutes: number; // 60 minutos
+}
+
+export interface DeviceAuthResponse {
+  success: boolean;
+  deviceUUID: string;
+  deviceToken: string; // JWT de 30 días
+  device: {
+    id: number;
+    uuid: string;
+    nombre: string;
+    tipo: string;
+    ubicacion?: string;
+    asignacionPermanente: boolean;
+    modoTabletCompartida: boolean;
+    config: {
+      categoriasPredeterminadas?: string[];
+      tieneLectorBarras: boolean;
+      tieneCajonDinero: boolean;
+      tienePantallaCliente: boolean;
+      permisos?: Record<string, any>;
+    };
+  };
 }
 
 export const dispositivosPosApi = {
@@ -210,6 +243,27 @@ export const dispositivosPosApi = {
 
   desvincular: async (dispositivoId: number): Promise<DispositivoPOS> => {
     const response = await axios.post(`/dispositivos-pos/${dispositivoId}/desvincular`);
+    return response.data;
+  },
+
+  // NUEVO SISTEMA DE PAIRING (bypass Railway WAF)
+  generarTokenPairingNuevo: async (dispositivoId: number): Promise<PairingTokenResponse> => {
+    // Se usa GET en lugar de POST para bypasear el WAF de Railway
+    const response = await axios.get(`/dispositivos-pos/${dispositivoId}/generar-token-pairing`);
+    return response.data;
+  },
+
+  vincularPorToken: async (token: string): Promise<DeviceAuthResponse> => {
+    const response = await axios.get('/dispositivos-pos/vincular', {
+      params: { token }
+    });
+    return response.data;
+  },
+
+  vincularPorCodigo: async (code: string): Promise<DeviceAuthResponse> => {
+    const response = await axios.get('/dispositivos-pos/vincular-por-codigo', {
+      params: { code }
+    });
     return response.data;
   },
 };

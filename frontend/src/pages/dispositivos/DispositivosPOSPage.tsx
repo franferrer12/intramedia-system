@@ -7,7 +7,7 @@ import { dispositivosPosApi, DispositivoPOS } from '../../api/dispositivos-pos.a
 import { DispositivoPOSModal } from './DispositivoPOSModal';
 import { QuickStartModal } from './QuickStartModal';
 import { SyncModal } from './SyncModal';
-import { PairingModal } from './PairingModal';
+import { DevicePairingModal } from '../../components/dispositivos-pos/DevicePairingModal';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -416,10 +416,11 @@ export const DispositivosPOSPage: FC = () => {
 
       {/* Modal de Emparejamiento */}
       {isPairingModalOpen && selectedDispositivo && (
-        <PairingModal
+        <DevicePairingModal
           isOpen={isPairingModalOpen}
           onClose={() => setIsPairingModalOpen(false)}
-          dispositivo={selectedDispositivo}
+          dispositivoId={selectedDispositivo.id}
+          dispositivoNombre={selectedDispositivo.nombre}
         />
       )}
     </div>
