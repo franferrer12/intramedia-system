@@ -63,7 +63,7 @@ ON transacciones(tipo, fecha DESC);
 
 -- Índice para join con categorías
 CREATE INDEX IF NOT EXISTS idx_transacciones_categoria_id
-ON transacciones(categoria_transaccion_id);
+ON transacciones(categoria_id);
 
 -- Índice para join con eventos (transacciones de un evento)
 CREATE INDEX IF NOT EXISTS idx_transacciones_evento_id
