@@ -59,20 +59,6 @@
     }
   ],
   "categories": ["business", "productivity", "finance"],
-  "screenshots": [
-    {
-      "src": "/screenshots/terminal-main.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/screenshots/terminal-cart.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    }
-  ],
   "shortcuts": [
     {
       "name": "Abrir Terminal",
@@ -91,7 +77,12 @@
   "share_target": {
     "action": "/pos-terminal/standalone",
     "method": "GET",
-    "enctype": "application/x-www-form-urlencoded"
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
   },
   "prefer_related_applications": false,
   "related_applications": []
