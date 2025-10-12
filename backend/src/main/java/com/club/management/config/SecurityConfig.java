@@ -72,6 +72,10 @@ public class SecurityConfig {
     @Order(2)  // Ejecuta DESPUÉS del PublicSecurityConfig
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // CRITICAL: This filter chain should NOT process /public/** paths
+                .securityMatchers(matchers -> matchers
+                    .requestMatchers(request -> !request.getRequestURI().startsWith("/public/"))
+                )
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session ->
