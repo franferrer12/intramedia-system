@@ -185,76 +185,39 @@ CREATE INDEX IF NOT EXISTS idx_alertas_activa_fecha
 ON alertas_stock(activa, fecha_alerta DESC);
 
 -- ============================================================================
--- 11. ÍNDICES EN TABLA: sesiones_venta (POS)
+-- 11. ÍNDICES EN TABLA: sesiones_caja (POS)
 -- ============================================================================
 
--- Índice para filtrar por estado
-CREATE INDEX IF NOT EXISTS idx_sesiones_estado
-ON sesiones_venta(estado);
-
--- Índice para join con usuarios (cajero)
-CREATE INDEX IF NOT EXISTS idx_sesiones_usuario_id
-ON sesiones_venta(usuario_id);
-
--- Índice para ordenar por fecha de apertura
-CREATE INDEX IF NOT EXISTS idx_sesiones_fecha_apertura
-ON sesiones_venta(fecha_apertura DESC);
-
--- Índice compuesto: estado + fecha (sesiones abiertas ordenadas)
-CREATE INDEX IF NOT EXISTS idx_sesiones_estado_fecha
-ON sesiones_venta(estado, fecha_apertura DESC);
+-- NOTA: Los índices ya fueron creados en V019
+-- CREATE INDEX idx_sesiones_caja_fecha_apertura ON sesiones_caja(fecha_apertura DESC);
+-- CREATE INDEX idx_sesiones_caja_estado ON sesiones_caja(estado);
+-- CREATE INDEX idx_sesiones_caja_empleado_apertura ON sesiones_caja(empleado_apertura_id);
 
 -- ============================================================================
--- 12. ÍNDICES EN TABLA: consumos_sesion (POS)
+-- 12. ÍNDICES EN TABLA: ventas (POS)
 -- ============================================================================
 
--- Índice para join con sesiones
-CREATE INDEX IF NOT EXISTS idx_consumos_sesion_id
-ON consumos_sesion(sesion_venta_id);
-
--- Índice para join con productos
-CREATE INDEX IF NOT EXISTS idx_consumos_producto_id
-ON consumos_sesion(producto_id);
-
--- Índice para ordenar por fecha
-CREATE INDEX IF NOT EXISTS idx_consumos_fecha
-ON consumos_sesion(fecha_consumo DESC);
+-- NOTA: Los índices ya fueron creados en V019
+-- CREATE INDEX idx_ventas_fecha ON ventas(fecha DESC);
+-- CREATE INDEX idx_ventas_sesion_caja ON ventas(sesion_caja_id);
+-- CREATE INDEX idx_ventas_empleado ON ventas(empleado_id);
+-- CREATE INDEX idx_ventas_evento ON ventas(evento_id);
+-- CREATE INDEX idx_ventas_metodo_pago ON ventas(metodo_pago);
 
 -- ============================================================================
--- 13. ÍNDICES EN TABLA: botellas_abiertas (VIP)
+-- 13. ÍNDICES EN TABLA: detalle_venta (POS)
 -- ============================================================================
 
--- Índice para join con productos
-CREATE INDEX IF NOT EXISTS idx_botellas_producto_id
-ON botellas_abiertas(producto_id);
-
--- Índice para filtrar por estado
-CREATE INDEX IF NOT EXISTS idx_botellas_estado
-ON botellas_abiertas(estado);
-
--- Índice para filtrar por mesa
-CREATE INDEX IF NOT EXISTS idx_botellas_mesa
-ON botellas_abiertas(mesa);
-
--- Índice para ordenar por fecha de apertura
-CREATE INDEX IF NOT EXISTS idx_botellas_fecha_apertura
-ON botellas_abiertas(fecha_apertura DESC);
-
--- Índice compuesto: estado + fecha (botellas abiertas ordenadas)
-CREATE INDEX IF NOT EXISTS idx_botellas_estado_fecha
-ON botellas_abiertas(estado, fecha_apertura DESC);
+-- NOTA: Los índices ya fueron creados en V019
+-- CREATE INDEX idx_detalle_venta_venta ON detalle_venta(venta_id);
+-- CREATE INDEX idx_detalle_venta_producto ON detalle_venta(producto_id);
 
 -- ============================================================================
--- 14. ÍNDICES EN TABLA: consumos_vip
+-- 14. TABLAS VIP (botellas_abiertas, consumos_vip)
 -- ============================================================================
 
--- Índice para join con botellas
-CREATE INDEX IF NOT EXISTS idx_consumos_vip_botella_id
-ON consumos_vip(botella_abierta_id);
-
--- Índice para ordenar por fecha
-CREATE INDEX IF NOT EXISTS idx_consumos_vip_fecha
-ON consumos_vip(fecha_consumo DESC);
+-- NOTA: Estas tablas no existen aún en el schema
+-- Se crearán en futuras migraciones cuando se implemente el módulo VIP
 
 -- ============================================================================
 -- 15. ÍNDICES EN TABLA: proveedores
