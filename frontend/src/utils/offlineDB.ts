@@ -136,7 +136,7 @@ export const getVentasPendientes = async (): Promise<VentaOfflineDB[]> => {
     const store = transaction.objectStore(STORES.VENTAS_PENDIENTES);
     const index = store.index('sincronizada');
 
-    const request = index.getAll(false);
+    const request = index.getAll(IDBKeyRange.only(false));
 
     request.onsuccess = () => {
       resolve(request.result);
@@ -305,7 +305,7 @@ export const getVentasPendientesCount = async (): Promise<number> => {
     const store = transaction.objectStore(STORES.VENTAS_PENDIENTES);
     const index = store.index('sincronizada');
 
-    const request = index.count(false);
+    const request = index.count(IDBKeyRange.only(false));
 
     request.onsuccess = () => {
       resolve(request.result);

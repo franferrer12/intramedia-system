@@ -27,7 +27,7 @@ export const useOfflineSync = (dispositivoId: number | null, isOnline: boolean) 
     syncErrors: [],
   });
 
-  const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isSyncingRef = useRef(false);
 
   /**
@@ -46,15 +46,17 @@ export const useOfflineSync = (dispositivoId: number | null, isOnline: boolean) 
     try {
       // Convert to API format
       const ventaAPI: VentaOffline = {
-        uuid: venta.uuid,
-        timestamp: venta.timestamp,
-        items: venta.items.map(item => ({
-          productoId: item.productoId,
-          cantidad: item.cantidad,
-          precioUnitario: item.precioUnitario,
-        })),
-        total: venta.total,
-        metodoPago: venta.metodoPago,
+        uuidVenta: venta.uuid,
+        datosVenta: {
+          timestamp: venta.timestamp,
+          items: venta.items.map(item => ({
+            productoId: item.productoId,
+            cantidad: item.cantidad,
+            precioUnitario: item.precioUnitario,
+          })),
+          total: venta.total,
+          metodoPago: venta.metodoPago,
+        },
       };
 
       // Send to API
@@ -63,7 +65,7 @@ export const useOfflineSync = (dispositivoId: number | null, isOnline: boolean) 
         dispositivoId
       );
 
-      if (resultado.length > 0 && resultado[0].exito) {
+      if (resultado.length > 0 && resultado[0].exitoso) {
         // Delete from IndexedDB on success
         if (venta.id) {
           await deleteVentaPendiente(venta.id);

@@ -3,7 +3,6 @@ import { LogOut, User, Wifi, WifiOff, RefreshCw, AlertCircle, CheckCircle } from
 import { toast } from 'sonner';
 import { Button } from '../../../components/ui/Button';
 import { DispositivoPOS, ConfiguracionPOS } from '../../../api/dispositivos-pos.api';
-import { ProductoDTO } from '../../../types';
 import { useOfflineSync } from '../../../hooks/useOfflineSync';
 import { addVentaPendiente, VentaOfflineDB } from '../../../utils/offlineDB';
 
@@ -12,6 +11,15 @@ interface POSStandaloneTerminalProps {
   configuracion: ConfiguracionPOS;
   token: string;
   onLogout: () => void;
+}
+
+interface ProductoDTO {
+  id: number;
+  nombre: string;
+  categoria: string;
+  precio: number;
+  stock?: number;
+  activo: boolean;
 }
 
 interface CarritoItem {
@@ -23,7 +31,6 @@ interface CarritoItem {
 export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
   dispositivo,
   configuracion,
-  token,
   onLogout,
 }) => {
   const [carrito, setCarrito] = useState<CarritoItem[]>([]);
@@ -290,7 +297,7 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
                 <button
                   key={producto.id}
                   onClick={() => agregarAlCarrito(producto)}
-                  disabled={!producto.activo || (producto.stock && producto.stock <= 0)}
+                  disabled={!producto.activo || (producto.stock !== undefined && producto.stock <= 0)}
                   className={`bg-white p-4 rounded-lg shadow hover:shadow-lg transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed ${
                     !producto.activo || (producto.stock && producto.stock <= 0)
                       ? 'bg-gray-100'
