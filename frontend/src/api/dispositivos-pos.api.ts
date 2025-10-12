@@ -254,15 +254,16 @@ export const dispositivosPosApi = {
   },
 
   vincularPorToken: async (token: string): Promise<DeviceAuthResponse> => {
-    // Usa parámetro 'p' en lugar de 'token' para bypasear WAF
-    const response = await axios.get('/dispositivos-pos/setup', {
+    // Usa path /public/pos/ y parámetro 'p' para bypasear WAF
+    const response = await axios.get('/public/pos/setup', {
       params: { p: token }
     });
     return response.data;
   },
 
   vincularPorCodigo: async (code: string): Promise<DeviceAuthResponse> => {
-    const response = await axios.get('/dispositivos-pos/pair', {
+    // Usa path /public/pos/ para bypasear WAF
+    const response = await axios.get('/public/pos/pair', {
       params: { code }
     });
     return response.data;

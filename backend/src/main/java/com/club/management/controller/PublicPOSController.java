@@ -84,4 +84,40 @@ public class PublicPOSController {
         AuthDispositivoDTO auth = dispositivoPOSService.autenticarConIdentificadorEmpleado(identifier);
         return ResponseEntity.ok(auth);
     }
+
+    /**
+     * GET /public/pos/setup
+     * Vincula un dispositivo usando un código de setup (pairing token).
+     * Endpoint PÚBLICO - no requiere autenticación previa.
+     *
+     * @param p Pairing key (UUID temporal)
+     * @return DeviceToken de larga duración (30 días) y configuración del dispositivo
+     */
+    @GetMapping("/setup")
+    @Operation(
+        summary = "Vincular dispositivo con pairing key",
+        description = "Vincula un dispositivo usando un código de setup generado desde el backoffice. Retorna token de dispositivo válido por 30 días."
+    )
+    public ResponseEntity<com.club.management.dto.response.DeviceAuthDTO> setup(
+            @RequestParam String p) {
+        return ResponseEntity.ok(dispositivoPOSService.vincularPorToken(p));
+    }
+
+    /**
+     * GET /public/pos/pair
+     * Vincula un dispositivo usando un PIN corto (ej: "842-931").
+     * Endpoint PÚBLICO - alternativa al código para ingreso manual.
+     *
+     * @param code Código corto de 6 dígitos
+     * @return DeviceToken de larga duración y configuración
+     */
+    @GetMapping("/pair")
+    @Operation(
+        summary = "Vincular dispositivo con código corto",
+        description = "Vincula un dispositivo usando un código manual corto (formato: 123-456)"
+    )
+    public ResponseEntity<com.club.management.dto.response.DeviceAuthDTO> pair(
+            @RequestParam String code) {
+        return ResponseEntity.ok(dispositivoPOSService.vincularPorCodigo(code));
+    }
 }
