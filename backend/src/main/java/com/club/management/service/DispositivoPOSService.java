@@ -424,9 +424,9 @@ public class DispositivoPOSService {
         ProductoDTO dto = new ProductoDTO();
         dto.setId(producto.getId());
         dto.setNombre(producto.getNombre());
-        dto.setPrecio(producto.getPrecioVenta());
+        dto.setPrecioVenta(producto.getPrecioVenta());
         dto.setCategoria(producto.getCategoria());
-        dto.setStock(producto.getStockActual());
+        dto.setStockActual(producto.getStockActual());
         dto.setActivo(producto.getActivo());
         return dto;
     }
