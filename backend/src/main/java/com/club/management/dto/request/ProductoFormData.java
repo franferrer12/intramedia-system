@@ -22,4 +22,16 @@ public class ProductoFormData {
     private Integer diasCaducidad;
     private String imagenUrl;
     private String notas;
+
+    // Campos para modelo de ocio nocturno
+    private BigDecimal capacidadMl;
+    private String tipoVenta;
+    private BigDecimal mlPorServicio;
+    private BigDecimal factorMerma;
+
+    // Campos para sistema de venta dual (Copa + Botella VIP)
+    private Boolean esVentaDual;
+    private Integer copasPorBotella;
+    private BigDecimal precioCopa;
+    private BigDecimal precioBotellaVip;
 }
