@@ -41,7 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (path.equals("/api/auth/login") ||
             path.equals("/api/auth/register") ||
-            path.equals("/actuator/health")) {
+            path.equals("/actuator/health") ||
+            path.startsWith("/api/dispositivos-pos/autenticar")) {
             logger.info("JWT Filter: Skipping public endpoint " + path);
             filterChain.doFilter(request, response);
             return;
