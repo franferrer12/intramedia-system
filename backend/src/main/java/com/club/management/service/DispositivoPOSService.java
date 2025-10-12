@@ -226,7 +226,7 @@ public class DispositivoPOSService {
 
         // URL base del frontend (debería venir de configuración)
         String frontendUrl = "https://club-manegament-production.up.railway.app";
-        String directLink = frontendUrl + "/pos-terminal/pair?token=" + token;
+        String directLink = frontendUrl + "/pos-terminal/pair?p=" + token;
 
         log.info("🔗 Token de pairing generado para dispositivo: {} (código: {}, expira: {})",
                 dispositivo.getNombre(), pairingCode, expiresAt);

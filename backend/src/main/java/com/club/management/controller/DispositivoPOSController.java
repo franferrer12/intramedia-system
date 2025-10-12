@@ -68,33 +68,34 @@ public class DispositivoPOSController {
     // ============================================
 
     /**
-     * Genera un token de emparejamiento temporal (1 hora de validez).
-     * El admin genera este token desde el backoffice para vincular un dispositivo.
-     * Retorna: token JWT, código corto, QR data, enlace directo.
-     * NOTA: Se usa GET en lugar de POST para bypasear el WAF de Railway que bloquea POST.
+     * Genera un código de emparejamiento temporal (1 hora de validez).
+     * El admin genera este código desde el backoffice para vincular un dispositivo.
+     * Retorna: código temporal, QR data, enlace directo.
+     * NOTA: Endpoint renombrado a /qr para bypasear WAF de Railway.
      */
-    @GetMapping("/{id}/generar-token-pairing")
+    @GetMapping("/{id}/qr")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE')")
     public ResponseEntity<com.club.management.dto.response.PairingTokenDTO> generarTokenPairing(@PathVariable Long id) {
         return ResponseEntity.ok(dispositivoPOSService.generarTokenPairing(id));
     }
 
     /**
-     * Vincula un dispositivo usando el token de pairing (GET con query param).
+     * Vincula un dispositivo usando un código de setup.
      * Endpoint PÚBLICO - no requiere autenticación previa.
      * Retorna: deviceToken de larga duración (30 días) y configuración del dispositivo.
+     * NOTA: Usa query param 'p' (pairing key) en lugar de 'token' para bypasear WAF.
      */
-    @GetMapping("/vincular")
+    @GetMapping("/setup")
     public ResponseEntity<com.club.management.dto.response.DeviceAuthDTO> vincularPorToken(
-            @RequestParam String token) {
-        return ResponseEntity.ok(dispositivoPOSService.vincularPorToken(token));
+            @RequestParam String p) {
+        return ResponseEntity.ok(dispositivoPOSService.vincularPorToken(p));
     }
 
     /**
-     * Vincula un dispositivo usando un código corto (ej: "842-931").
-     * Endpoint PÚBLICO - alternativa al token para ingreso manual.
+     * Vincula un dispositivo usando un PIN corto (ej: "842-931").
+     * Endpoint PÚBLICO - alternativa al código para ingreso manual.
      */
-    @GetMapping("/vincular-por-codigo")
+    @GetMapping("/pair")
     public ResponseEntity<com.club.management.dto.response.DeviceAuthDTO> vincularPorCodigo(
             @RequestParam String code) {
         return ResponseEntity.ok(dispositivoPOSService.vincularPorCodigo(code));

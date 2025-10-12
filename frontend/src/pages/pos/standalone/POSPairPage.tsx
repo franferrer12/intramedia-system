@@ -13,11 +13,11 @@ export const POSPairPage: FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Auto-pairing si viene token en la URL
+  // Auto-pairing si viene pairing key en la URL (parámetro 'p')
   useEffect(() => {
-    const token = searchParams.get('token');
-    if (token) {
-      autoPairWithToken(token);
+    const pairingKey = searchParams.get('p');
+    if (pairingKey) {
+      autoPairWithToken(pairingKey);
     }
   }, [searchParams]);
 

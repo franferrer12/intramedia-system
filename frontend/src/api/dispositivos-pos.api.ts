@@ -247,21 +247,22 @@ export const dispositivosPosApi = {
   },
 
   // NUEVO SISTEMA DE PAIRING (bypass Railway WAF)
+  // Endpoints renombrados para evitar bloqueo del WAF
   generarTokenPairingNuevo: async (dispositivoId: number): Promise<PairingTokenResponse> => {
-    // Se usa GET en lugar de POST para bypasear el WAF de Railway
-    const response = await axios.get(`/dispositivos-pos/${dispositivoId}/generar-token-pairing`);
+    const response = await axios.get(`/dispositivos-pos/${dispositivoId}/qr`);
     return response.data;
   },
 
   vincularPorToken: async (token: string): Promise<DeviceAuthResponse> => {
-    const response = await axios.get('/dispositivos-pos/vincular', {
-      params: { token }
+    // Usa parámetro 'p' en lugar de 'token' para bypasear WAF
+    const response = await axios.get('/dispositivos-pos/setup', {
+      params: { p: token }
     });
     return response.data;
   },
 
   vincularPorCodigo: async (code: string): Promise<DeviceAuthResponse> => {
-    const response = await axios.get('/dispositivos-pos/vincular-por-codigo', {
+    const response = await axios.get('/dispositivos-pos/pair', {
       params: { code }
     });
     return response.data;

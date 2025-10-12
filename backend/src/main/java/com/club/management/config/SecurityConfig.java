@@ -105,8 +105,8 @@ public class SecurityConfig {
                         // Endpoints públicos - MÁS ESPECÍFICOS PRIMERO
                         .requestMatchers("/public/**").permitAll()  // Public endpoints (POS authentication, etc.)
                         .requestMatchers("/api/auth/**").permitAll()  // Permitir TODO /api/auth/** SIN restricción de método
-                        .requestMatchers(HttpMethod.GET, "/api/dispositivos-pos/vincular").permitAll()  // Nuevo sistema de pairing
-                        .requestMatchers(HttpMethod.GET, "/api/dispositivos-pos/vincular-por-codigo").permitAll()  // Pairing con código
+                        .requestMatchers(HttpMethod.GET, "/api/dispositivos-pos/setup").permitAll()  // Nuevo sistema de pairing (renombrado)
+                        .requestMatchers(HttpMethod.GET, "/api/dispositivos-pos/pair").permitAll()  // Pairing con código (renombrado)
                         .requestMatchers("/").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
