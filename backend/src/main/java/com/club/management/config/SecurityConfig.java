@@ -95,6 +95,9 @@ public class SecurityConfig {
                         )
                 )
 
+                // CRITICAL: Enable anonymous authentication for public endpoints
+                .anonymous(anonymous -> anonymous.key("anonymousKey"))
+
                 .authorizeHttpRequests(auth -> auth
                         // Permitir OPTIONS para CORS preflight (PRIMERO)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
