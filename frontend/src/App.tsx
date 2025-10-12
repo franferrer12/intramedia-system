@@ -30,6 +30,7 @@ import { AyudaPage } from './pages/ayuda/AyudaPage';
 import { NovedadesPage } from './pages/ayuda/NovedadesPage';
 import { AsistenteVirtualPage } from './pages/ayuda/AsistenteVirtualPage';
 import { AutomacionPage } from './pages/configuracion/AutomacionPage';
+import { StandalonePOSPage } from './pages/pos/standalone/StandalonePOSPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,8 +46,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          {/* Ruta pública */}
+          {/* Rutas públicas */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/pos-terminal/standalone" element={<StandalonePOSPage />} />
 
           {/* Rutas protegidas */}
           <Route
