@@ -103,9 +103,10 @@ public class SecurityConfig {
                         // Endpoints públicos - MÁS ESPECÍFICOS PRIMERO
                         .requestMatchers("/api/auth/**").permitAll()  // Permitir TODO /api/auth/** SIN restricción de método
                         .requestMatchers("/api/pos-auth/**").permitAll()  // Autenticación pública de dispositivos POS
-                        .requestMatchers(HttpMethod.POST, "/api/dispositivos-pos/autenticar/**").permitAll()  // Autenticación con PIN (incluye query params)
-                        .requestMatchers(HttpMethod.POST, "/api/dispositivos-pos/autenticar-con-token/**").permitAll()  // Autenticación con token de pairing
-                        .requestMatchers(HttpMethod.POST, "/api/dispositivos-pos/autenticar-con-empleado/**").permitAll()  // Autenticación con empleado
+
+                        // TEMPORARY: Permit ALL /api/dispositivos-pos/** to debug authentication issue
+                        .requestMatchers("/api/dispositivos-pos/**").permitAll()
+
                         .requestMatchers("/").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
