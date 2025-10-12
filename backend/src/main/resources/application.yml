@@ -1,3 +1,4 @@
+# Club Management System - Backend Configuration
 spring:
   application:
     name: club-management
