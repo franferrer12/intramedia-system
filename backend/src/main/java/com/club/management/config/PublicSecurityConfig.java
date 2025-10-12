@@ -32,7 +32,10 @@ public class PublicSecurityConfig {
     @Order(1)
     public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
         http
-            .securityMatcher("/public/**")  // Solo aplica a /public/**
+            // CRITICAL: Use securityMatchers() to match ONLY /public/** paths
+            .securityMatchers(matchers -> matchers
+                .requestMatchers("/public/**")
+            )
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.disable())  // CORS se maneja en el filtro principal
             .sessionManagement(session ->
