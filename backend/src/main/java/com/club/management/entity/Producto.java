@@ -91,9 +91,8 @@ public class Producto {
 
     // ========== FIN CAMPOS OCIO NOCTURNO ==========
 
-    // ========== CAMPOS PARA SISTEMA BOTELLAS VIP (TEMPORALMENTE DESHABILITADOS) ==========
-    // TODO: Habilitar cuando se implemente correctamente el módulo Botellas VIP
-    /*
+    // ========== CAMPOS PARA SISTEMA DE VENTA DUAL (COPA + BOTELLA VIP) ==========
+
     @Column(name = "copas_por_botella")
     private Integer copasPorBotella;
 
@@ -105,9 +104,11 @@ public class Producto {
 
     @Column(name = "es_botella", nullable = false)
     private Boolean esBotella = false;
-    */
 
-    // ========== FIN CAMPOS BOTELLAS VIP ==========
+    @Column(name = "es_venta_dual", nullable = false)
+    private Boolean esVentaDual = false;
+
+    // ========== FIN CAMPOS VENTA DUAL ==========
 
     @Column(name = "stock_actual", nullable = false, precision = 10, scale = 2)
     private BigDecimal stockActual = BigDecimal.ZERO;
@@ -220,53 +221,107 @@ public class Producto {
         return stockActual.compareTo(BigDecimal.ZERO) <= 0;
     }
 
-    // ========== MÉTODOS SISTEMA BOTELLAS VIP (TEMPORALMENTE DESHABILITADOS) ==========
-    // TODO: Habilitar cuando se implemente correctamente el módulo Botellas VIP
-    /*
+    // ========== MÉTODOS SISTEMA VENTA DUAL ==========
+
+    /**
+     * Verificar si el producto tiene venta dual (copa + botella VIP)
+     */
     @Transient
-    public Boolean isBotella() {
-        return esBotella != null && esBotella;
+    public Boolean isVentaDual() {
+        return esVentaDual != null && esVentaDual;
     }
 
+    /**
+     * Obtener ingreso potencial vendiendo en copas
+     */
     @Transient
     public BigDecimal getIngresoPotencialCopas() {
-        if (!isBotella() || precioCopa == null || copasPorBotella == null) {
+        if (!isVentaDual() || precioCopa == null || copasPorBotella == null) {
             return BigDecimal.ZERO;
         }
-        return precioCopa.multiply(BigDecimal.valueOf(copasPorBotella));
+        return precioCopa.multiply(BigDecimal.valueOf(copasPorBotella)).multiply(stockActual);
     }
 
+    /**
+     * Obtener ingreso potencial vendiendo en VIP
+     */
+    @Transient
+    public BigDecimal getIngresoPotencialVip() {
+        if (!isVentaDual() || precioBotellaVip == null) {
+            return BigDecimal.ZERO;
+        }
+        return precioBotellaVip.multiply(stockActual);
+    }
+
+    /**
+     * Diferencia de ingresos entre copa y VIP
+     */
     @Transient
     public BigDecimal getDiferenciaCopasVsVip() {
-        if (!isBotella() || precioBotellaVip == null) {
-            return BigDecimal.ZERO;
-        }
-        return getIngresoPotencialCopas().subtract(precioBotellaVip);
+        return getIngresoPotencialCopas().subtract(getIngresoPotencialVip());
     }
 
+    /**
+     * Obtener margen de beneficio vendiendo en copas
+     */
     @Transient
-    public BigDecimal getPorcentajeDescuentoVip() {
-        if (!isBotella() || precioBotellaVip == null) {
+    public BigDecimal getMargenBeneficioCopas() {
+        if (!isVentaDual() || precioCopa == null || copasPorBotella == null || precioCompra.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;
+        }
+        BigDecimal costoPorCopa = precioCompra.divide(BigDecimal.valueOf(copasPorBotella), 4, java.math.RoundingMode.HALF_UP);
+        BigDecimal beneficioPorCopa = precioCopa.subtract(costoPorCopa);
+        return beneficioPorCopa.divide(costoPorCopa, 4, java.math.RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+    }
+
+    /**
+     * Obtener margen de beneficio vendiendo en VIP
+     */
+    @Transient
+    public BigDecimal getMargenBeneficioVip() {
+        if (!isVentaDual() || precioBotellaVip == null || precioCompra.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal beneficio = precioBotellaVip.subtract(precioCompra);
+        return beneficio.divide(precioCompra, 4, java.math.RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+    }
+
+    /**
+     * Recomendar mejor opción de venta
+     */
+    @Transient
+    public String getMejorOpcionVenta() {
+        if (!isVentaDual()) {
+            return "NORMAL";
         }
         BigDecimal ingresoCopas = getIngresoPotencialCopas();
-        if (ingresoCopas.compareTo(BigDecimal.ZERO) == 0) {
-            return BigDecimal.ZERO;
+        BigDecimal ingresoVip = getIngresoPotencialVip();
+
+        if (ingresoCopas.compareTo(ingresoVip) > 0) {
+            return "COPA";
+        } else if (ingresoVip.compareTo(ingresoCopas) > 0) {
+            return "VIP";
         }
-        return getDiferenciaCopasVsVip()
-            .divide(ingresoCopas, 4, java.math.RoundingMode.HALF_UP)
-            .multiply(BigDecimal.valueOf(100));
+        return "IGUAL";
     }
 
-    public void validarConfiguracionBotella() {
-        if (isBotella()) {
+    /**
+     * Validar configuración de venta dual
+     */
+    public void validarConfiguracionVentaDual() {
+        if (isVentaDual()) {
+            if (precioCopa == null || precioCopa.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalStateException("Precio copa es obligatorio para venta dual");
+            }
+            if (precioBotellaVip == null || precioBotellaVip.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalStateException("Precio botella VIP es obligatorio para venta dual");
+            }
             if (copasPorBotella == null || copasPorBotella <= 0) {
-                throw new IllegalStateException("Una botella debe tener copas_por_botella configurado");
+                throw new IllegalStateException("Copas por botella debe ser > 0 para venta dual");
             }
             if (capacidadMl == null || capacidadMl.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalStateException("Una botella debe tener capacidad_ml configurada");
+                throw new IllegalStateException("Capacidad ML es obligatoria para venta dual");
             }
         }
     }
-    */
 }

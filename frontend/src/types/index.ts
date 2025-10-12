@@ -425,6 +425,16 @@ export interface Producto {
   ingresoTotalEstimado?: number;
   beneficioUnitario?: number;
   margenPorcentaje?: number;
+  // Campos venta dual (copa + botella VIP)
+  esVentaDual?: boolean;
+  copasPorBotella?: number;
+  precioCopa?: number;
+  precioBotellaVip?: number;
+  ingresoPotencialCopas?: number;
+  ingresoPotencialVip?: number;
+  margenBeneficioCopas?: number;
+  margenBeneficioVip?: number;
+  mejorOpcionVenta?: string;
   // Fin campos ocio nocturno
   creadoEn: string;
   actualizadoEn: string;
@@ -454,6 +464,11 @@ export interface ProductoFormData {
   tipoVenta?: TipoVenta;
   mlPorServicio?: number;
   factorMerma?: number;
+  // Campos venta dual (copa + botella VIP)
+  esVentaDual?: boolean;
+  copasPorBotella?: number;
+  precioCopa?: number;
+  precioBotellaVip?: number;
 }
 
 export type TipoMovimientoStock = 'ENTRADA' | 'SALIDA' | 'AJUSTE' | 'MERMA' | 'DEVOLUCION' | 'TRASPASO' | 'INVENTARIO';

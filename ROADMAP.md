@@ -566,6 +566,71 @@
 
 ---
 
+### Sprint 10.5: Sistema de Inventario Dual (Copa + Botella VIP) (Semana 20.5)
+**Duración:** 5 días
+**Estado:** PLANIFICADO 📋
+**Prioridad:** ALTA
+
+#### Problema Identificado
+El sistema actual obliga a elegir **UN SOLO tipo de venta** por producto:
+- Si configuras "Vodka" como COPA → solo puedes vender copas
+- Si lo configuras como BOTELLA → solo puedes vender botellas completas
+- **No hay forma de hacer AMBAS** con el mismo producto
+
+#### Solución: Modelo Híbrido de Precio Dual
+
+**Objetivos:**
+- [ ] Habilitar venta simultánea en copas Y botellas VIP para el mismo producto
+- [ ] Trazabilidad completa de qué se vendió en cada formato
+- [ ] Dashboard de valor de inventario por escenario (copas vs VIP)
+- [ ] Recomendaciones automáticas de rentabilidad
+
+**Backend (Día 1-2):**
+- [ ] Descomentar campos VIP en `Producto.java` (copas_por_botella, precio_copa, precio_botella_vip)
+- [ ] Crear migración `V020__add_venta_dual.sql`
+- [ ] Agregar campo `es_venta_dual` boolean
+- [ ] Actualizar `ProductoDTO` con nuevos campos
+- [ ] Modificar `ProductoService` para validar venta dual
+- [ ] Tests unitarios de validación
+
+**Frontend - Formulario (Día 2-3):**
+- [ ] Actualizar `ProductoModal.tsx` con sección "Venta Dual"
+- [ ] Agregar checkbox para habilitar venta dual
+- [ ] Campos: precio_copa, precio_botella_vip
+- [ ] Panel de comparación de rentabilidad en tiempo real
+- [ ] Validaciones: ambos precios obligatorios si es_venta_dual=true
+
+**Frontend - POS (Día 3):**
+- [ ] Crear `ModalTipoVenta.tsx` para selección Copa vs VIP
+- [ ] Actualizar `POSTerminalPage.tsx` para detectar productos duales
+- [ ] Mostrar modal al agregar producto con venta dual
+- [ ] Modificar lógica de carrito para incluir tipo_venta seleccionado
+
+**Dashboard Valor Inventario (Día 4):**
+- [ ] Crear `ValorInventarioPage.tsx`
+- [ ] API endpoint `/api/productos/valor-dual`
+- [ ] Cards resumen: Capital Invertido, Valor Copas, Valor VIP
+- [ ] Tabla comparativa por producto
+- [ ] Indicador de "mejor opción" según rentabilidad
+
+**Testing y Documentación (Día 5):**
+- [ ] Tests E2E del flujo completo (crear producto dual, vender en POS)
+- [ ] Actualizar Centro de Ayuda con tutorial
+- [ ] Deploy a producción Railway
+- [ ] Actualizar `ROADMAP.md` y `PROGRESS.md`
+
+**Features Clave:**
+- ✅ Stock único por producto (no duplicar)
+- ✅ Precio flexible según contexto de venta (barra vs VIP)
+- ✅ Trazabilidad: cada venta registra el tipo y precio real
+- ✅ Reportes comparativos de rentabilidad por tipo de venta
+- ✅ Recomendaciones automáticas basadas en margen
+
+**Documentación:**
+- 📄 `INVENTARIO_DUAL_PRICING.md` - Especificación completa (CREADO ✅)
+
+---
+
 ### Sprint 11: Activos Fijos y ROI (Semanas 21-22)
 **Duración:** 10 días
 **Estado:** OPCIONAL ⏳
@@ -583,7 +648,7 @@
 - [ ] Entidad Inversion (proyecto, monto, fecha, retorno_esperado)
 - [ ] ActivoFijoService con cálculo de depreciación lineal
 - [ ] InversionService con cálculo de ROI
-- [ ] Migración V020__create_activos.sql
+- [ ] Migración V021__create_activos.sql
 - [ ] Triggers automáticos de depreciación mensual
 
 #### Frontend

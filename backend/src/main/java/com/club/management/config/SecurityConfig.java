@@ -104,10 +104,10 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
                         // Endpoints protegidos - DESPUÉS de los públicos específicos
-                        .requestMatchers(HttpMethod.GET, "/api/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_GERENTE", "ROLE_ENCARGADO", "ROLE_RRHH", "ROLE_LECTURA")
-                        .requestMatchers(HttpMethod.POST, "/api/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_GERENTE", "ROLE_ENCARGADO")
-                        .requestMatchers(HttpMethod.PUT, "/api/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_GERENTE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_GERENTE")
+                        .requestMatchers(HttpMethod.GET, "/api/**").hasAnyAuthority("ADMIN", "GERENTE", "ENCARGADO", "RRHH", "LECTURA")
+                        .requestMatchers(HttpMethod.POST, "/api/**").hasAnyAuthority("ADMIN", "GERENTE", "ENCARGADO")
+                        .requestMatchers(HttpMethod.PUT, "/api/**").hasAnyAuthority("ADMIN", "GERENTE")
+                        .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyAuthority("ADMIN", "GERENTE")
 
                         // Todo lo demás requiere autenticación
                         .anyRequest().authenticated()

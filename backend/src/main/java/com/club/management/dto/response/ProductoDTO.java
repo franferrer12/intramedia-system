@@ -34,4 +34,23 @@ public class ProductoDTO {
     private String notas;
     private LocalDateTime creadoEn;
     private LocalDateTime actualizadoEn;
+
+    // Campos modelo ocio nocturno
+    private BigDecimal capacidadMl;
+    private String tipoVenta;
+    private BigDecimal mlPorServicio;
+    private BigDecimal factorMerma;
+    private BigDecimal unidadesTeorica;
+    private BigDecimal unidadesReales;
+
+    // Campos venta dual (copa + botella VIP)
+    private Boolean esVentaDual;
+    private Integer copasPorBotella;
+    private BigDecimal precioCopa;
+    private BigDecimal precioBotellaVip;
+    private BigDecimal ingresoPotencialCopas;
+    private BigDecimal ingresoPotencialVip;
+    private BigDecimal margenBeneficioCopas;
+    private BigDecimal margenBeneficioVip;
+    private String mejorOpcionVenta;
 }

@@ -107,6 +107,25 @@ public class ProductoService {
         producto.setImagenUrl(formData.getImagenUrl());
         producto.setNotas(formData.getNotas());
 
+        // Campos ocio nocturno
+        producto.setCapacidadMl(formData.getCapacidadMl());
+        if (formData.getTipoVenta() != null) {
+            producto.setTipoVenta(Producto.TipoVenta.valueOf(formData.getTipoVenta()));
+        }
+        producto.setMlPorServicio(formData.getMlPorServicio());
+        producto.setFactorMerma(formData.getFactorMerma());
+
+        // Campos venta dual
+        producto.setEsVentaDual(formData.getEsVentaDual() != null ? formData.getEsVentaDual() : false);
+        producto.setCopasPorBotella(formData.getCopasPorBotella());
+        producto.setPrecioCopa(formData.getPrecioCopa());
+        producto.setPrecioBotellaVip(formData.getPrecioBotellaVip());
+
+        // Validar venta dual
+        if (Boolean.TRUE.equals(producto.getEsVentaDual())) {
+            producto.validarConfiguracionVentaDual();
+        }
+
         if (formData.getProveedorId() != null) {
             Proveedor proveedor = proveedorRepository.findById(formData.getProveedorId())
                     .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
@@ -147,6 +166,25 @@ public class ProductoService {
             dto.setProveedorId(producto.getProveedor().getId());
             dto.setProveedorNombre(producto.getProveedor().getNombre());
         }
+
+        // Campos modelo ocio nocturno
+        dto.setCapacidadMl(producto.getCapacidadMl());
+        dto.setTipoVenta(producto.getTipoVenta() != null ? producto.getTipoVenta().name() : null);
+        dto.setMlPorServicio(producto.getMlPorServicio());
+        dto.setFactorMerma(producto.getFactorMerma());
+        dto.setUnidadesTeorica(producto.getUnidadesTeorica());
+        dto.setUnidadesReales(producto.getUnidadesReales());
+
+        // Campos venta dual (copa + botella VIP)
+        dto.setEsVentaDual(producto.getEsVentaDual());
+        dto.setCopasPorBotella(producto.getCopasPorBotella());
+        dto.setPrecioCopa(producto.getPrecioCopa());
+        dto.setPrecioBotellaVip(producto.getPrecioBotellaVip());
+        dto.setIngresoPotencialCopas(producto.getIngresoPotencialCopas());
+        dto.setIngresoPotencialVip(producto.getIngresoPotencialVip());
+        dto.setMargenBeneficioCopas(producto.getMargenBeneficioCopas());
+        dto.setMargenBeneficioVip(producto.getMargenBeneficioVip());
+        dto.setMejorOpcionVenta(producto.getMejorOpcionVenta());
 
         return dto;
     }

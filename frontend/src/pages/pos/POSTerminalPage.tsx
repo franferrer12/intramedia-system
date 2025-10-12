@@ -8,11 +8,14 @@ import { productosApi } from '../../api/productos.api';
 import type { Producto } from '../../types';
 import { useAuthStore } from '../../store/authStore';
 import { useFunctionKeyShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { ModalTipoVenta } from '../../components/pos/ModalTipoVenta';
 
 interface ItemCarrito {
   producto: Producto;
   cantidad: number;
   subtotal: number;
+  tipoVenta?: 'COPA' | 'VIP'; // Para productos con venta dual
+  precioUnitario: number; // Precio usado en esta venta
 }
 
 export default function POSTerminalPage() {
@@ -21,6 +24,8 @@ export default function POSTerminalPage() {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string>('TODAS');
   const [busqueda, setBusqueda] = useState('');
   const [mostrarBusqueda, setMostrarBusqueda] = useState(false);
+  const [modalTipoVentaAbierto, setModalTipoVentaAbierto] = useState(false);
+  const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
   const queryClient = useQueryClient();
 
   // Obtener sesiones abiertas
@@ -90,45 +95,88 @@ export default function POSTerminalPage() {
 
   // Agregar producto
   const handleAgregarProducto = (producto: Producto) => {
+    // Si tiene venta dual, mostrar modal para elegir tipo
+    if (producto.esVentaDual) {
+      setProductoSeleccionado(producto);
+      setModalTipoVentaAbierto(true);
+      return;
+    }
+
+    // Producto normal
+    agregarAlCarrito(producto, producto.precioVenta, undefined);
+  };
+
+  // Agregar al carrito con precio y tipo específico
+  const agregarAlCarrito = (producto: Producto, precio: number, tipoVenta?: 'COPA' | 'VIP') => {
     setCarrito(prev => {
-      const existe = prev.find(item => item.producto.id === producto.id);
+      // Buscar si existe el mismo producto con el mismo tipo de venta
+      const existe = prev.find(
+        item => item.producto.id === producto.id && item.tipoVenta === tipoVenta
+      );
+
       if (existe) {
         return prev.map(item =>
-          item.producto.id === producto.id
-            ? { ...item, cantidad: item.cantidad + 1, subtotal: (item.cantidad + 1) * producto.precioVenta }
+          item.producto.id === producto.id && item.tipoVenta === tipoVenta
+            ? {
+                ...item,
+                cantidad: item.cantidad + 1,
+                subtotal: (item.cantidad + 1) * item.precioUnitario
+              }
             : item
         );
       }
-      return [...prev, { producto, cantidad: 1, subtotal: producto.precioVenta }];
+
+      return [...prev, {
+        producto,
+        cantidad: 1,
+        subtotal: precio,
+        tipoVenta,
+        precioUnitario: precio
+      }];
     });
-    toast.success(`➕ ${producto.nombre}`, { duration: 1000 });
+
+    const tipoTexto = tipoVenta ? ` (${tipoVenta})` : '';
+    toast.success(`➕ ${producto.nombre}${tipoTexto}`, { duration: 1000 });
+  };
+
+  // Manejar selección del tipo de venta
+  const handleSeleccionTipoVenta = (tipo: 'COPA' | 'VIP') => {
+    if (!productoSeleccionado) return;
+
+    const precio = tipo === 'COPA'
+      ? productoSeleccionado.precioCopa || productoSeleccionado.precioVenta
+      : productoSeleccionado.precioBotellaVip || productoSeleccionado.precioVenta;
+
+    agregarAlCarrito(productoSeleccionado, precio, tipo);
+    setModalTipoVentaAbierto(false);
+    setProductoSeleccionado(null);
   };
 
   // Incrementar cantidad
-  const handleIncrementarCantidad = (productoId: number) => {
+  const handleIncrementarCantidad = (productoId: number, tipoVenta?: 'COPA' | 'VIP') => {
     setCarrito(prev =>
       prev.map(item =>
-        item.producto.id === productoId
-          ? { ...item, cantidad: item.cantidad + 1, subtotal: (item.cantidad + 1) * item.producto.precioVenta }
+        item.producto.id === productoId && item.tipoVenta === tipoVenta
+          ? { ...item, cantidad: item.cantidad + 1, subtotal: (item.cantidad + 1) * item.precioUnitario }
           : item
       )
     );
   };
 
   // Decrementar cantidad
-  const handleDecrementarCantidad = (productoId: number) => {
+  const handleDecrementarCantidad = (productoId: number, tipoVenta?: 'COPA' | 'VIP') => {
     setCarrito(prev =>
       prev.map(item =>
-        item.producto.id === productoId && item.cantidad > 1
-          ? { ...item, cantidad: item.cantidad - 1, subtotal: (item.cantidad - 1) * item.producto.precioVenta }
+        item.producto.id === productoId && item.cantidad > 1 && item.tipoVenta === tipoVenta
+          ? { ...item, cantidad: item.cantidad - 1, subtotal: (item.cantidad - 1) * item.precioUnitario }
           : item
       )
     );
   };
 
   // Eliminar item del carrito
-  const handleEliminarItem = (productoId: number) => {
-    setCarrito(prev => prev.filter(item => item.producto.id !== productoId));
+  const handleEliminarItem = (productoId: number, tipoVenta?: 'COPA' | 'VIP') => {
+    setCarrito(prev => prev.filter(item => !(item.producto.id === productoId && item.tipoVenta === tipoVenta)));
     toast.info('Producto eliminado del carrito', { duration: 1000 });
   };
 
@@ -148,7 +196,7 @@ export default function POSTerminalPage() {
     const detalles: DetalleVentaRequest[] = carrito.map(item => ({
       productoId: item.producto.id,
       cantidad: item.cantidad,
-      precioUnitario: item.producto.precioVenta,
+      precioUnitario: item.precioUnitario, // Usa el precio específico del tipo de venta
       descuento: 0,
     }));
 
@@ -331,20 +379,27 @@ export default function POSTerminalPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {carrito.map(item => (
+                {carrito.map((item, index) => (
                   <div
-                    key={item.producto.id}
+                    key={`${item.producto.id}-${item.tipoVenta || 'normal'}-${index}`}
                     className="bg-gray-700 rounded-lg p-3"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <h4 className="text-white font-semibold text-lg">{item.producto.nombre}</h4>
+                        {item.tipoVenta && (
+                          <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold mr-2 ${
+                            item.tipoVenta === 'COPA' ? 'bg-blue-500 text-white' : 'bg-purple-500 text-white'
+                          }`}>
+                            {item.tipoVenta}
+                          </span>
+                        )}
                         <p className="text-gray-400 text-sm">
-                          {formatCurrency(item.producto.precioVenta)} /ud
+                          {formatCurrency(item.precioUnitario)} /ud
                         </p>
                       </div>
                       <button
-                        onClick={() => handleEliminarItem(item.producto.id)}
+                        onClick={() => handleEliminarItem(item.producto.id, item.tipoVenta)}
                         className="text-red-400 hover:text-red-300 p-1"
                         title="Eliminar"
                       >
@@ -355,7 +410,7 @@ export default function POSTerminalPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
                         <button
-                          onClick={() => handleDecrementarCantidad(item.producto.id)}
+                          onClick={() => handleDecrementarCantidad(item.producto.id, item.tipoVenta)}
                           disabled={item.cantidad <= 1}
                           className="w-8 h-8 flex items-center justify-center bg-gray-600 hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed rounded text-white font-bold transition-colors"
                         >
@@ -365,7 +420,7 @@ export default function POSTerminalPage() {
                           {item.cantidad}
                         </span>
                         <button
-                          onClick={() => handleIncrementarCantidad(item.producto.id)}
+                          onClick={() => handleIncrementarCantidad(item.producto.id, item.tipoVenta)}
                           className="w-8 h-8 flex items-center justify-center bg-blue-600 hover:bg-blue-500 rounded text-white font-bold transition-colors"
                         >
                           <Plus className="h-4 w-4" />
@@ -423,6 +478,19 @@ export default function POSTerminalPage() {
           )}
         </div>
       </div>
+
+      {/* Modal para seleccionar tipo de venta */}
+      {productoSeleccionado && (
+        <ModalTipoVenta
+          isOpen={modalTipoVentaAbierto}
+          onClose={() => {
+            setModalTipoVentaAbierto(false);
+            setProductoSeleccionado(null);
+          }}
+          producto={productoSeleccionado}
+          onSeleccionTipo={handleSeleccionTipoVenta}
+        />
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { X, Calculator, TrendingUp, Beer, Droplet } from 'lucide-react';
+import { X, Calculator, TrendingUp, Beer, Droplet, Wine } from 'lucide-react';
 import { productosApi } from '../../api/productos.api';
 import { proveedoresApi } from '../../api/proveedores.api';
 import { Producto, ProductoFormData, TipoVenta } from '../../types';
@@ -58,11 +58,17 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
     tipoVenta: 'COPA',
     mlPorServicio: 90,
     factorMerma: 10,
+    // Campos venta dual
+    esVentaDual: false,
+    copasPorBotella: undefined,
+    precioCopa: undefined,
+    precioBotellaVip: undefined,
   });
 
   const [metricas, setMetricas] = useState<any>(null);
   const [calculando, setCalculando] = useState(false);
   const [mostrarOcioNocturno, setMostrarOcioNocturno] = useState(false);
+  const [mostrarVentaDual, setMostrarVentaDual] = useState(false);
   const [modoNuevaCategoria, setModoNuevaCategoria] = useState(false);
   const [nuevaCategoria, setNuevaCategoria] = useState('');
 
@@ -159,9 +165,14 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
         tipoVenta: producto.tipoVenta || 'COPA',
         mlPorServicio: producto.mlPorServicio || 90,
         factorMerma: producto.factorMerma || 10,
+        esVentaDual: producto.esVentaDual || false,
+        copasPorBotella: producto.copasPorBotella,
+        precioCopa: producto.precioCopa,
+        precioBotellaVip: producto.precioBotellaVip,
       });
       // Si el producto tiene tipoVenta definido, mostrar ocio nocturno
       setMostrarOcioNocturno(!!producto.tipoVenta);
+      setMostrarVentaDual(!!producto.esVentaDual);
     } else {
       setFormData({
         codigo: '',
@@ -184,8 +195,13 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
         tipoVenta: 'COPA',
         mlPorServicio: 90,
         factorMerma: 10,
+        esVentaDual: false,
+        copasPorBotella: undefined,
+        precioCopa: undefined,
+        precioBotellaVip: undefined,
       });
       setMostrarOcioNocturno(false);
+      setMostrarVentaDual(false);
     }
     setMetricas(null);
   }, [producto, isOpen]);
@@ -238,6 +254,26 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
     if (formData.precioVenta <= 0) {
       notify.error('El precio de venta debe ser mayor a 0');
       return;
+    }
+
+    // Validaciones venta dual
+    if (formData.esVentaDual) {
+      if (!formData.copasPorBotella || formData.copasPorBotella <= 0) {
+        notify.error('Copas por botella es obligatorio para venta dual');
+        return;
+      }
+      if (!formData.precioCopa || formData.precioCopa <= 0) {
+        notify.error('Precio copa es obligatorio para venta dual');
+        return;
+      }
+      if (!formData.precioBotellaVip || formData.precioBotellaVip <= 0) {
+        notify.error('Precio botella VIP es obligatorio para venta dual');
+        return;
+      }
+      if (!formData.capacidadMl || formData.capacidadMl <= 0) {
+        notify.error('Capacidad ML es obligatoria para venta dual');
+        return;
+      }
     }
 
     // Limpiar campos opcionales vacíos
@@ -556,6 +592,113 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
                   </div>
                 )}
 
+                {/* === SECCIÓN VENTA DUAL (COPA + BOTELLA VIP) === */}
+                {mostrarVentaDual && (
+                  <div className="border-t pt-4 mt-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Wine className="w-5 h-5 text-amber-600" />
+                      <h4 className="font-semibold text-gray-900">Venta Dual (Copa + Botella VIP)</h4>
+                    </div>
+
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                      <p className="text-sm text-amber-800">
+                        Permite vender el mismo producto de dos formas diferentes:
+                        <br />
+                        <strong>Copa:</strong> Servicio individual en barra (precio por copa)
+                        <br />
+                        <strong>Botella VIP:</strong> Botella completa en zona reservados (precio premium)
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Copas por Botella <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={formData.copasPorBotella || ''}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              copasPorBotella: e.target.value ? parseInt(e.target.value) : undefined,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          placeholder="Ej: 7"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Cantidad de copas que salen por botella</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Precio Copa (€) <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={formData.precioCopa || ''}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              precioCopa: e.target.value ? parseFloat(e.target.value) : undefined,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          placeholder="Ej: 8.00"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Precio por servicio en barra</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Precio Botella VIP (€) <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={formData.precioBotellaVip || ''}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              precioBotellaVip: e.target.value ? parseFloat(e.target.value) : undefined,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          placeholder="Ej: 65.00"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Precio botella completa en VIP</p>
+                      </div>
+                    </div>
+
+                    {/* Comparación visual si hay datos */}
+                    {formData.copasPorBotella && formData.precioCopa && formData.precioBotellaVip && (
+                      <div className="mt-4 grid grid-cols-2 gap-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <div className="text-xs text-blue-600 font-medium mb-1">VENTA EN COPAS</div>
+                          <div className="text-2xl font-bold text-blue-700">
+                            {(formData.copasPorBotella * formData.precioCopa).toFixed(2)}€
+                          </div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {formData.copasPorBotella} copas × {formData.precioCopa.toFixed(2)}€
+                          </div>
+                        </div>
+
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                          <div className="text-xs text-purple-600 font-medium mb-1">VENTA VIP</div>
+                          <div className="text-2xl font-bold text-purple-700">
+                            {formData.precioBotellaVip.toFixed(2)}€
+                          </div>
+                          <div className="text-xs text-gray-600 mt-1">Botella completa</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Precios */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -649,7 +792,7 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
                 </div>
 
                 {/* Checkboxes */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="flex items-center">
                     <input
                       type="checkbox"
@@ -687,6 +830,23 @@ export const ProductoModal: FC<ProductoModalProps> = ({ isOpen, onClose, product
                     <label htmlFor="ocioNocturno" className="ml-2 block text-sm text-gray-700 flex items-center gap-1">
                       <Beer className="w-4 h-4 text-purple-600" />
                       Venta por Copa/Chupito
+                    </label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="ventaDual"
+                      checked={mostrarVentaDual}
+                      onChange={(e) => {
+                        setMostrarVentaDual(e.target.checked);
+                        setFormData({ ...formData, esVentaDual: e.target.checked });
+                      }}
+                      className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="ventaDual" className="ml-2 block text-sm text-gray-700 flex items-center gap-1">
+                      <Wine className="w-4 h-4 text-amber-600" />
+                      Venta Dual (Copa+VIP)
                     </label>
                   </div>
                 </div>
