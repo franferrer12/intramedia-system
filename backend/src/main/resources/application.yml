@@ -1,4 +1,5 @@
 # Club Management System - Backend Configuration
+# Force rebuild: 2025-10-12
 spring:
   application:
     name: club-management
