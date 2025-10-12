@@ -1,9 +1,11 @@
 package com.club.management.controller;
 
+import com.club.management.dto.AuthDispositivoDTO;
 import com.club.management.dto.request.LoginRequest;
 import com.club.management.dto.response.LoginResponse;
 import com.club.management.dto.response.UsuarioDTO;
 import com.club.management.service.AuthenticationService;
+import com.club.management.service.DispositivoPOSService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -22,6 +24,9 @@ public class AuthenticationController {
 
     @Autowired
     private AuthenticationService authenticationService;
+
+    @Autowired
+    private DispositivoPOSService dispositivoPOSService;
 
     /**
      * POST /api/auth/login
@@ -64,5 +69,18 @@ public class AuthenticationController {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * POST /api/auth/device-login
+     * Autentica un dispositivo POS usando UUID y PIN
+     */
+    @PostMapping("/device-login")
+    @Operation(summary = "Device Login", description = "Autentica un dispositivo POS y retorna un token JWT")
+    public ResponseEntity<AuthDispositivoDTO> deviceLogin(
+            @RequestParam String uuid,
+            @RequestParam String pin) {
+        AuthDispositivoDTO auth = dispositivoPOSService.autenticarConPIN(uuid, pin);
+        return ResponseEntity.ok(auth);
     }
 }
