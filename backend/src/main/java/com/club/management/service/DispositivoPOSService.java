@@ -200,6 +200,168 @@ public class DispositivoPOSService {
     // ============================================
 
     /**
+     * NUEVO: Genera un token de emparejamiento temporal (expira en 1 hora).
+     * El admin puede compartir este token via QR, enlace directo o código manual.
+     * El dispositivo usa este token para vincularse sin necesidad de UUID/PIN.
+     */
+    @Transactional
+    public com.club.management.dto.response.PairingTokenDTO generarTokenPairing(Long dispositivoId) {
+        DispositivoPOS dispositivo = dispositivoPOSRepository.findById(dispositivoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Dispositivo no encontrado"));
+
+        // Generar código corto aleatorio (6 dígitos)
+        String pairingCode = generarCodigoPairing();
+
+        // Generar token JWT temporal (expira en 1 hora)
+        LocalDateTime expiresAt = LocalDateTime.now().plusHours(1);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("deviceId", dispositivo.getId());
+        claims.put("deviceUUID", dispositivo.getUuid());
+        claims.put("exp", expiresAt.toString());
+        String token = jwtTokenProvider.generateTokenWithClaims(claims, 3600000); // 1 hora en ms
+
+        // Guardar en DB
+        dispositivo.setPairingToken(token);
+        dispositivo.setPairingTokenExpiresAt(expiresAt);
+        dispositivo.setPairingCode(pairingCode);
+        dispositivoPOSRepository.save(dispositivo);
+
+        // URL base del frontend (debería venir de configuración)
+        String frontendUrl = "https://club-manegament-production.up.railway.app";
+        String directLink = frontendUrl + "/pos-terminal/pair?token=" + token;
+
+        log.info("🔗 Token de pairing generado para dispositivo: {} (código: {}, expira: {})",
+                dispositivo.getNombre(), pairingCode, expiresAt);
+
+        return com.club.management.dto.response.PairingTokenDTO.builder()
+                .token(token)
+                .pairingCode(pairingCode)
+                .expiresAt(expiresAt)
+                .qrCodeData(directLink) // El QR contendrá el enlace completo
+                .directLink(directLink)
+                .validityMinutes(60)
+                .build();
+    }
+
+    /**
+     * NUEVO: Vincula un dispositivo usando el token de pairing generado.
+     * Este es un endpoint público (sin autenticación) que usa GET con query param.
+     */
+    @Transactional
+    public com.club.management.dto.response.DeviceAuthDTO vincularPorToken(String token) {
+        // Buscar dispositivo por token
+        DispositivoPOS dispositivo = dispositivoPOSRepository.findByPairingToken(token)
+                .orElseThrow(() -> new UnauthorizedException("Token de pairing inválido o expirado"));
+
+        // Verificar expiración
+        if (dispositivo.getPairingTokenExpiresAt() == null ||
+            LocalDateTime.now().isAfter(dispositivo.getPairingTokenExpiresAt())) {
+            throw new UnauthorizedException("Token de pairing expirado");
+        }
+
+        // Verificar que esté activo
+        if (!dispositivo.getActivo()) {
+            throw new UnauthorizedException("Dispositivo desactivado");
+        }
+
+        // Generar token de dispositivo de larga duración (30 días)
+        String deviceToken = jwtTokenProvider.generateTokenFromUsername("device:" + dispositivo.getUuid());
+
+        // Actualizar última conexión
+        dispositivo.setUltimaConexion(LocalDateTime.now());
+
+        // Invalidar pairing token (solo se puede usar una vez)
+        dispositivo.setPairingToken(null);
+        dispositivo.setPairingTokenExpiresAt(null);
+        dispositivo.setPairingCode(null);
+        dispositivoPOSRepository.save(dispositivo);
+
+        // Registrar log
+        registrarLogInterno(dispositivo, DispositivoPOSLog.TipoEvento.LOGIN,
+                "Vinculación exitosa via pairing token", null);
+
+        log.info("✅ Dispositivo vinculado via pairing token: {} (UUID: {})",
+                dispositivo.getNombre(), dispositivo.getUuid());
+
+        return buildDeviceAuthDTO(dispositivo, deviceToken);
+    }
+
+    /**
+     * NUEVO: Vincula un dispositivo usando el código corto de pairing (6 dígitos).
+     */
+    @Transactional
+    public com.club.management.dto.response.DeviceAuthDTO vincularPorCodigo(String pairingCode) {
+        // Buscar dispositivo por código
+        DispositivoPOS dispositivo = dispositivoPOSRepository.findByPairingCode(pairingCode)
+                .orElseThrow(() -> new UnauthorizedException("Código de pairing inválido o expirado"));
+
+        // Verificar expiración
+        if (dispositivo.getPairingTokenExpiresAt() == null ||
+            LocalDateTime.now().isAfter(dispositivo.getPairingTokenExpiresAt())) {
+            throw new UnauthorizedException("Código de pairing expirado");
+        }
+
+        // Verificar que esté activo
+        if (!dispositivo.getActivo()) {
+            throw new UnauthorizedException("Dispositivo desactivado");
+        }
+
+        // Generar token de dispositivo de larga duración (30 días)
+        String deviceToken = jwtTokenProvider.generateTokenFromUsername("device:" + dispositivo.getUuid());
+
+        // Actualizar última conexión
+        dispositivo.setUltimaConexion(LocalDateTime.now());
+
+        // Invalidar pairing code (solo se puede usar una vez)
+        dispositivo.setPairingToken(null);
+        dispositivo.setPairingTokenExpiresAt(null);
+        dispositivo.setPairingCode(null);
+        dispositivoPOSRepository.save(dispositivo);
+
+        // Registrar log
+        registrarLogInterno(dispositivo, DispositivoPOSLog.TipoEvento.LOGIN,
+                "Vinculación exitosa via código de pairing: " + pairingCode, null);
+
+        log.info("✅ Dispositivo vinculado via código: {} (UUID: {})",
+                dispositivo.getNombre(), dispositivo.getUuid());
+
+        return buildDeviceAuthDTO(dispositivo, deviceToken);
+    }
+
+    private com.club.management.dto.response.DeviceAuthDTO buildDeviceAuthDTO(DispositivoPOS dispositivo, String deviceToken) {
+        return com.club.management.dto.response.DeviceAuthDTO.builder()
+                .success(true)
+                .deviceUUID(dispositivo.getUuid())
+                .deviceToken(deviceToken)
+                .device(com.club.management.dto.response.DeviceAuthDTO.DeviceInfoDTO.builder()
+                        .id(dispositivo.getId())
+                        .uuid(dispositivo.getUuid())
+                        .nombre(dispositivo.getNombre())
+                        .tipo(dispositivo.getTipo() != null ? dispositivo.getTipo().name() : null)
+                        .ubicacion(dispositivo.getUbicacion())
+                        .asignacionPermanente(dispositivo.getAsignacionPermanente())
+                        .modoTabletCompartida(dispositivo.getModoTabletCompartida())
+                        .config(com.club.management.dto.response.DeviceAuthDTO.DeviceConfigDTO.builder()
+                                .categoriasPredeterminadas(dispositivo.getCategoriasPredeterminadas())
+                                .tieneLectorBarras(dispositivo.getTieneLectorBarras())
+                                .tieneCajonDinero(dispositivo.getTieneCajonDinero())
+                                .tienePantallaCliente(dispositivo.getTienePantallaCliente())
+                                .permisos(dispositivo.getPermisos())
+                                .build())
+                        .build())
+                .build();
+    }
+
+    private String generarCodigoPairing() {
+        // Generar código de 6 dígitos con formato: 123-456
+        Random random = new Random();
+        int parte1 = 100 + random.nextInt(900); // 100-999
+        int parte2 = 100 + random.nextInt(900); // 100-999
+        return String.format("%03d-%03d", parte1, parte2);
+    }
+
+    /**
+     * ANTIGUO: Mantener para backward compatibility.
      * Genera un token de emparejamiento para simplificar la vinculación inicial del dispositivo.
      * El token puede usarse para:
      * - Generar un código QR que el dispositivo escanea
@@ -207,6 +369,7 @@ public class DispositivoPOSService {
      * El token contiene: UUID del dispositivo y PIN cifrado
      */
     @Transactional
+    @Deprecated
     public PairingTokenDTO generarTokenEmparejamiento(Long dispositivoId) {
         DispositivoPOS dispositivo = dispositivoPOSRepository.findById(dispositivoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Dispositivo no encontrado"));

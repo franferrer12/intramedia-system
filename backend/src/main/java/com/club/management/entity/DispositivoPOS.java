@@ -105,6 +105,16 @@ public class DispositivoPOS {
     @Column(name = "user_agent", columnDefinition = "TEXT")
     private String userAgent;
 
+    // Pairing (vinculación)
+    @Column(name = "pairing_token", length = 500)
+    private String pairingToken; // JWT temporal para vincular (expira en 1h)
+
+    @Column(name = "pairing_token_expires_at")
+    private LocalDateTime pairingTokenExpiresAt;
+
+    @Column(name = "pairing_code", length = 10)
+    private String pairingCode; // Código corto de 6-10 caracteres
+
     // Auditoría
     @Column(name = "created_at", updatable = false)
     @Builder.Default

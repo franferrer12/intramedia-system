@@ -64,51 +64,39 @@ public class DispositivoPOSController {
     }
 
     // ============================================
-    // AUTENTICACIÓN Y EMPAREJAMIENTO DE DISPOSITIVOS
+    // NUEVO SISTEMA DE VINCULACIÓN (PAIRING)
     // ============================================
 
     /**
-     * Genera un token de emparejamiento para vincular un dispositivo de forma sencilla.
-     * El token puede usarse para generar un QR o un enlace que el dispositivo escanea/abre.
+     * Genera un token de emparejamiento temporal (1 hora de validez).
+     * El admin genera este token desde el backoffice para vincular un dispositivo.
+     * Retorna: token JWT, código corto, QR data, enlace directo.
      */
     @PostMapping("/{id}/generar-token-pairing")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE')")
-    public ResponseEntity<PairingTokenDTO> generarTokenEmparejamiento(@PathVariable Long id) {
-        return ResponseEntity.ok(dispositivoPOSService.generarTokenEmparejamiento(id));
+    public ResponseEntity<com.club.management.dto.response.PairingTokenDTO> generarTokenPairing(@PathVariable Long id) {
+        return ResponseEntity.ok(dispositivoPOSService.generarTokenPairing(id));
     }
 
     /**
-     * Autentica un dispositivo usando un token de emparejamiento.
-     * Permite al dispositivo conectarse sin ingresar manualmente UUID y PIN.
+     * Vincula un dispositivo usando el token de pairing (GET con query param).
+     * Endpoint PÚBLICO - no requiere autenticación previa.
+     * Retorna: deviceToken de larga duración (30 días) y configuración del dispositivo.
      */
-    @PostMapping("/autenticar-con-token")
-    public ResponseEntity<AuthDispositivoDTO> autenticarConToken(
-            @RequestParam String pairingToken) {
-        AuthDispositivoDTO auth = dispositivoPOSService.autenticarConToken(pairingToken);
-        return ResponseEntity.ok(auth);
+    @GetMapping("/vincular")
+    public ResponseEntity<com.club.management.dto.response.DeviceAuthDTO> vincularPorToken(
+            @RequestParam String token) {
+        return ResponseEntity.ok(dispositivoPOSService.vincularPorToken(token));
     }
 
     /**
-     * Autentica un dispositivo usando email o DNI de empleado.
-     * Permite al POS terminal iniciar sesión con identificador de empleado sin conocer UUID.
-     * Solo funciona con dispositivos en modo Quick Start (asignación temporal).
+     * Vincula un dispositivo usando un código corto (ej: "842-931").
+     * Endpoint PÚBLICO - alternativa al token para ingreso manual.
      */
-    @PostMapping("/autenticar-con-empleado")
-    public ResponseEntity<AuthDispositivoDTO> autenticarConIdentificadorEmpleado(
-            @RequestParam String identifier) {
-        AuthDispositivoDTO auth = dispositivoPOSService.autenticarConIdentificadorEmpleado(identifier);
-        return ResponseEntity.ok(auth);
-    }
-
-    /**
-     * Autentica un dispositivo usando UUID y PIN (método tradicional).
-     */
-    @PostMapping("/autenticar")
-    public ResponseEntity<AuthDispositivoDTO> autenticarConPIN(
-            @RequestParam String uuid,
-            @RequestParam String pin) {
-        AuthDispositivoDTO auth = dispositivoPOSService.autenticarConPIN(uuid, pin);
-        return ResponseEntity.ok(auth);
+    @GetMapping("/vincular-por-codigo")
+    public ResponseEntity<com.club.management.dto.response.DeviceAuthDTO> vincularPorCodigo(
+            @RequestParam String code) {
+        return ResponseEntity.ok(dispositivoPOSService.vincularPorCodigo(code));
     }
 
     // ============================================

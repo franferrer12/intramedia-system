@@ -48,4 +48,10 @@ public interface DispositivoPOSRepository extends JpaRepository<DispositivoPOS, 
 
     // Buscar dispositivos disponibles para Quick Start (activos, sin asignación permanente, sin empleado asignado)
     List<DispositivoPOS> findByActivoTrueAndAsignacionPermanenteFalseAndEmpleadoAsignadoNull();
+
+    // Buscar dispositivo por pairing token
+    Optional<DispositivoPOS> findByPairingToken(String pairingToken);
+
+    // Buscar dispositivo por pairing code
+    Optional<DispositivoPOS> findByPairingCode(String pairingCode);
 }
