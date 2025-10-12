@@ -187,7 +187,7 @@ public class DispositivoPOSService {
         registrarLogInterno(dispositivo, DispositivoPOSLog.TipoEvento.LOGIN, "Autenticación exitosa", null);
 
         // Generar token JWT
-        String token = jwtTokenProvider.generateToken(dispositivo.getUuid());
+        String token = jwtTokenProvider.generateTokenFromUsername(dispositivo.getUuid());
 
         log.info("✅ Dispositivo autenticado: {} ({})", dispositivo.getNombre(), dispositivo.getUuid());
 
@@ -219,7 +219,7 @@ public class DispositivoPOSService {
 
         // Buscar sesión de caja activa
         Long sesionActiva = null;
-        var sesiones = sesionVentaRepository.findByActivaTrue();
+        var sesiones = sesionVentaRepository.findByEstadoOrderByFechaAperturaDesc(SesionVenta.EstadoSesion.ABIERTA);
         if (!sesiones.isEmpty()) {
             sesionActiva = sesiones.get(0).getId();
         }
@@ -424,21 +424,21 @@ public class DispositivoPOSService {
         ProductoDTO dto = new ProductoDTO();
         dto.setId(producto.getId());
         dto.setNombre(producto.getNombre());
-        dto.setPrecio(producto.getPrecio());
-        dto.setCategoria(producto.getCategoria() != null ? producto.getCategoria().getNombre() : null);
-        dto.setStock(producto.getStock());
+        dto.setPrecio(producto.getPrecioVenta());
+        dto.setCategoria(producto.getCategoria());
+        dto.setStock(producto.getStockActual());
         dto.setActivo(producto.getActivo());
         return dto;
     }
 
     private EmpleadoSimpleDTO mapEmpleadoSimpleToDTO(Empleado empleado) {
-        String iniciales = (empleado.getNombre().substring(0, 1) + empleado.getApellido().substring(0, 1)).toUpperCase();
+        String iniciales = (empleado.getNombre().substring(0, 1) + empleado.getApellidos().substring(0, 1)).toUpperCase();
         return EmpleadoSimpleDTO.builder()
                 .id(empleado.getId())
                 .nombre(empleado.getNombre())
-                .apellido(empleado.getApellido())
+                .apellido(empleado.getApellidos())
                 .iniciales(iniciales)
-                .puesto(empleado.getPuesto())
+                .puesto(empleado.getCargo())
                 .activo(empleado.getActivo())
                 .build();
     }
