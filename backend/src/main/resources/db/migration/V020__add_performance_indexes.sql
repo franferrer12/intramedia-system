@@ -129,13 +129,12 @@ ON jornadas_trabajo(empleado_id, fecha DESC);
 CREATE INDEX IF NOT EXISTS idx_productos_nombre
 ON productos(nombre);
 
--- Índice para búsqueda por código de barras
-CREATE INDEX IF NOT EXISTS idx_productos_codigo_barras
-ON productos(codigo_barras);
+-- NOTA: productos.codigo_barras no existe, se usa productos.codigo
+-- El índice idx_productos_codigo ya existe en V009
 
--- Índice para filtrar por categoría
-CREATE INDEX IF NOT EXISTS idx_productos_categoria
-ON productos(categoria);
+-- Índice para filtrar por categoría (ya existe en V009: idx_productos_categoria)
+-- CREATE INDEX IF NOT EXISTS idx_productos_categoria
+-- ON productos(categoria);
 
 -- Índice para join con inventario
 -- (No necesario - inventario ya tiene producto_id como FK)
