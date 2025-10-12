@@ -35,7 +35,6 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 @Order(2)
-@ConditionalOnProperty(name = "app.security.enabled", havingValue = "true", matchIfMissing = true)
 public class SecurityConfig {
 
     @Autowired
@@ -104,9 +103,9 @@ public class SecurityConfig {
                         // Endpoints públicos - MÁS ESPECÍFICOS PRIMERO
                         .requestMatchers("/api/auth/**").permitAll()  // Permitir TODO /api/auth/** SIN restricción de método
                         .requestMatchers("/api/pos-auth/**").permitAll()  // Autenticación pública de dispositivos POS
-                        .requestMatchers("/api/dispositivos-pos/autenticar").permitAll()  // Autenticación con PIN
-                        .requestMatchers("/api/dispositivos-pos/autenticar-con-token").permitAll()  // Autenticación con token de pairing
-                        .requestMatchers("/api/dispositivos-pos/autenticar-con-empleado").permitAll()  // Autenticación con empleado
+                        .requestMatchers(HttpMethod.POST, "/api/dispositivos-pos/autenticar").permitAll()  // Autenticación con PIN
+                        .requestMatchers(HttpMethod.POST, "/api/dispositivos-pos/autenticar-con-token").permitAll()  // Autenticación con token de pairing
+                        .requestMatchers(HttpMethod.POST, "/api/dispositivos-pos/autenticar-con-empleado").permitAll()  // Autenticación con empleado
                         .requestMatchers("/").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
