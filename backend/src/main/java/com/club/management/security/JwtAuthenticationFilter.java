@@ -39,8 +39,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         logger.info("JWT Filter: " + method + " " + path + " - Processing...");
 
+        // Only skip JWT for truly public endpoints
         if (path.startsWith("/public/") ||
-            path.startsWith("/api/auth/") ||
+            path.equals("/api/auth/login") ||
+            path.equals("/api/auth/register") ||
             path.equals("/actuator/health")) {
             logger.info("JWT Filter: Skipping public endpoint " + path);
             filterChain.doFilter(request, response);
