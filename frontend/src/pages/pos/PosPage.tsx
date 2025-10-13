@@ -8,7 +8,7 @@ import { SesionActiva } from '../../components/pos/SesionActiva';
 import { ProductoGrid } from '../../components/pos/ProductoGrid';
 import { TicketActual, ItemCarrito } from '../../components/pos/TicketActual';
 import { CerrarSesionModal } from '../../components/pos/CerrarSesionModal';
-import { sesionesVentaApi } from '../../api/sesiones-venta.api';
+import { sesionCajaApi } from '../../api/pos-sesiones-caja.api';
 import { ventaApi, VentaRequest, DetalleVentaRequest } from '../../api/pos-ventas.api';
 import type { Producto } from '../../types';
 import { useAuthStore } from '../../store/authStore';
@@ -22,8 +22,8 @@ export default function PosPage() {
 
   // Obtener sesiones abiertas
   const { data: sesionesAbiertas, isLoading } = useQuery({
-    queryKey: ['sesiones-abiertas'],
-    queryFn: sesionesVentaApi.listarSesionesAbiertas,
+    queryKey: ['sesiones-caja-abiertas'],
+    queryFn: sesionCajaApi.getAbiertas,
     refetchInterval: 10000, // Actualizar cada 10 segundos
   });
 
@@ -32,7 +32,7 @@ export default function PosPage() {
     mutationFn: (request: VentaRequest) => ventaApi.create(request),
     onSuccess: (data) => {
       toast.success(`Venta registrada: ${data.numeroTicket}`);
-      queryClient.invalidateQueries({ queryKey: ['sesiones-abiertas'] });
+      queryClient.invalidateQueries({ queryKey: ['sesiones-caja-abiertas'] });
       queryClient.invalidateQueries({ queryKey: ['consumos-sesion'] });
       queryClient.invalidateQueries({ queryKey: ['ventas'] });
       setCarrito([]); // Limpiar carrito
@@ -45,11 +45,11 @@ export default function PosPage() {
 
   // Mutación para cerrar sesión
   const cerrarSesionMutation = useMutation({
-    mutationFn: (request: { sesionId: number; notas?: string }) =>
-      sesionesVentaApi.cerrarSesion(request),
+    mutationFn: ({ sesionId, empleadoCierreId, montoReal, observaciones }: { sesionId: number; empleadoCierreId: number; montoReal: number; observaciones?: string }) =>
+      sesionCajaApi.cerrar(sesionId, { empleadoCierreId, montoReal, observaciones }),
     onSuccess: () => {
       toast.success('Sesión cerrada correctamente');
-      queryClient.invalidateQueries({ queryKey: ['sesiones-abiertas'] });
+      queryClient.invalidateQueries({ queryKey: ['sesiones-caja-abiertas'] });
       setModalCerrarAbierto(false);
       setCarrito([]);
     },

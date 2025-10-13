@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { X, ShoppingCart, Check, Search, ArrowLeft, Plus, Minus, Trash2 } from 'lucide-react';
-import { sesionesVentaApi } from '../../api/sesiones-venta.api';
+import { sesionCajaApi } from '../../api/pos-sesiones-caja.api';
 import { ventaApi, VentaRequest, DetalleVentaRequest } from '../../api/pos-ventas.api';
 import { productosApi } from '../../api/productos.api';
 import type { Producto } from '../../types';
@@ -30,8 +30,8 @@ export default function POSTerminalPage() {
 
   // Obtener sesiones abiertas
   const { data: sesionesAbiertas } = useQuery({
-    queryKey: ['sesiones-abiertas'],
-    queryFn: sesionesVentaApi.listarSesionesAbiertas,
+    queryKey: ['sesiones-caja-abiertas'],
+    queryFn: sesionCajaApi.getAbiertas,
     refetchInterval: 10000,
   });
 
@@ -49,7 +49,7 @@ export default function POSTerminalPage() {
       toast.success(`✅ VENTA ${data.numeroTicket}`, {
         duration: 2000,
       });
-      queryClient.invalidateQueries({ queryKey: ['sesiones-abiertas'] });
+      queryClient.invalidateQueries({ queryKey: ['sesiones-caja-abiertas'] });
       setCarrito([]);
     },
     onError: (error: any) => {
@@ -309,7 +309,7 @@ export default function POSTerminalPage() {
       <div className="bg-gray-800 border-b-4 border-blue-500 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-white font-bold text-2xl">{sesionActiva.nombre}</span>
+          <span className="text-white font-bold text-2xl">{sesionActiva.nombreCaja}</span>
         </div>
         <div className="flex items-center gap-6">
           <div className="text-right">
