@@ -22,7 +22,9 @@ public class DevicePairingController {
     /**
      * GET /api/auth/device/{id}/qr
      * Genera un código de emparejamiento temporal (1 hora de validez).
-     * Solo para ADMIN/GERENTE autenticados.
+     *
+     * REQUIERE AUTENTICACIÓN: Solo ADMIN/GERENTE con JWT token.
+     * Este endpoint NO es público - debe incluir Authorization header.
      */
     @GetMapping("/{id}/qr")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_GERENTE')")
@@ -33,7 +35,9 @@ public class DevicePairingController {
     /**
      * GET /api/auth/device/setup
      * Vincula un dispositivo usando un código de setup (pairing key).
-     * Endpoint PÚBLICO - no requiere autenticación previa.
+     *
+     * PÚBLICO - No requiere autenticación previa.
+     * El terminal POS usa este endpoint para vincularse automáticamente via QR.
      */
     @GetMapping("/setup")
     public ResponseEntity<com.club.management.dto.response.DeviceAuthDTO> setup(
@@ -43,8 +47,10 @@ public class DevicePairingController {
 
     /**
      * GET /api/auth/device/pair
-     * Vincula un dispositivo usando un PIN corto (ej: "842-931").
-     * Endpoint PÚBLICO - alternativa al código para ingreso manual.
+     * Vincula un dispositivo usando un código corto (ej: "842-931").
+     *
+     * PÚBLICO - No requiere autenticación previa.
+     * El terminal POS usa este endpoint para vincularse manualmente via código.
      */
     @GetMapping("/pair")
     public ResponseEntity<com.club.management.dto.response.DeviceAuthDTO> pair(
