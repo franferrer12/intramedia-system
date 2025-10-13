@@ -1,6 +1,7 @@
 import { FC, useState, useEffect } from 'react';
-import { Shield, Delete, LogIn } from 'lucide-react';
+import { Shield, Delete, LogIn, Link } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
+import { useNavigate } from 'react-router-dom';
 
 interface POSStandaloneLoginProps {
   deviceUuid: string | null;
@@ -17,6 +18,7 @@ export const POSStandaloneLogin: FC<POSStandaloneLoginProps> = ({
   error,
   onSetDeviceUuid,
 }) => {
+  const navigate = useNavigate();
   const [pin, setPin] = useState('');
   const [uuid, setUuid] = useState(deviceUuid || '');
   const [showUuidInput, setShowUuidInput] = useState(!deviceUuid);
@@ -199,13 +201,29 @@ export const POSStandaloneLogin: FC<POSStandaloneLoginProps> = ({
           </Button>
 
           {/* Footer */}
-          <div className="mt-6 text-center">
+          <div className="mt-6 space-y-3 text-center">
             <button
               onClick={() => setShowUuidInput(!showUuidInput)}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-gray-500 hover:text-gray-700 block w-full"
             >
               {showUuidInput ? 'Ocultar configuración' : '¿Cambiar dispositivo?'}
             </button>
+
+            {/* Vincular Dispositivo Button */}
+            <div className="pt-3 border-t border-gray-200">
+              <Button
+                onClick={() => navigate('/pos-terminal/pair')}
+                variant="outline"
+                className="w-full"
+                disabled={isLoading}
+              >
+                <Link className="h-4 w-4 mr-2" />
+                Vincular Nuevo Dispositivo
+              </Button>
+              <p className="text-xs text-gray-500 mt-2">
+                Primera vez o código de vinculación
+              </p>
+            </div>
           </div>
         </div>
 

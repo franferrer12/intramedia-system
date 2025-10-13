@@ -37,7 +37,19 @@ export const DevicePairingModal = ({
   useEffect(() => {
     if (!pairingData) return;
 
-    const expiresAt = new Date(pairingData.expiresAt).getTime();
+    // Truncar nanosegundos (Java devuelve 9 dígitos, ISO solo acepta 6)
+    // Formato backend: 2025-10-13T16:39:30.028705139
+    // Formato ISO válido: 2025-10-13T16:39:30.028Z
+    const truncatedTimestamp = pairingData.expiresAt.substring(0, 23) + 'Z';
+    const expiresAt = new Date(truncatedTimestamp).getTime();
+
+    // Validar que el parsing fue exitoso
+    if (isNaN(expiresAt)) {
+      console.error('Invalid date format:', pairingData.expiresAt);
+      setTimeLeft(0);
+      return;
+    }
+
     const interval = setInterval(() => {
       const now = Date.now();
       const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));

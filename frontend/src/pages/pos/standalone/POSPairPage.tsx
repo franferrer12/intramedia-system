@@ -1,8 +1,9 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { QrCode, Hash, CheckCircle, AlertCircle, Loader2, Link as LinkIcon } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { dispositivosPosApi } from '../../../api/dispositivos-pos.api';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 export const POSPairPage: FC = () => {
   const [searchParams] = useSearchParams();
@@ -12,6 +13,7 @@ export const POSPairPage: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
   // Auto-pairing si viene pairing key en la URL (parámetro 'p')
   useEffect(() => {
@@ -20,6 +22,55 @@ export const POSPairPage: FC = () => {
       autoPairWithToken(pairingKey);
     }
   }, [searchParams]);
+
+  // QR Scanner initialization and cleanup
+  useEffect(() => {
+    if (method === 'qr' && !scannerRef.current && !success) {
+      const onScanSuccess = (decodedText: string) => {
+        // Detener el scanner
+        scannerRef.current?.clear();
+        scannerRef.current = null;
+
+        // Extraer token de la URL escaneada
+        try {
+          const url = new URL(decodedText);
+          const token = url.searchParams.get('p');
+          if (token) {
+            autoPairWithToken(token);
+          } else {
+            setError('Código QR inválido: no contiene token de vinculación');
+          }
+        } catch {
+          setError('Código QR inválido: debe ser una URL de vinculación');
+        }
+      };
+
+      const onScanError = (error: string) => {
+        // Solo loguear, no mostrar errores de escaneo continuo
+        console.debug('QR scan error:', error);
+      };
+
+      scannerRef.current = new Html5QrcodeScanner(
+        'qr-reader',
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
+        },
+        false
+      );
+
+      scannerRef.current.render(onScanSuccess, onScanError);
+    }
+
+    // Cleanup cuando se desmonta o cambia de método
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(console.error);
+        scannerRef.current = null;
+      }
+    };
+  }, [method, success]);
 
   const autoPairWithToken = async (token: string) => {
     setIsLoading(true);
@@ -198,26 +249,28 @@ export const POSPairPage: FC = () => {
 
           {/* QR Method */}
           {method === 'qr' && (
-            <div className="text-center py-8">
-              <div className="flex items-center justify-center mb-6">
-                <QrCode className="h-32 w-32 text-gray-300" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
                 Escanear Código QR
               </h3>
-              <p className="text-gray-600 mb-6">
-                Usa la cámara de tu dispositivo para escanear el código QR mostrado en el backoffice
+              <p className="text-gray-600 mb-6 text-center text-sm">
+                Apunta la cámara al código QR mostrado en el backoffice
               </p>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+
+              {/* QR Scanner Container */}
+              <div id="qr-reader" className="mb-6"></div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                 <p className="text-sm text-blue-800">
-                  <strong>Nota:</strong> La funcionalidad de escaneo QR requiere acceso a la cámara.
-                  Si prefieres, puedes usar el código manual.
+                  <strong>Nota:</strong> Necesitas permitir el acceso a la cámara.
+                  Si tienes problemas, usa el código manual.
                 </p>
               </div>
+
               <Button
                 onClick={() => setMethod('code')}
                 variant="outline"
-                className="mt-6"
+                className="w-full"
               >
                 Usar Código Manual
               </Button>
