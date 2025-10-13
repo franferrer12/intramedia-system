@@ -87,7 +87,7 @@ export const POSPairPage: FC = () => {
 
       // Redirigir al login POS después de 2 segundos
       setTimeout(() => {
-        navigate('/pos-standalone');
+        navigate('/pos-terminal/standalone');
       }, 2000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Token inválido o expirado. Por favor solicita uno nuevo.');
@@ -115,7 +115,7 @@ export const POSPairPage: FC = () => {
 
       // Redirigir al login POS después de 2 segundos
       setTimeout(() => {
-        navigate('/pos-standalone');
+        navigate('/pos-terminal/standalone');
       }, 2000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Código inválido o expirado. Por favor verifica e intenta nuevamente.');
