@@ -7,12 +7,9 @@ WORKDIR /app
 # Copy backend code
 COPY backend/pom.xml .
 COPY backend/src ./src
-COPY backend/mvnw .
-COPY backend/mvnw.cmd .
-COPY backend/.mvn .mvn
 
-# Build application
-RUN chmod +x mvnw && ./mvnw clean package -DskipTests
+# Build application (using Maven directly, no wrapper needed)
+RUN mvn clean package -DskipTests
 
 # Stage 2: Runtime
 FROM eclipse-temurin:17-jre-alpine
