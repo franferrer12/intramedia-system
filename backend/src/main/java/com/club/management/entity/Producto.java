@@ -102,9 +102,6 @@ public class Producto {
     @Column(name = "precio_botella_vip", precision = 10, scale = 2)
     private BigDecimal precioBotellaVip;
 
-    @Column(name = "es_botella", nullable = false)
-    private Boolean esBotella = false;
-
     @Column(name = "es_venta_dual", nullable = false)
     private Boolean esVentaDual = false;
 
