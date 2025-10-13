@@ -23,4 +23,5 @@ COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 
 # Run application
-ENTRYPOINT ["java", "-Xmx512m", "-Xms256m", "-Dserver.port=${PORT:-8080}", "-jar", "app.jar"]
+# Use shell form to allow environment variable expansion
+CMD java -Xmx512m -Xms256m -Dserver.port=${PORT:-8080} -jar app.jar
