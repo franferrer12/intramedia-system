@@ -59,26 +59,4 @@ public class DeviceAuthController {
         AuthDispositivoDTO auth = dispositivoPOSService.autenticarConIdentificadorEmpleado(identifier);
         return ResponseEntity.ok(auth);
     }
-
-    /**
-     * GET /api/auth/device/setup?p={token}
-     * Vincula un dispositivo usando el token de pairing generado.
-     * Este es un endpoint público (sin autenticación) que usa GET con query param.
-     */
-    @GetMapping("/setup")
-    @Operation(summary = "Vincular dispositivo con token de pairing (QR)")
-    public ResponseEntity<com.club.management.dto.response.DeviceAuthDTO> vincularPorToken(@RequestParam String p) {
-        return ResponseEntity.ok(dispositivoPOSService.vincularPorToken(p));
-    }
-
-    /**
-     * GET /api/auth/device/pair?code={codigo}
-     * Vincula un dispositivo usando el código corto de pairing (6 dígitos).
-     * Este es un endpoint público (sin autenticación).
-     */
-    @GetMapping("/pair")
-    @Operation(summary = "Vincular dispositivo con código corto (manual)")
-    public ResponseEntity<com.club.management.dto.response.DeviceAuthDTO> vincularPorCodigo(@RequestParam String code) {
-        return ResponseEntity.ok(dispositivoPOSService.vincularPorCodigo(code));
-    }
 }
