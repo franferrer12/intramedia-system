@@ -1,41 +1,29 @@
-# Etapa 1: Build
-FROM node:18-alpine AS build
+# Multi-stage build for Club Management Backend
+# Stage 1: Build
+FROM maven:3.9-eclipse-temurin-17 AS build
+
 WORKDIR /app
 
-# Force rebuild - 2025-01-10
-# Copiar package.json
-COPY frontend/package*.json ./
-RUN npm install
+# Copy backend code
+COPY backend/pom.xml .
+COPY backend/src ./src
+COPY backend/mvnw .
+COPY backend/mvnw.cmd .
+COPY backend/.mvn .mvn
 
-# Copiar código fuente
-COPY frontend .
+# Build application
+RUN chmod +x mvnw && ./mvnw clean package -DskipTests
 
-# Build argument para API URL
-ARG VITE_API_URL
-ENV VITE_API_URL=$VITE_API_URL
+# Stage 2: Runtime
+FROM eclipse-temurin:17-jre-alpine
 
-# Build de producción
-RUN npm run build
+WORKDIR /app
 
-# Etapa 2: Runtime con Nginx
-FROM nginx:alpine
-WORKDIR /usr/share/nginx/html
+# Copy JAR from build stage
+COPY --from=build /app/target/*.jar app.jar
 
-# Remover contenido por defecto
-RUN rm -rf ./*
+# Expose port (Render will override with $PORT)
+EXPOSE 8080
 
-# Copiar build desde etapa anterior
-COPY --from=build /app/dist .
-
-# Copiar configuración de nginx
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copiar script de entrada
-COPY frontend/docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
-
-# Exponer puerto
-EXPOSE 80
-
-# Iniciar nginx con script de entrada
-CMD ["/docker-entrypoint.sh"]
+# Run application
+ENTRYPOINT ["java", "-Xmx512m", "-Xms256m", "-Dserver.port=${PORT:-8080}", "-jar", "app.jar"]
