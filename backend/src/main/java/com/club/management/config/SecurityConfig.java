@@ -111,9 +111,15 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+
         // Leer orígenes permitidos desde application.yml (separados por coma)
         List<String> origins = Arrays.asList(allowedOrigins.split(","));
-        configuration.setAllowedOrigins(origins);
+
+        // IMPORTANTE: Usar setAllowedOriginPatterns en lugar de setAllowedOrigins
+        // cuando se usa allowCredentials: true. Esto es más compatible con Spring Boot 3.x
+        // y evita que se aplique el wildcard "*" por defecto.
+        configuration.setAllowedOriginPatterns(origins);
+
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 
         // IMPORTANTE: No se puede usar "*" con credentials: true
