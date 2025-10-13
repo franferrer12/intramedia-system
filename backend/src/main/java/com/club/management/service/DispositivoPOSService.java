@@ -225,7 +225,7 @@ public class DispositivoPOSService {
         dispositivoPOSRepository.save(dispositivo);
 
         // URL base del frontend (debería venir de configuración)
-        String frontendUrl = "https://club-manegament-production.up.railway.app";
+        String frontendUrl = "https://club-management-frontend-b893.onrender.com";
         // El frontend leerá el parámetro 'p' desde la URL
         String directLink = frontendUrl + "/pos-terminal/pair?p=" + token;
 
