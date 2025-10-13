@@ -113,7 +113,19 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Leer orígenes permitidos desde application.yml (separados por coma)
-        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        String originsStr = allowedOrigins.trim();
+
+        // SEGURIDAD CRÍTICA: Rechazar wildcard "*" cuando allowCredentials está habilitado
+        // Esto es incompatible con el estándar CORS y causa errores en los navegadores
+        if ("*".equals(originsStr) || originsStr.isEmpty()) {
+            // Si viene wildcard o vacío, usar origins seguros por defecto
+            System.err.println("⚠️  ADVERTENCIA: CORS_ALLOWED_ORIGINS está configurado como wildcard '*' o vacío.");
+            System.err.println("⚠️  Usando origins explícitos de producción como fallback seguro.");
+            originsStr = "https://club-management-frontend-b893.onrender.com,https://club-management-frontend.onrender.com";
+        }
+
+        List<String> origins = Arrays.asList(originsStr.split(","));
+        System.out.println("🔒 CORS Configurado con orígenes: " + origins);
 
         // IMPORTANTE: Usar setAllowedOriginPatterns en lugar de setAllowedOrigins
         // cuando se usa allowCredentials: true. Esto es más compatible con Spring Boot 3.x
