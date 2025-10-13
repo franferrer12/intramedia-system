@@ -78,17 +78,18 @@ export const POSPairPage: FC = () => {
     try {
       const response = await dispositivosPosApi.vincularPorToken(token);
 
-      // Guardar deviceToken y deviceUUID en localStorage
-      localStorage.setItem('deviceToken', response.deviceToken);
-      localStorage.setItem('deviceUUID', response.deviceUUID);
-      localStorage.setItem('deviceInfo', JSON.stringify(response.device));
+      // Guardar datos del dispositivo con las claves correctas que useDeviceAuth espera
+      localStorage.setItem('device_uuid', response.deviceUUID);
+      localStorage.setItem('device_token', response.deviceToken);
+      localStorage.setItem('device_data', JSON.stringify(response.device));
+      localStorage.setItem('device_config', JSON.stringify(response.device.config));
 
       setSuccess(true);
 
-      // Redirigir al login POS después de 2 segundos
+      // Redirigir al terminal POS después de 1 segundo
       setTimeout(() => {
         navigate('/pos-terminal/standalone');
-      }, 2000);
+      }, 1000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Token inválido o expirado. Por favor solicita uno nuevo.');
       setIsLoading(false);
@@ -106,17 +107,18 @@ export const POSPairPage: FC = () => {
     try {
       const response = await dispositivosPosApi.vincularPorCodigo(pairingCode);
 
-      // Guardar deviceToken y deviceUUID en localStorage
-      localStorage.setItem('deviceToken', response.deviceToken);
-      localStorage.setItem('deviceUUID', response.deviceUUID);
-      localStorage.setItem('deviceInfo', JSON.stringify(response.device));
+      // Guardar datos del dispositivo con las claves correctas que useDeviceAuth espera
+      localStorage.setItem('device_uuid', response.deviceUUID);
+      localStorage.setItem('device_token', response.deviceToken);
+      localStorage.setItem('device_data', JSON.stringify(response.device));
+      localStorage.setItem('device_config', JSON.stringify(response.device.config));
 
       setSuccess(true);
 
-      // Redirigir al login POS después de 2 segundos
+      // Redirigir al terminal POS después de 1 segundo
       setTimeout(() => {
         navigate('/pos-terminal/standalone');
-      }, 2000);
+      }, 1000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Código inválido o expirado. Por favor verifica e intenta nuevamente.');
     } finally {
