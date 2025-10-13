@@ -8,8 +8,8 @@ services:
     env: java
     region: oregon # Puedes cambiar a: frankfurt (Europa), singapore (Asia)
     plan: free # Cambiar a 'starter' ($7/mes) cuando quieras eliminar el sleep
-    buildCommand: cd backend && ./mvnw clean package -DskipTests
-    startCommand: java -Dserver.port=$PORT -jar backend/target/*.jar
+    buildCommand: ./build.sh
+    startCommand: ./start.sh
     healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
