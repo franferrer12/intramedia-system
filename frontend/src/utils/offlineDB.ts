@@ -132,22 +132,31 @@ export const addVentaPendiente = async (venta: VentaOfflineDB): Promise<number> 
  * Get all pending sales
  */
 export const getVentasPendientes = async (): Promise<VentaOfflineDB[]> => {
-  const db = await initDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORES.VENTAS_PENDIENTES], 'readonly');
-    const store = transaction.objectStore(STORES.VENTAS_PENDIENTES);
-    const index = store.index('sincronizada');
+  try {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([STORES.VENTAS_PENDIENTES], 'readonly');
+      const store = transaction.objectStore(STORES.VENTAS_PENDIENTES);
 
-    const request = index.getAll(IDBKeyRange.only(false));
+      // Usar getAll en lugar de index para evitar problemas con valores inválidos
+      const request = store.getAll();
 
-    request.onsuccess = () => {
-      resolve(request.result);
-    };
+      request.onsuccess = () => {
+        const ventas = request.result || [];
+        // Filtrar manualmente las ventas no sincronizadas
+        const pendientes = ventas.filter((v: VentaOfflineDB) => v.sincronizada === false);
+        resolve(pendientes);
+      };
 
-    request.onerror = () => {
-      reject(new Error('Error al obtener ventas pendientes'));
-    };
-  });
+      request.onerror = () => {
+        console.warn('Error al obtener ventas pendientes, retornando array vacío');
+        resolve([]);
+      };
+    });
+  } catch (error) {
+    console.warn('Error al acceder a IndexedDB, retornando array vacío:', error);
+    return [];
+  }
 };
 
 /**
@@ -301,22 +310,32 @@ export const getCachedConfiguracion = async (dispositivoId: number): Promise<Con
  * Get count of pending sales
  */
 export const getVentasPendientesCount = async (): Promise<number> => {
-  const db = await initDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORES.VENTAS_PENDIENTES], 'readonly');
-    const store = transaction.objectStore(STORES.VENTAS_PENDIENTES);
-    const index = store.index('sincronizada');
+  try {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([STORES.VENTAS_PENDIENTES], 'readonly');
+      const store = transaction.objectStore(STORES.VENTAS_PENDIENTES);
 
-    const request = index.count(IDBKeyRange.only(false));
+      // Usar getAll en lugar de index para evitar problemas con valores inválidos
+      const request = store.getAll();
 
-    request.onsuccess = () => {
-      resolve(request.result);
-    };
+      request.onsuccess = () => {
+        const ventas = request.result || [];
+        // Filtrar manualmente las ventas no sincronizadas
+        const pendientes = ventas.filter((v: VentaOfflineDB) => v.sincronizada === false);
+        resolve(pendientes.length);
+      };
 
-    request.onerror = () => {
-      reject(new Error('Error al contar ventas pendientes'));
-    };
-  });
+      request.onerror = () => {
+        // Si falla, retornar 0 en lugar de rechazar
+        console.warn('Error al contar ventas pendientes, retornando 0');
+        resolve(0);
+      };
+    });
+  } catch (error) {
+    console.warn('Error al acceder a IndexedDB, retornando 0:', error);
+    return 0;
+  }
 };
 
 /**

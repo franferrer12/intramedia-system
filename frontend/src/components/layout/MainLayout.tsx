@@ -97,8 +97,9 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
     {
       title: 'Ventas y Finanzas',
       items: [
+        { name: 'Panel Gestión POS', href: '/pos', icon: Monitor },
         { name: 'Terminal POS', href: '/pos-terminal', icon: ShoppingCart },
-        { name: 'Dashboard POS', href: '/pos-dashboard', icon: Monitor },
+        { name: 'Dashboard POS', href: '/pos-dashboard', icon: BarChart3 },
         { name: 'Dispositivos POS', href: '/dispositivos-pos', icon: Smartphone },
         { name: 'Sesiones de Caja', href: '/sesiones', icon: ClipboardList },
         { name: 'Dashboard Finanzas', href: '/finanzas/dashboard', icon: BarChart3 },
