@@ -22,7 +22,7 @@ services:
       - key: JWT_EXPIRATION
         value: "86400000" # 24 horas
       - key: CORS_ALLOWED_ORIGINS
-        value: https://club-management-frontend.onrender.com,https://club-management-frontend-tw9f.onrender.com,http://localhost:3000,http://localhost:5173
+        value: https://club-management-frontend.onrender.com,https://club-management-frontend-tw9f.onrender.com,https://club-management-frontend-b893.onrender.com,http://localhost:3000,http://localhost:5173
       - key: SPRING_DATASOURCE_HIKARI_AUTO_COMMIT
         value: "false" # Fix para "Cannot commit when autoCommit is enabled"
 
