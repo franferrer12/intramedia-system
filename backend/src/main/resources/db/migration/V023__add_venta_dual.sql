@@ -1,20 +1,26 @@
--- Migración V020: Sistema de Venta Dual (Copa + Botella VIP)
--- Añade campo para habilitar venta simultánea en copas y botellas VIP
+-- Migración V023: Sistema de Venta Dual (Copa + Botella VIP)
+-- Añade campos para habilitar venta simultánea en copas y botellas VIP
 
--- 1. Agregar campo es_venta_dual
+-- 1. Agregar columnas de precios necesarias (si no existen)
+ALTER TABLE productos
+    ADD COLUMN IF NOT EXISTS precio_copa DECIMAL(10, 2),
+    ADD COLUMN IF NOT EXISTS precio_botella_vip DECIMAL(10, 2),
+    ADD COLUMN IF NOT EXISTS copas_por_botella INTEGER;
+
+-- 2. Agregar campo es_venta_dual
 ALTER TABLE productos
     ADD COLUMN IF NOT EXISTS es_venta_dual BOOLEAN DEFAULT false NOT NULL;
 
--- 2. Crear índice para búsquedas de productos con venta dual
+-- 3. Crear índice para búsquedas de productos con venta dual
 CREATE INDEX IF NOT EXISTS idx_productos_venta_dual
     ON productos(es_venta_dual)
     WHERE es_venta_dual = true;
 
--- 3. Comentario para documentación
+-- 4. Comentario para documentación
 COMMENT ON COLUMN productos.es_venta_dual IS
 'Indica si el producto puede venderse tanto en copas (barra) como en botellas VIP (reservados). Requiere precio_copa y precio_botella_vip configurados.';
 
--- 4. Actualizar productos existentes que tengan ambos precios configurados
+-- 5. Actualizar productos existentes que tengan ambos precios configurados
 UPDATE productos
 SET es_venta_dual = true
 WHERE precio_copa IS NOT NULL
@@ -22,7 +28,7 @@ WHERE precio_copa IS NOT NULL
   AND copas_por_botella IS NOT NULL
   AND copas_por_botella > 0;
 
--- 5. Crear vista para análisis de valor de inventario dual
+-- 6. Crear vista para análisis de valor de inventario dual
 CREATE OR REPLACE VIEW valor_inventario_dual AS
 SELECT
     p.id,
@@ -85,11 +91,11 @@ WHERE p.es_venta_dual = true
   AND p.stock_actual > 0
 ORDER BY diferencia_beneficio DESC;
 
--- 6. Comentario en la vista
+-- 7. Comentario en la vista
 COMMENT ON VIEW valor_inventario_dual IS
 'Vista para análisis de valor de inventario con venta dual. Muestra el valor potencial vendiendo en copas vs botellas VIP, con recomendaciones automáticas.';
 
--- 7. Crear índices adicionales para optimizar queries de venta dual
+-- 8. Crear índices adicionales para optimizar queries de venta dual
 CREATE INDEX IF NOT EXISTS idx_productos_precio_copa
     ON productos(precio_copa)
     WHERE precio_copa IS NOT NULL;
@@ -98,10 +104,10 @@ CREATE INDEX IF NOT EXISTS idx_productos_precio_vip
     ON productos(precio_botella_vip)
     WHERE precio_botella_vip IS NOT NULL;
 
--- 8. Log de migración
+-- 9. Log de migración
 DO $$
 BEGIN
-    RAISE NOTICE 'V020: Sistema de Venta Dual habilitado correctamente';
-    RAISE NOTICE 'V020: Vista valor_inventario_dual creada';
-    RAISE NOTICE 'V020: Índices de optimización creados';
+    RAISE NOTICE 'V023: Sistema de Venta Dual habilitado correctamente';
+    RAISE NOTICE 'V023: Vista valor_inventario_dual creada';
+    RAISE NOTICE 'V023: Índices de optimización creados';
 END $$;
