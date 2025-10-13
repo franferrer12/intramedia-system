@@ -43,7 +43,9 @@ public class PublicSecurityConfig {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()
-            .requestMatchers("/public/**");
+            .requestMatchers("/public/**")
+            .requestMatchers("/api/auth/**")
+            .requestMatchers("/actuator/health");
     }
 
     /**
@@ -63,7 +65,7 @@ public class PublicSecurityConfig {
             String path = request.getRequestURI();
 
             // Solo aplicar a endpoints públicos
-            if (path.startsWith("/public/")) {
+            if (path.startsWith("/public/") || path.startsWith("/api/auth/") || path.equals("/actuator/health")) {
                 // Configurar headers CORS
                 response.setHeader("Access-Control-Allow-Origin", "*");
                 response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
