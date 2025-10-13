@@ -197,9 +197,11 @@ Si tienes un dominio propio:
 
 1. Verifica los logs: Dashboard → Backend Service → Logs
 2. Errores comunes:
-   - **"Cannot connect to database"**: Verifica que `DATABASE_URL` y `DB_URL` sean correctas
+   - **"Cannot connect to database"**: Verifica que `DATABASE_URL` esté correcta
+   - **"Driver claims to not accept jdbcUrl, postgresql://"**: Este error ocurre si Render proporciona la URL en formato `postgresql://` en lugar de `jdbc:postgresql://`. El Dockerfile incluye un script de startup que convierte automáticamente el formato. Si persiste, verifica que el contenedor esté usando la última versión del Dockerfile.
    - **"JWT secret too short"**: El `JWT_SECRET` debe tener al menos 256 bits (44 caracteres en base64)
    - **"Port already in use"**: Render asigna el puerto automáticamente vía `$PORT`
+   - **"Cannot commit when autoCommit is enabled"**: Asegúrate de tener `SPRING_DATASOURCE_HIKARI_AUTO_COMMIT=false` en las variables de entorno
 
 ### El frontend no se conecta al backend
 

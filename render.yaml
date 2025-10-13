@@ -17,10 +17,6 @@ services:
         fromDatabase:
           name: club-management-db
           property: connectionString
-      - key: DB_URL
-        fromDatabase:
-          name: club-management-db
-          property: connectionString
       - key: JWT_SECRET
         generateValue: true # Genera un secreto aleatorio automáticamente
       - key: JWT_EXPIRATION

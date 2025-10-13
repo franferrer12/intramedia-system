@@ -22,6 +22,13 @@ COPY --from=build /app/target/*.jar app.jar
 # Expose port (Render will override with $PORT)
 EXPOSE 8080
 
-# Run application
-# Use shell form to allow environment variable expansion
-CMD java -Xmx512m -Xms256m -Dserver.port=${PORT:-8080} -jar app.jar
+# Create startup script to transform DATABASE_URL to JDBC format
+RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo '# Transform Render DATABASE_URL (postgresql://) to JDBC format (jdbc:postgresql://)' >> /app/start.sh && \
+    echo 'if [ -n "$DATABASE_URL" ]; then' >> /app/start.sh && \
+    echo '  export DB_URL="jdbc:${DATABASE_URL}"' >> /app/start.sh && \
+    echo 'fi' >> /app/start.sh && \
+    echo 'exec java -Xmx512m -Xms256m -Dserver.port=${PORT:-8080} -jar /app/app.jar "$@"' >> /app/start.sh && \
+    chmod +x /app/start.sh
+
+CMD ["/app/start.sh"]
