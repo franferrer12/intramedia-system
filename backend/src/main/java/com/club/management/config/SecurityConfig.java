@@ -99,27 +99,8 @@ public class SecurityConfig {
                 .anonymous(anonymous -> anonymous.key("anonymousKey"))
 
                 .authorizeHttpRequests(auth -> auth
-                        // Permitir OPTIONS para CORS preflight (PRIMERO)
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // Endpoints públicos - MÁS ESPECÍFICOS PRIMERO
-                        .requestMatchers("/public/**").permitAll()  // Public endpoints (POS authentication, etc.)
-                        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()  // LOGIN - CRÍTICO: debe estar ANTES de la regla general POST /api/**
-                        .requestMatchers(HttpMethod.GET, "/api/auth/**").permitAll()  // GET en /api/auth/** (me, refresh, etc.)
-                        .requestMatchers(HttpMethod.GET, "/api/dispositivos-pos/setup").permitAll()  // Nuevo sistema de pairing (renombrado)
-                        .requestMatchers(HttpMethod.GET, "/api/dispositivos-pos/pair").permitAll()  // Pairing con código (renombrado)
-                        .requestMatchers("/").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-
-                        // Endpoints protegidos - DESPUÉS de los públicos específicos
-                        .requestMatchers(HttpMethod.GET, "/api/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_GERENTE", "ROLE_ENCARGADO", "ROLE_RRHH", "ROLE_LECTURA")
-                        .requestMatchers(HttpMethod.POST, "/api/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_GERENTE", "ROLE_ENCARGADO")
-                        .requestMatchers(HttpMethod.PUT, "/api/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_GERENTE")
-                        .requestMatchers(HttpMethod.DELETE, "/api/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_GERENTE")
-
-                        // Todo lo demás requiere autenticación
-                        .anyRequest().authenticated()
+                        // PERMITIR TODO - El JwtAuthenticationFilter se encarga de la seguridad
+                        .anyRequest().permitAll()
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterAfter(jwtAuthenticationFilter, LogoutFilter.class);
