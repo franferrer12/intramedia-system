@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { Button } from '../../components/ui/Button';
 import { Plus, AlertCircle, X } from 'lucide-react';
 import { AbrirSesionModal } from '../../components/pos/AbrirSesionModal';
-import { SesionActiva } from '../../components/pos/SesionActiva';
+// import { SesionActiva } from '../../components/pos/SesionActiva';
 import { ProductoGrid } from '../../components/pos/ProductoGrid';
 import { TicketActual, ItemCarrito } from '../../components/pos/TicketActual';
 import { CerrarSesionModal } from '../../components/pos/CerrarSesionModal';
@@ -67,14 +67,14 @@ export default function PosPage() {
 
     return {
       id: sesionActiva.id,
-      codigo: sesionActiva.codigo,
-      nombre: sesionActiva.nombre,
-      efectivoInicial: 0, // TODO: Obtener del backend cuando se implemente
-      totalVentas: sesionActiva.totalItems,
-      valorTotal: sesionActiva.valorTotal,
-      montoEsperadoEfectivo: sesionActiva.valorTotal * 0.6, // Estimación temporal
-      montoEsperadoTarjeta: sesionActiva.valorTotal * 0.4, // Estimación temporal
-      duracionMinutos: sesionActiva.duracionMinutos,
+      codigo: `CAJA-${sesionActiva.id}`,
+      nombre: sesionActiva.nombreCaja,
+      efectivoInicial: sesionActiva.montoInicial,
+      totalVentas: sesionActiva.totalVentas,
+      valorTotal: sesionActiva.totalIngresos,
+      montoEsperadoEfectivo: sesionActiva.totalIngresos * 0.6, // Estimación temporal
+      montoEsperadoTarjeta: sesionActiva.totalIngresos * 0.4, // Estimación temporal
+      duracionMinutos: 0, // TODO: Calcular duración
       fechaApertura: sesionActiva.fechaApertura,
     };
   }, [sesionActiva]);
@@ -190,16 +190,20 @@ export default function PosPage() {
 
   // Cerrar sesión
   const handleCerrarSesion = async (notas?: string) => {
-    if (!sesionActiva) return;
+    if (!sesionActiva || !user) return;
 
     if (carrito.length > 0) {
       toast.error('Debes cobrar o limpiar el carrito antes de cerrar la sesión');
       return;
     }
 
+    // Por ahora usamos valores por defecto
+    // TODO: Implementar formulario completo de cierre
     await cerrarSesionMutation.mutateAsync({
       sesionId: sesionActiva.id,
-      notas,
+      empleadoCierreId: user.id,
+      montoReal: sesionActiva.montoInicial + sesionActiva.totalIngresos,
+      observaciones: notas,
     });
   };
 
@@ -264,7 +268,24 @@ export default function PosPage() {
           {/* Columna izquierda: Ticket actual */}
           <div className="lg:col-span-4">
             <div className="sticky top-4 space-y-4">
-              <SesionActiva sesion={sesionActiva} />
+              {/* <SesionActiva sesion={sesionActiva} /> */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-bold text-blue-900 mb-2">
+                  Sesión: {sesionActiva.nombreCaja}
+                </h3>
+                <p className="text-sm text-blue-700">
+                  Empleado: {sesionActiva.empleadoAperturaNombre}
+                </p>
+                <p className="text-sm text-blue-700">
+                  Monto Inicial: €{sesionActiva.montoInicial.toFixed(2)}
+                </p>
+                <p className="text-sm text-blue-700">
+                  Total Ventas: {sesionActiva.totalVentas}
+                </p>
+                <p className="text-sm font-bold text-blue-900 mt-2">
+                  Total Ingresos: €{sesionActiva.totalIngresos.toFixed(2)}
+                </p>
+              </div>
               <TicketActual
                 items={carrito}
                 onCantidadChange={handleCantidadChange}

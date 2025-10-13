@@ -119,7 +119,7 @@ export const AbrirSesionModal: FC<AbrirSesionModalProps> = ({ isOpen, onClose })
                 <option value="">Selecciona un empleado</option>
                 {empleados?.map((empleado) => (
                   <option key={empleado.id} value={empleado.id}>
-                    {empleado.nombre} {empleado.apellido}
+                    {empleado.nombre} {empleado.apellidos}
                   </option>
                 ))}
               </select>
