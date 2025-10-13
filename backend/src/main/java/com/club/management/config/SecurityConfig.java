@@ -99,8 +99,19 @@ public class SecurityConfig {
                 .anonymous(anonymous -> anonymous.key("anonymousKey"))
 
                 .authorizeHttpRequests(auth -> auth
-                        // PERMITIR TODO - El JwtAuthenticationFilter se encarga de la seguridad
-                        .anyRequest().permitAll()
+                        // Public endpoints - No authentication required
+                        .requestMatchers("/public/**").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/register").permitAll()
+                        .requestMatchers("/api/auth/device/setup").permitAll()
+                        .requestMatchers("/api/auth/device/pair").permitAll()
+                        .requestMatchers("/api/auth/device/login").permitAll()
+                        .requestMatchers("/api/auth/device/pairing").permitAll()
+                        .requestMatchers("/api/auth/device/quick-start").permitAll()
+                        .requestMatchers("/api/auth/pos/**").permitAll()
+                        // All other endpoints require authentication
+                        .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterAfter(jwtAuthenticationFilter, LogoutFilter.class);
