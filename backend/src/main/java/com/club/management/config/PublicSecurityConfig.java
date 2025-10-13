@@ -39,20 +39,26 @@ public class PublicSecurityConfig {
      * - Va directamente al controller
      *
      * Es como si estos endpoints no tuvieran Spring Security habilitado.
+     *
+     * IMPORTANTE: NO excluir /api/auth/** porque algunos endpoints
+     * requieren autenticación (/api/auth/me, /api/auth/device/{id}/qr, etc.)
+     * Solo se excluyen endpoints públicos específicos manejados por JwtAuthenticationFilter.
      */
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()
             .requestMatchers("/public/**")
-            .requestMatchers("/api/auth/**")
             .requestMatchers("/actuator/health");
     }
 
     /**
-     * Filtro CORS para endpoints públicos.
+     * Filtro CORS para endpoints públicos que están excluidos de Spring Security.
      *
      * Como /public/** se salta Spring Security con web.ignoring(),
-     * necesitamos un filtro separado para manejar CORS.
+     * necesitamos un filtro separado para manejar CORS solo para esos endpoints.
+     *
+     * IMPORTANTE: NO aplicar a /api/auth/** porque esos endpoints ahora
+     * pasan por Spring Security y usan la configuración CORS de SecurityConfig.
      */
     @Component
     @Order(Integer.MIN_VALUE)  // Ejecuta PRIMERO
@@ -64,9 +70,9 @@ public class PublicSecurityConfig {
                                         FilterChain filterChain) throws ServletException, IOException {
             String path = request.getRequestURI();
 
-            // Solo aplicar a endpoints públicos
-            if (path.startsWith("/public/") || path.startsWith("/api/auth/") || path.equals("/actuator/health")) {
-                // Configurar headers CORS
+            // Solo aplicar a endpoints que están excluidos de Spring Security
+            if (path.startsWith("/public/") || path.equals("/actuator/health")) {
+                // Configurar headers CORS con wildcard (solo para endpoints verdaderamente públicos)
                 response.setHeader("Access-Control-Allow-Origin", "*");
                 response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
                 response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
