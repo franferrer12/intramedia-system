@@ -134,7 +134,7 @@ export const addVentaPendiente = async (venta: VentaOfflineDB): Promise<number> 
 export const getVentasPendientes = async (): Promise<VentaOfflineDB[]> => {
   try {
     const db = await initDB();
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const transaction = db.transaction([STORES.VENTAS_PENDIENTES], 'readonly');
       const store = transaction.objectStore(STORES.VENTAS_PENDIENTES);
 
@@ -312,7 +312,7 @@ export const getCachedConfiguracion = async (dispositivoId: number): Promise<Con
 export const getVentasPendientesCount = async (): Promise<number> => {
   try {
     const db = await initDB();
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const transaction = db.transaction([STORES.VENTAS_PENDIENTES], 'readonly');
       const store = transaction.objectStore(STORES.VENTAS_PENDIENTES);
 
