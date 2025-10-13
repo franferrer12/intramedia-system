@@ -246,11 +246,58 @@ export default function POSTerminalPage() {
 
   if (!sesionActiva) {
     return (
-      <div className="h-screen bg-gray-900 flex items-center justify-center p-8">
-        <div className="text-center text-white">
-          <X className="h-24 w-24 mx-auto mb-6 text-red-500" />
-          <h1 className="text-4xl font-bold mb-4">No hay sesión activa</h1>
-          <p className="text-xl text-gray-400">Abre una sesión desde el panel principal</p>
+      <div className="h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center p-8">
+        <div className="max-w-2xl w-full">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 text-center">
+            <div className="bg-red-100 rounded-full w-32 h-32 flex items-center justify-center mx-auto mb-6">
+              <X className="h-16 w-16 text-red-600" />
+            </div>
+
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              No hay sesión de caja activa
+            </h1>
+
+            <p className="text-xl text-gray-600 mb-8">
+              Para comenzar a vender, necesitas abrir una sesión de caja primero
+            </p>
+
+            <div className="space-y-4">
+              <a
+                href="/pos"
+                className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl py-6 px-8 rounded-xl transition-colors"
+              >
+                📊 Ir al Panel de Gestión POS
+              </a>
+
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 text-left">
+                <h3 className="font-bold text-blue-900 mb-3 text-lg">
+                  💡 ¿Cómo abrir una sesión?
+                </h3>
+                <ol className="space-y-2 text-blue-800">
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-blue-600">1.</span>
+                    <span>Ve al Panel de Gestión POS (botón arriba)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-blue-600">2.</span>
+                    <span>Click en "Abrir Nueva Sesión"</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-blue-600">3.</span>
+                    <span>Completa el formulario con nombre, empleado y efectivo inicial</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-blue-600">4.</span>
+                    <span>¡Vuelve aquí para empezar a vender! 🚀</span>
+                  </li>
+                </ol>
+              </div>
+
+              <div className="text-sm text-gray-500 pt-4">
+                <p>O espera a que un administrador abra una sesión</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
