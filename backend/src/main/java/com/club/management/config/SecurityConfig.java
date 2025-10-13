@@ -104,7 +104,8 @@ public class SecurityConfig {
 
                         // Endpoints públicos - MÁS ESPECÍFICOS PRIMERO
                         .requestMatchers("/public/**").permitAll()  // Public endpoints (POS authentication, etc.)
-                        .requestMatchers("/api/auth/**").permitAll()  // Permitir TODO /api/auth/** SIN restricción de método
+                        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()  // LOGIN - CRÍTICO: debe estar ANTES de la regla general POST /api/**
+                        .requestMatchers(HttpMethod.GET, "/api/auth/**").permitAll()  // GET en /api/auth/** (me, refresh, etc.)
                         .requestMatchers(HttpMethod.GET, "/api/dispositivos-pos/setup").permitAll()  // Nuevo sistema de pairing (renombrado)
                         .requestMatchers(HttpMethod.GET, "/api/dispositivos-pos/pair").permitAll()  // Pairing con código (renombrado)
                         .requestMatchers("/").permitAll()
