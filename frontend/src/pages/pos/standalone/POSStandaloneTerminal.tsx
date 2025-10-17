@@ -337,9 +337,9 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
         {/* Panel de Productos */}
-        <div className="flex-1 flex flex-col p-4 overflow-hidden">
+        <div className="flex-1 flex flex-col p-4 overflow-hidden order-2 md:order-1">
           {/* Filtros de Categorías */}
           <div className="mb-4 flex gap-2 overflow-x-auto pb-2">
             <button
@@ -369,7 +369,7 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
 
           {/* Grid de Productos */}
           <div className="flex-1 overflow-y-auto">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {productosFiltrados.map((producto: ProductoDTO) => (
                 <button
                   key={producto.id}
@@ -406,7 +406,7 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
         </div>
 
         {/* Panel de Carrito */}
-        <div className="w-96 bg-white border-l border-gray-200 flex flex-col">
+        <div className="w-full md:w-96 bg-white border-t md:border-t-0 md:border-l border-gray-200 flex flex-col order-1 md:order-2 max-h-80 md:max-h-none">
           {/* Header del Carrito */}
           <div className="p-4 border-b border-gray-200">
             <h2 className="text-xl font-bold text-gray-900">Carrito</h2>
