@@ -30,6 +30,8 @@ public class DeviceAuthDTO {
         private String nombre;
         private String tipo;
         private String ubicacion;
+        private Long empleadoAsignadoId;
+        private String empleadoAsignadoNombre;
         private Boolean asignacionPermanente;
         private Boolean modoTabletCompartida;
         private DeviceConfigDTO config;

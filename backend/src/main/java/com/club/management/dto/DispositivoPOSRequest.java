@@ -31,7 +31,7 @@ public class DispositivoPOSRequest {
 
     private Long empleadoAsignadoId;
 
-    @NotBlank(message = "El PIN es obligatorio")
+    // PIN es opcional en actualizaciones - obligatorio solo en creación (validado en servicio)
     @Size(min = 4, max = 6, message = "El PIN debe tener entre 4 y 6 caracteres")
     private String pin;
 

@@ -21,7 +21,7 @@ type PeriodoFiltro = 'hoy' | 'semana' | 'mes';
 export const POSDashboardPage = () => {
   const [periodo, setPeriodo] = useState<PeriodoFiltro>('hoy');
 
-  // Query con auto-refresh cada 30 segundos
+  // Query con auto-refresh agresivo para tiempo real
   const { data: stats, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ['pos-estadisticas', periodo],
     queryFn: () => {
@@ -36,9 +36,10 @@ export const POSDashboardPage = () => {
           return posEstadisticasApi.getHoy();
       }
     },
-    refetchInterval: 30000, // Auto-refresh cada 30 segundos
+    refetchInterval: 5000, // ⚡ Auto-refresh cada 5 segundos para tiempo real
     refetchOnWindowFocus: true,
-    staleTime: 20000, // Los datos se consideran frescos por 20 segundos
+    refetchOnMount: true,
+    staleTime: 3000, // Los datos se consideran obsoletos después de 3 segundos
   });
 
   if (isLoading) {
@@ -396,9 +397,17 @@ export const POSDashboardPage = () => {
       )}
 
       {/* Auto-refresh indicator */}
-      <div className="text-center text-sm text-gray-500">
-        <Clock className="h-4 w-4 inline mr-1" />
-        Actualización automática cada 30 segundos
+      <div className="flex items-center justify-center gap-2 text-sm">
+        <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+          isRefetching
+            ? 'bg-blue-100 text-blue-700'
+            : 'bg-gray-100 text-gray-600'
+        }`}>
+          <Clock className={`h-4 w-4 ${isRefetching ? 'animate-pulse' : ''}`} />
+          <span className="font-medium">
+            {isRefetching ? '🔄 Actualizando datos...' : '⚡ Actualización automática cada 5 segundos'}
+          </span>
+        </div>
       </div>
     </div>
   );

@@ -100,6 +100,7 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints - No authentication required
+                        .requestMatchers("/error").permitAll()  // Allow error page
                         .requestMatchers("/public/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/api/auth/login").permitAll()
@@ -110,6 +111,15 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/device/pairing").permitAll()
                         .requestMatchers("/api/auth/device/quick-start").permitAll()
                         .requestMatchers("/api/auth/pos/**").permitAll()
+                        // NEW: POS Device pairing endpoints (public access for setup)
+                        .requestMatchers("/api/dispositivos-pos/setup").permitAll()
+                        .requestMatchers("/api/dispositivos-pos/pair").permitAll()
+                        // POS Device heartbeat (public - just updates timestamp)
+                        .requestMatchers("/api/dispositivos-pos/*/heartbeat").permitAll()
+                        // POS Device configuration (public - reads device config and products)
+                        .requestMatchers("/api/dispositivos-pos/*/configuracion").permitAll()
+                        // POS Device sales sync (public - syncs offline sales to backend)
+                        .requestMatchers("/api/dispositivos-pos/ventas-offline/sincronizar").permitAll()
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )

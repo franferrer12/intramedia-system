@@ -9,7 +9,7 @@
  */
 
 const DB_NAME = 'POSOfflineDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Incrementado para forzar recreación de stores
 
 // Store names
 export const STORES = {
@@ -23,9 +23,12 @@ export interface VentaOfflineDB {
   uuid: string;
   dispositivoId: number;
   timestamp: number;
+  fechaVenta?: string; // ISO timestamp of when the sale was created (for backend sync)
   items: VentaItemDB[];
   total: number;
   metodoPago?: string;
+  montoEfectivo?: number;
+  montoTarjeta?: number;
   empleadoId?: number;
   empleadoNombre?: string;
   sincronizada: boolean;
@@ -70,42 +73,82 @@ export const initDB = (): Promise<IDBDatabase> => {
     };
 
     request.onsuccess = () => {
-      resolve(request.result);
+      const db = request.result;
+
+      // Verificar que todos los stores existen
+      const hasAllStores =
+        db.objectStoreNames.contains(STORES.VENTAS_PENDIENTES) &&
+        db.objectStoreNames.contains(STORES.PRODUCTOS_CACHE) &&
+        db.objectStoreNames.contains(STORES.CONFIGURACION_CACHE);
+
+      if (!hasAllStores) {
+        console.warn('⚠️ Base de datos corrupta detectada. Recreando...');
+        db.close();
+
+        // Eliminar y recrear la base de datos
+        const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
+        deleteRequest.onsuccess = () => {
+          console.log('✅ DB corrupta eliminada, recreando...');
+          // Reintentar apertura
+          const retryRequest = indexedDB.open(DB_NAME, DB_VERSION);
+          retryRequest.onupgradeneeded = (event) => {
+            createStores((event.target as IDBOpenDBRequest).result);
+          };
+          retryRequest.onsuccess = () => {
+            console.log('✅ DB recreada exitosamente');
+            resolve(retryRequest.result);
+          };
+          retryRequest.onerror = () => {
+            reject(new Error('Error al recrear IndexedDB'));
+          };
+        };
+        deleteRequest.onerror = () => {
+          reject(new Error('Error al eliminar DB corrupta'));
+        };
+      } else {
+        resolve(db);
+      }
     };
 
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
-
-      // Store: ventasPendientes
-      if (!db.objectStoreNames.contains(STORES.VENTAS_PENDIENTES)) {
-        const ventasStore = db.createObjectStore(STORES.VENTAS_PENDIENTES, {
-          keyPath: 'id',
-          autoIncrement: true,
-        });
-        ventasStore.createIndex('uuid', 'uuid', { unique: true });
-        ventasStore.createIndex('dispositivoId', 'dispositivoId', { unique: false });
-        ventasStore.createIndex('sincronizada', 'sincronizada', { unique: false });
-        ventasStore.createIndex('timestamp', 'timestamp', { unique: false });
-      }
-
-      // Store: productosCache
-      if (!db.objectStoreNames.contains(STORES.PRODUCTOS_CACHE)) {
-        const productosStore = db.createObjectStore(STORES.PRODUCTOS_CACHE, {
-          keyPath: 'id',
-        });
-        productosStore.createIndex('categoria', 'categoria', { unique: false });
-        productosStore.createIndex('timestamp', 'timestamp', { unique: false });
-      }
-
-      // Store: configuracionCache
-      if (!db.objectStoreNames.contains(STORES.CONFIGURACION_CACHE)) {
-        db.createObjectStore(STORES.CONFIGURACION_CACHE, {
-          keyPath: 'dispositivoId',
-        });
-      }
+      createStores(db);
     };
   });
 };
+
+/**
+ * Helper function to create all object stores
+ */
+function createStores(db: IDBDatabase) {
+  // Store: ventasPendientes
+  if (!db.objectStoreNames.contains(STORES.VENTAS_PENDIENTES)) {
+    const ventasStore = db.createObjectStore(STORES.VENTAS_PENDIENTES, {
+      keyPath: 'id',
+      autoIncrement: true,
+    });
+    ventasStore.createIndex('uuid', 'uuid', { unique: true });
+    ventasStore.createIndex('dispositivoId', 'dispositivoId', { unique: false });
+    ventasStore.createIndex('sincronizada', 'sincronizada', { unique: false });
+    ventasStore.createIndex('timestamp', 'timestamp', { unique: false });
+  }
+
+  // Store: productosCache
+  if (!db.objectStoreNames.contains(STORES.PRODUCTOS_CACHE)) {
+    const productosStore = db.createObjectStore(STORES.PRODUCTOS_CACHE, {
+      keyPath: 'id',
+    });
+    productosStore.createIndex('categoria', 'categoria', { unique: false });
+    productosStore.createIndex('timestamp', 'timestamp', { unique: false });
+  }
+
+  // Store: configuracionCache
+  if (!db.objectStoreNames.contains(STORES.CONFIGURACION_CACHE)) {
+    db.createObjectStore(STORES.CONFIGURACION_CACHE, {
+      keyPath: 'dispositivoId',
+    });
+  }
+}
 
 /**
  * Add a sale to the pending sync queue
@@ -334,6 +377,48 @@ export const getVentasPendientesCount = async (): Promise<number> => {
     });
   } catch (error) {
     console.warn('Error al acceder a IndexedDB, retornando 0:', error);
+    return 0;
+  }
+};
+
+/**
+ * Limpiar ventas corruptas (sin empleadoId) de IndexedDB
+ */
+export const limpiarVentasCorruptas = async (): Promise<number> => {
+  try {
+    const db = await initDB();
+    return new Promise((resolve) => {
+      const transaction = db.transaction([STORES.VENTAS_PENDIENTES], 'readwrite');
+      const store = transaction.objectStore(STORES.VENTAS_PENDIENTES);
+      const request = store.getAll();
+
+      request.onsuccess = async () => {
+        const ventas = request.result || [];
+        let eliminadas = 0;
+
+        for (const venta of ventas) {
+          // Eliminar ventas sin empleadoId
+          if (!venta.empleadoId && venta.id) {
+            try {
+              await deleteVentaPendiente(venta.id);
+              console.log('🗑️ Venta corrupta eliminada (sin empleadoId):', venta.uuid);
+              eliminadas++;
+            } catch (error) {
+              console.error('Error al eliminar venta corrupta:', error);
+            }
+          }
+        }
+
+        resolve(eliminadas);
+      };
+
+      request.onerror = () => {
+        console.warn('Error al obtener ventas para limpieza');
+        resolve(0);
+      };
+    });
+  } catch (error) {
+    console.warn('Error en limpieza de ventas corruptas:', error);
     return 0;
   }
 };

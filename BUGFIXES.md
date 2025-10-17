@@ -4,6 +4,669 @@
 
 ---
 
+## 2025-10-17 - Sistema POS Multi-Dispositivo: Correcciones Críticas
+
+### Resumen de Sesión
+Esta sesión resolvió múltiples problemas críticos en el sistema POS que impedían su correcto funcionamiento multi-dispositivo. Se implementaron fixes en validación de formularios, autenticación de dispositivos, sincronización offline y visualización de ventas.
+
+### 1. Error 400 Bad Request al Editar Dispositivos POS
+
+**Problema:**
+Al intentar editar un dispositivo existente desde el backoffice, el sistema retornaba error 400 con mensaje "El PIN es obligatorio", bloqueando cualquier actualización del dispositivo.
+
+**Síntomas:**
+```
+HTTP 400 Bad Request
+Validation failed for object 'dispositivoPOSRequest' on field 'pin':
+rejected value [null]; default message [El PIN es obligatorio]
+```
+
+**Causa Raíz:**
+El DTO `DispositivoPOSRequest` tenía la anotación `@NotBlank(message = "El PIN es obligatorio")` en el campo `pin`, haciendo que el PIN fuera obligatorio tanto para **creación** como para **actualización** de dispositivos. Sin embargo, lógicamente el PIN solo debe ser obligatorio al crear un dispositivo nuevo, no al editarlo.
+
+**Archivos Afectados:**
+- `backend/src/main/java/com/club/management/dto/DispositivoPOSRequest.java` (línea 34)
+- `backend/src/main/java/com/club/management/service/DispositivoPOSService.java` (líneas 44-47, 168-171)
+
+**Solución Implementada:**
+
+1. **Remover validación de DTO** y mover la lógica al servicio:
+
+```java
+// ANTES (DispositivoPOSRequest.java):
+@NotBlank(message = "El PIN es obligatorio")
+@Size(min = 4, max = 6, message = "El PIN debe tener entre 4 y 6 caracteres")
+private String pin;
+
+// DESPUÉS:
+// PIN es opcional en actualizaciones - obligatorio solo en creación (validado en servicio)
+@Size(min = 4, max = 6, message = "El PIN debe tener entre 4 y 6 caracteres")
+private String pin;
+```
+
+2. **Validación manual en el método de creación**:
+
+```java
+// DispositivoPOSService.java - método registrar()
+public DispositivoPOSDTO registrar(DispositivoPOSRequest request) {
+    // Validar que el PIN sea obligatorio en la creación
+    if (request.getPin() == null || request.getPin().trim().isEmpty()) {
+        throw new IllegalArgumentException("El PIN es obligatorio al crear un dispositivo");
+    }
+    // ... resto del código
+}
+```
+
+3. **Actualización condicional del PIN** (ya existía correctamente):
+
+```java
+// DispositivoPOSService.java - método actualizar()
+public DispositivoPOSDTO actualizar(Long id, DispositivoPOSRequest request) {
+    // ...
+    // Actualizar PIN solo si se proporciona uno nuevo
+    if (request.getPin() != null && !request.getPin().isEmpty()) {
+        dispositivo.setPinRapido(passwordEncoder.encode(request.getPin()));
+    }
+    // ...
+}
+```
+
+**Resultado:**
+✅ Dispositivos pueden editarse sin proporcionar PIN
+✅ PIN sigue siendo obligatorio al crear nuevos dispositivos
+✅ Validación de longitud (4-6 caracteres) se mantiene cuando se proporciona
+
+---
+
+### 2. Empleados No Asignados Automáticamente al Autenticar Dispositivos
+
+**Problema:**
+Dispositivos con empleados asignados permanentemente seguían pidiendo selección de empleado al momento de cobrar, a pesar de tener un empleado configurado en la base de datos.
+
+**Síntomas:**
+- Base de datos muestra `empleado_asignado_id = 2` (María)
+- Frontend muestra "Seleccione empleado" en PaymentMethodModal
+- La información del empleado no llega al frontend tras autenticación
+
+**Causa Raíz:**
+El método `buildDeviceAuthDTO()` en `DispositivoPOSService.java` no incluía los campos de empleado asignado (`empleadoAsignadoId` y `empleadoAsignadoNombre`) en el DTO de respuesta de autenticación, por lo que el frontend nunca recibía esta información.
+
+**Archivos Afectados:**
+- `backend/src/main/java/com/club/management/dto/response/DeviceAuthDTO.java` (líneas 27-38)
+- `backend/src/main/java/com/club/management/service/DispositivoPOSService.java` (líneas 338-364)
+
+**Solución Implementada:**
+
+1. **Añadir campos al DTO**:
+
+```java
+// DeviceAuthDTO.java - clase DeviceInfoDTO
+public static class DeviceInfoDTO {
+    private Long id;
+    private String uuid;
+    private String nombre;
+    private String tipo;
+    private String ubicacion;
+    private Long empleadoAsignadoId;         // ✅ NUEVO
+    private String empleadoAsignadoNombre;   // ✅ NUEVO
+    private Boolean asignacionPermanente;
+    private Boolean modoTabletCompartida;
+    private DeviceConfigDTO config;
+}
+```
+
+2. **Poblar campos en el método de construcción**:
+
+```java
+// DispositivoPOSService.java - método buildDeviceAuthDTO()
+private DeviceAuthDTO buildDeviceAuthDTO(DispositivoPOS dispositivo, String deviceToken) {
+    return DeviceAuthDTO.builder()
+            .success(true)
+            .deviceUUID(dispositivo.getUuid())
+            .deviceToken(deviceToken)
+            .device(DeviceAuthDTO.DeviceInfoDTO.builder()
+                    .id(dispositivo.getId())
+                    .uuid(dispositivo.getUuid())
+                    .nombre(dispositivo.getNombre())
+                    .tipo(dispositivo.getTipo() != null ? dispositivo.getTipo().name() : null)
+                    .ubicacion(dispositivo.getUbicacion())
+                    // ✅ NUEVO: Incluir información del empleado asignado
+                    .empleadoAsignadoId(dispositivo.getEmpleadoAsignado() != null ?
+                            dispositivo.getEmpleadoAsignado().getId() : null)
+                    .empleadoAsignadoNombre(dispositivo.getEmpleadoAsignado() != null ?
+                            dispositivo.getEmpleadoAsignado().getNombre() + " " +
+                            dispositivo.getEmpleadoAsignado().getApellidos() : null)
+                    .asignacionPermanente(dispositivo.getAsignacionPermanente())
+                    .modoTabletCompartida(dispositivo.getModoTabletCompartida())
+                    .config(/* ... */)
+                    .build())
+            .build();
+}
+```
+
+**Resultado:**
+✅ Empleados asignados permanentemente se pre-seleccionan automáticamente
+✅ No es necesario seleccionar empleado manualmente en dispositivos con asignación fija
+✅ Dispositivos en modo compartido siguen permitiendo selección manual
+
+---
+
+### 3. Ventas Corruptas Bloqueando Sincronización y Eliminación de Dispositivos
+
+**Problema:**
+Múltiples dispositivos tenían ventas pendientes de sincronización que fallaban repetidamente con el error "No se pudo determinar el empleado", bloqueando tanto la sincronización como la eliminación de dispositivos.
+
+**Síntomas:**
+
+**En Frontend (IndexedDB):**
+```javascript
+debugPOS() // En consola del navegador
+// Mostraba 2-3 ventas con: sincronizada: false, empleadoId: undefined
+```
+
+**En Backend (logs):**
+```json
+{
+  "uuidVenta": "1eef609e-6b05-4a1f-b895-246e911e1bd9-1760653478094-ni8kdoo1n",
+  "exitoso": false,
+  "ventaId": null,
+  "mensaje": "Error al sincronizar venta",
+  "error": "No se pudo determinar el empleado: ni en datosVenta ni en dispositivo"
+}
+```
+
+**En Base de Datos:**
+```sql
+SELECT uuid_venta, sincronizada, empleado_id, intentos_sincronizacion
+FROM ventas_pendientes_sync
+WHERE dispositivo_id = 9;
+-- Resultado: 3 ventas con empleado_id = NULL, intentos = 6-10 (máximo alcanzado)
+```
+
+**Cuando intentaban eliminar dispositivo:**
+```
+HTTP 500 Internal Server Error
+java.lang.IllegalStateException: No se puede eliminar el dispositivo.
+Tiene 3 ventas pendientes de sincronización
+```
+
+**Causa Raíz:**
+Las ventas se crearon **antes** de que se implementara la validación de empleado obligatorio. El sistema permite crear ventas sin empleado en modo offline, pero luego no puede sincronizarlas porque el backend requiere empleado. Estas ventas quedan "atrapadas" en un ciclo de reintentos fallidos.
+
+**Flujo del problema:**
+```
+1. Usuario crea venta sin seleccionar empleado (antes del fix)
+2. Venta se guarda en IndexedDB local (sincronizada: false)
+3. Sistema intenta sincronizar → Backend rechaza (falta empleado)
+4. Incrementa intentos_sincronizacion (1, 2, 3... hasta 10)
+5. Después de 10 intentos, se detiene pero la venta queda pendiente
+6. Usuario intenta eliminar dispositivo → Backend lo bloquea (tiene ventas pendientes)
+```
+
+**Archivos/Tablas Afectadas:**
+- **Frontend:** IndexedDB `POSOfflineDB.ventasPendientes`
+- **Backend:** Tabla `ventas_pendientes_sync`
+- `frontend/src/utils/offlineDB.ts` (funciones de limpieza)
+- `frontend/src/utils/debugIndexedDB.ts` (funciones de debug)
+
+**Solución Implementada:**
+
+**Parte 1: Función de limpieza en IndexedDB (Frontend)**
+
+```typescript
+// offlineDB.ts - Nueva función exportada
+export const limpiarVentasCorruptas = async (): Promise<number> => {
+  try {
+    const db = await initDB();
+    return new Promise((resolve) => {
+      const transaction = db.transaction([STORES.VENTAS_PENDIENTES], 'readwrite');
+      const store = transaction.objectStore(STORES.VENTAS_PENDIENTES);
+      const request = store.getAll();
+
+      request.onsuccess = async () => {
+        const ventas = request.result || [];
+        let eliminadas = 0;
+
+        for (const venta of ventas) {
+          // Eliminar ventas sin empleadoId
+          if (!venta.empleadoId && venta.id) {
+            try {
+              await deleteVentaPendiente(venta.id);
+              console.log('🗑️ Venta corrupta eliminada (sin empleadoId):', venta.uuid);
+              eliminadas++;
+            } catch (error) {
+              console.error('Error al eliminar venta corrupta:', error);
+            }
+          }
+        }
+
+        resolve(eliminadas);
+      };
+
+      request.onerror = () => {
+        console.warn('Error al obtener ventas para limpieza');
+        resolve(0);
+      };
+    });
+  } catch (error) {
+    console.warn('Error en limpieza de ventas corruptas:', error);
+    return 0;
+  }
+};
+```
+
+**Parte 2: Exposición global para debugging**
+
+```typescript
+// debugIndexedDB.ts
+export const limpiarVentasCorruptas = (): Promise<number> => {
+  console.log('🧹 LIMPIANDO VENTAS CORRUPTAS (sin empleadoId)...');
+  // ... implementación similar
+};
+
+// Exponer funciones globalmente en desarrollo
+if (typeof window !== 'undefined') {
+  (window as any).debugPOS = debugPendientes;
+  (window as any).eliminarVenta = eliminarVenta;
+  (window as any).limpiarVentasPOS = limpiarTodasLasVentas;
+  (window as any).limpiarVentasCorruptas = limpiarVentasCorruptas; // ✅ NUEVO
+  console.log('Funciones de debug POS disponibles:');
+  console.log('- debugPOS() - Ver ventas pendientes');
+  console.log('- eliminarVenta(id) - Eliminar una venta específica');
+  console.log('- limpiarVentasPOS() - Limpiar TODAS las ventas');
+  console.log('- limpiarVentasCorruptas() - Limpiar ventas sin empleadoId'); // ✅ NUEVO
+}
+```
+
+**Parte 3: Limpieza directa en base de datos (Backend)**
+
+Para dispositivos con ventas corruptas ya sincronizadas parcialmente al backend:
+
+```sql
+-- Comando ejecutado para limpiar base de datos
+DELETE FROM ventas_pendientes_sync
+WHERE dispositivo_id = 9
+  AND sincronizada = false
+  AND empleado_id IS NULL;
+
+-- Resultado: DELETE 3 (3 ventas corruptas eliminadas)
+```
+
+**Proceso de Limpieza Completa:**
+
+1. **Limpieza IndexedDB (navegador):**
+```javascript
+// En DevTools Console
+limpiarVentasCorruptas()
+// Output: "✅ Limpieza completada: 2 ventas eliminadas"
+```
+
+2. **Limpieza Backend (base de datos):**
+```sql
+-- Ejecutado desde pgAdmin o psql
+DELETE FROM ventas_pendientes_sync
+WHERE dispositivo_id = [ID]
+  AND sincronizada = false
+  AND empleado_id IS NULL;
+```
+
+3. **Verificación:**
+```javascript
+debugPOS()  // No debe mostrar ventas pendientes
+```
+
+**Resultado:**
+✅ Ventas corruptas eliminadas de ambos lados (frontend + backend)
+✅ Dispositivos pueden sincronizar correctamente
+✅ Dispositivos pueden ser eliminados sin errores
+✅ Sistema de debugging disponible para futuras inspecciones
+
+**Prevención Futura:**
+- El frontend ahora valida empleado antes de crear ventas
+- PaymentMethodModal requiere empleado seleccionado
+- Dispositivos con asignación permanente pre-seleccionan empleado
+
+---
+
+### 4. Sistema Multi-Dispositivo: Identificación de Terminal en Ventas
+
+**Problema:**
+En el panel de gestión POS, la sección "Últimas Ventas" no mostraba qué terminal había procesado cada venta, dificultando el seguimiento multi-dispositivo.
+
+**Síntomas:**
+```
+Últimas Ventas:
+- Ticket #VTA-20251017-0001
+  María González • 17/10 23:45
+  15.50€ EFECTIVO
+
+- Ticket #VTA-20251017-0002
+  Juan Pérez • 17/10 23:50
+  28.00€ TARJETA
+```
+No se podía distinguir si "María" había cobrado en "Barra Principal" o "Barra VIP".
+
+**Impacto:**
+- Difícil auditar qué terminal procesó cada venta
+- No se puede ver distribución de ventas por dispositivo
+- Confusión cuando múltiples dispositivos operan simultáneamente
+
+**Causa Raíz:**
+El componente `PosPage.tsx` mostraba solo el nombre del empleado y la fecha/hora, pero no accedía al campo `sesionCajaNombre` que ya estaba disponible en el DTO de venta.
+
+**Archivos Afectados:**
+- `frontend/src/pages/pos/PosPage.tsx` (líneas 316-327)
+- `backend/src/main/java/com/club/management/dto/VentaDTO.java` (ya tenía el campo)
+
+**Solución Implementada:**
+
+```tsx
+// PosPage.tsx - Sección de Últimas Ventas
+<div>
+  <p className="font-semibold text-gray-900">
+    Ticket #{venta.numeroTicket}
+  </p>
+  <p className="text-sm text-gray-600">
+    {venta.empleadoNombre}
+    {venta.sesionCajaNombre && (
+      <span className="text-blue-600 font-medium">
+        {' • '}{venta.sesionCajaNombre}
+      </span>
+    )}
+    {' • '}{formatDateTime(venta.fecha)}
+  </p>
+</div>
+```
+
+**Resultado Visual:**
+```
+Últimas Ventas:
+- Ticket #VTA-20251017-0001
+  María González • Barra Principal • 17/10 23:45
+  15.50€ EFECTIVO
+
+- Ticket #VTA-20251017-0002
+  Juan Pérez • Barra VIP • 17/10 23:50
+  28.00€ TARJETA
+```
+
+**Resultado:**
+✅ Identificación clara de terminal en cada venta
+✅ Nombre del terminal en azul para destacar visualmente
+✅ Soporte completo para operación multi-dispositivo
+✅ Mejor trazabilidad y auditoría de ventas
+
+---
+
+### 5. Tokens Antiguos de Dispositivos Eliminados Causando Errores 401
+
+**Problema:**
+El backend mostraba errores continuos de autenticación para un dispositivo que ya no existía en la base de datos.
+
+**Síntomas:**
+```
+Backend logs (cada 30 segundos):
+2025-10-16 23:09:22 - JWT Filter: Exception occurred:
+Usuario no encontrado: device:ae94e739-6333-4795-ac6b-72a17f6e74ec
+org.springframework.security.core.userdetails.UsernameNotFoundException
+```
+
+**Causa Raíz:**
+Cuando un dispositivo es eliminado, su token JWT sigue almacenado en `localStorage` del navegador. Si alguna pestaña o proceso del frontend sigue abierto, continúa enviando peticiones con ese token, causando errores de autenticación continuos.
+
+**Archivos/Storage Afectados:**
+- `localStorage` del navegador (keys: `device_uuid`, `device_token`, `deviceInfo`)
+
+**Solución Implementada:**
+
+**Opción 1: Limpieza manual (DevTools Console)**
+```javascript
+localStorage.removeItem('device_uuid');
+localStorage.removeItem('device_token');
+localStorage.removeItem('deviceInfo');
+```
+
+**Opción 2: Limpieza visual (DevTools)**
+1. F12 → Application tab → Local Storage
+2. Seleccionar http://localhost:5173
+3. Eliminar claves relacionadas con dispositivos
+
+**Resultado:**
+✅ No más errores 401 en backend logs
+✅ Frontend puede autenticar dispositivos nuevos sin conflictos
+✅ Sistema de tokens limpio
+
+---
+
+## Resumen de Cambios de Código
+
+### Backend
+
+**Archivos Modificados:**
+
+1. **DispositivoPOSRequest.java**
+```java
+- @NotBlank(message = "El PIN es obligatorio")
++ // PIN es opcional en actualizaciones - obligatorio solo en creación (validado en servicio)
+  @Size(min = 4, max = 6, message = "El PIN debe tener entre 4 y 6 caracteres")
+  private String pin;
+```
+
+2. **DispositivoPOSService.java**
+```java
+// Método registrar() - líneas 44-47
++ if (request.getPin() == null || request.getPin().trim().isEmpty()) {
++     throw new IllegalArgumentException("El PIN es obligatorio al crear un dispositivo");
++ }
+
+// Método buildDeviceAuthDTO() - líneas 349-352
++ .empleadoAsignadoId(dispositivo.getEmpleadoAsignado() != null ?
++         dispositivo.getEmpleadoAsignado().getId() : null)
++ .empleadoAsignadoNombre(dispositivo.getEmpleadoAsignado() != null ?
++         dispositivo.getEmpleadoAsignado().getNombre() + " " +
++         dispositivo.getEmpleadoAsignado().getApellidos() : null)
+```
+
+3. **DeviceAuthDTO.java**
+```java
+public static class DeviceInfoDTO {
+    private Long id;
+    private String uuid;
+    private String nombre;
+    private String tipo;
+    private String ubicacion;
++   private Long empleadoAsignadoId;
++   private String empleadoAsignadoNombre;
+    private Boolean asignacionPermanente;
+    private Boolean modoTabletCompartida;
+    private DeviceConfigDTO config;
+}
+```
+
+### Frontend
+
+**Archivos Modificados:**
+
+1. **PosPage.tsx**
+```tsx
+<p className="text-sm text-gray-600">
+  {venta.empleadoNombre}
++ {venta.sesionCajaNombre && (
++   <span className="text-blue-600 font-medium">
++     {' • '}{venta.sesionCajaNombre}
++   </span>
++ )}
+  {' • '}{formatDateTime(venta.fecha)}
+</p>
+```
+
+2. **offlineDB.ts**
+```typescript
++ export const limpiarVentasCorruptas = async (): Promise<number> => {
++   // Elimina ventas sin empleadoId de IndexedDB
++   // Implementación completa en líneas 387-424
++ };
+```
+
+3. **debugIndexedDB.ts**
+```typescript
++ export const limpiarVentasCorruptas = (): Promise<number> => {
++   // Versión debug con logging detallado
++   // Implementación completa en líneas 131-174
++ };
+
++ (window as any).limpiarVentasCorruptas = limpiarVentasCorruptas;
+```
+
+### Base de Datos
+
+**Queries de Limpieza Ejecutadas:**
+
+```sql
+-- Eliminar ventas corruptas de dispositivos específicos
+DELETE FROM ventas_pendientes_sync
+WHERE dispositivo_id IN (2, 9)
+  AND sincronizada = false
+  AND empleado_id IS NULL;
+
+-- Total eliminado: 5 ventas corruptas
+```
+
+---
+
+## Comandos de Verificación y Debugging
+
+### Verificar Ventas Pendientes (Frontend)
+```javascript
+// En DevTools Console del navegador
+debugPOS()  // Ver todas las ventas pendientes en IndexedDB
+```
+
+### Limpiar Ventas Corruptas (Frontend)
+```javascript
+limpiarVentasCorruptas()  // Eliminar ventas sin empleado
+```
+
+### Verificar Ventas Pendientes (Backend)
+```sql
+-- En pgAdmin o psql
+SELECT id, uuid_venta, sincronizada, empleado_id, intentos_sincronizacion, error_sincronizacion
+FROM ventas_pendientes_sync
+WHERE dispositivo_id = [ID_DISPOSITIVO]
+  AND sincronizada = false;
+```
+
+### Limpiar Ventas Corruptas (Backend)
+```sql
+DELETE FROM ventas_pendientes_sync
+WHERE dispositivo_id = [ID_DISPOSITIVO]
+  AND sincronizada = false
+  AND empleado_id IS NULL;
+```
+
+### Verificar Dispositivos
+```sql
+SELECT id, nombre, uuid, empleado_asignado_id, modo_tablet_compartida, activo
+FROM dispositivos_pos
+ORDER BY id;
+```
+
+### Limpiar Tokens de localStorage
+```javascript
+// En DevTools Console
+localStorage.removeItem('device_uuid');
+localStorage.removeItem('device_token');
+localStorage.removeItem('deviceInfo');
+```
+
+---
+
+## Proceso de Recompilación Backend
+
+```bash
+# 1. Detener backend
+docker-compose stop backend
+
+# 2. Reconstruir imagen con nuevos cambios
+docker-compose build backend
+
+# 3. Iniciar backend
+docker-compose up -d backend
+
+# 4. Verificar logs
+docker logs club_backend --tail 50
+
+# 5. Verificar salud
+docker ps --filter name=club_backend
+# Debe mostrar: (healthy)
+```
+
+**Tiempo de compilación:** ~3 minutos 46 segundos
+
+**Resultado:**
+```
+BUILD SUCCESS
+Total time:  03:46 min
+Container: club_backend
+Status: Up 2 minutes (healthy)
+```
+
+---
+
+## Lecciones Aprendidas
+
+### 1. Validación Contextual
+**Problema:** Validaciones de Bean Validation (`@NotBlank`) aplican a todos los contextos.
+
+**Solución:** Para validaciones que dependen del contexto (crear vs actualizar), mover la validación al servicio en lugar del DTO.
+
+**Alternativa:** Usar grupos de validación (`@NotBlank(groups = Create.class)`) pero requiere más configuración.
+
+### 2. DTOs de Respuesta Completos
+**Problema:** DTOs de autenticación que no incluyen toda la información necesaria causan problemas en el frontend.
+
+**Solución:** Asegurar que los DTOs de respuesta incluyan toda la información que el frontend necesita para operar, especialmente en flujos de autenticación donde se inicializa el estado.
+
+### 3. Limpieza de Datos Corruptos
+**Problema:** Datos corruptos en sistemas offline pueden acumularse y causar bloqueos.
+
+**Solución:**
+- Implementar herramientas de debugging (`debugPOS()`)
+- Crear funciones de limpieza automática (`limpiarVentasCorruptas()`)
+- Documentar comandos SQL para limpieza manual
+- Validar datos antes de permitir operaciones offline
+
+### 4. Prevención > Corrección
+**Problema:** Era posible crear ventas sin empleado en modo offline.
+
+**Solución Preventiva:**
+- Validar empleado en frontend antes de permitir guardar venta
+- Pre-seleccionar empleado automáticamente cuando esté asignado al dispositivo
+- Mostrar errores claros cuando falte información requerida
+
+### 5. Multi-Dispositivo Requiere Trazabilidad
+**Problema:** Sin identificador de terminal, es difícil auditar operaciones multi-dispositivo.
+
+**Solución:** Incluir información del terminal/dispositivo en todas las transacciones y mostrarla en interfaces de gestión.
+
+---
+
+## Estado Final del Sistema
+
+✅ **Edición de dispositivos:** Funciona sin requerir PIN
+✅ **Asignación de empleados:** Se respeta y pre-selecciona automáticamente
+✅ **Sincronización offline:** Ventas se sincronizan correctamente con empleado
+✅ **Multi-dispositivo:** Ventas muestran qué terminal las procesó
+✅ **Limpieza de datos:** Herramientas disponibles para debugging y limpieza
+✅ **Eliminación de dispositivos:** Funciona correctamente sin ventas pendientes
+
+**Próximos pasos sugeridos:**
+1. Implementar monitor de dispositivos conectados en tiempo real
+2. Crear métricas y reportes de consumo por terminal
+3. Dashboard de ranking de productos más vendidos por dispositivo
+
+---
+
 ## 2025-10-12 - Implementación Sistema de Venta Dual
 
 ### Sistema de Venta Dual (Copa + Botella VIP)

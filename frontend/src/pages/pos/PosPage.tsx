@@ -1,47 +1,50 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '../../components/ui/Button';
-import { Plus, AlertCircle, X } from 'lucide-react';
+import { Plus, X, TrendingUp, Users, ShoppingBag, DollarSign, Clock, Activity } from 'lucide-react';
 import { AbrirSesionModal } from '../../components/pos/AbrirSesionModal';
-// import { SesionActiva } from '../../components/pos/SesionActiva';
-import { ProductoGrid } from '../../components/pos/ProductoGrid';
-import { TicketActual, ItemCarrito } from '../../components/pos/TicketActual';
 import { CerrarSesionModal } from '../../components/pos/CerrarSesionModal';
 import { sesionCajaApi } from '../../api/pos-sesiones-caja.api';
-import { ventaApi, VentaRequest, DetalleVentaRequest } from '../../api/pos-ventas.api';
-import type { Producto } from '../../types';
+import { ventaApi } from '../../api/pos-ventas.api';
 import { useAuthStore } from '../../store/authStore';
 
 export default function PosPage() {
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [modalAbierto, setModalAbierto] = useState(false);
   const [modalCerrarAbierto, setModalCerrarAbierto] = useState(false);
-  const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
   const queryClient = useQueryClient();
 
-  // Obtener sesiones abiertas
-  const { data: sesionesAbiertas, isLoading } = useQuery({
+  // Obtener sesiones abiertas (solo si hay usuario autenticado)
+  const { data: sesionesAbiertas, isLoading, error } = useQuery({
     queryKey: ['sesiones-caja-abiertas'],
     queryFn: sesionCajaApi.getAbiertas,
-    refetchInterval: 10000, // Actualizar cada 10 segundos
+    enabled: !!user && isAuthenticated,
+    refetchInterval: (user && isAuthenticated) ? 5000 : false, // Actualizar cada 5 segundos (tiempo real)
+    retry: false,
   });
 
-  // Mutación para crear venta
-  const crearVentaMutation = useMutation({
-    mutationFn: (request: VentaRequest) => ventaApi.create(request),
-    onSuccess: (data) => {
-      toast.success(`Venta registrada: ${data.numeroTicket}`);
-      queryClient.invalidateQueries({ queryKey: ['sesiones-caja-abiertas'] });
-      queryClient.invalidateQueries({ queryKey: ['consumos-sesion'] });
-      queryClient.invalidateQueries({ queryKey: ['ventas'] });
-      setCarrito([]); // Limpiar carrito
-    },
-    onError: (error: any) => {
-      console.error('Error al crear venta:', error);
-      toast.error(error.response?.data?.message || 'Error al registrar la venta');
+  // Obtener últimas ventas de la sesión activa
+  const { data: ultimasVentas } = useQuery({
+    queryKey: ['ventas-recientes', sesionesAbiertas?.[0]?.id],
+    queryFn: () => ventaApi.getAll(),
+    enabled: !!sesionesAbiertas?.[0]?.id,
+    refetchInterval: 5000, // Auto-refresh cada 5 segundos
+    select: (ventas) => {
+      // Ordenar por fecha descendente (más recientes primero)
+      const sortedVentas = [...ventas].sort((a, b) => {
+        const dateA = new Date(a.fecha || a.createdAt).getTime();
+        const dateB = new Date(b.fecha || b.createdAt).getTime();
+        return dateB - dateA; // Descendente: más recientes primero
+      });
+      return sortedVentas.slice(0, 10); // Solo las 10 más recientes
     },
   });
+
+  // DEBUG: Mostrar error si lo hay
+  if (error) {
+    console.error('❌ Error al cargar sesiones:', error);
+  }
 
   // Mutación para cerrar sesión
   const cerrarSesionMutation = useMutation({
@@ -51,7 +54,6 @@ export default function PosPage() {
       toast.success('Sesión cerrada correctamente');
       queryClient.invalidateQueries({ queryKey: ['sesiones-caja-abiertas'] });
       setModalCerrarAbierto(false);
-      setCarrito([]);
     },
     onError: (error: any) => {
       console.error('Error al cerrar sesión:', error);
@@ -79,131 +81,40 @@ export default function PosPage() {
     };
   }, [sesionActiva]);
 
-  // Agregar producto al carrito
-  const handleProductoClick = (producto: Producto, cantidadRapida?: number) => {
-    if (!sesionActiva) {
-      toast.error('Debes abrir una sesión primero');
-      return;
-    }
-
-    // Verificar stock
-    if (producto.stockActual === 0) {
-      toast.error('Producto sin stock');
-      return;
-    }
-
-    const cantidad = cantidadRapida || 1;
-
-    setCarrito((prevCarrito) => {
-      const itemExistente = prevCarrito.find((item) => item.producto.id === producto.id);
-
-      if (itemExistente) {
-        // Actualizar cantidad si ya existe
-        return prevCarrito.map((item) =>
-          item.producto.id === producto.id
-            ? {
-                ...item,
-                cantidad: item.cantidad + cantidad,
-                subtotal: (item.cantidad + cantidad) * producto.precioVenta,
-              }
-            : item
-        );
-      } else {
-        // Agregar nuevo item
-        return [
-          ...prevCarrito,
-          {
-            producto,
-            cantidad,
-            subtotal: cantidad * producto.precioVenta,
-          },
-        ];
-      }
-    });
-
-    toast.success(`${producto.nombre} agregado al carrito`);
-  };
-
-  // Cambiar cantidad de un item
-  const handleCantidadChange = (productoId: number, nuevaCantidad: number) => {
-    setCarrito((prevCarrito) =>
-      prevCarrito.map((item) =>
-        item.producto.id === productoId
-          ? {
-              ...item,
-              cantidad: nuevaCantidad,
-              subtotal: nuevaCantidad * item.producto.precioVenta,
-            }
-          : item
-      )
-    );
-  };
-
-  // Eliminar item del carrito
-  const handleEliminarItem = (productoId: number) => {
-    setCarrito((prevCarrito) => prevCarrito.filter((item) => item.producto.id !== productoId));
-    toast.info('Producto eliminado del carrito');
-  };
-
-  // Limpiar carrito
-  const handleLimpiarCarrito = () => {
-    setCarrito([]);
-    toast.info('Carrito limpiado');
-  };
-
-  // Cobrar (crear venta)
-  const handleCobrar = async (metodoPago: 'EFECTIVO' | 'TARJETA' | 'MIXTO') => {
-    if (!sesionActiva || !user) {
-      toast.error('Error: Sesión o usuario no disponible');
-      return;
-    }
-
-    if (carrito.length === 0) {
-      toast.error('El carrito está vacío');
-      return;
-    }
-
-    // Preparar detalles de la venta
-    const detalles: DetalleVentaRequest[] = carrito.map((item) => ({
-      productoId: item.producto.id,
-      cantidad: item.cantidad,
-      precioUnitario: item.producto.precioVenta,
-      descuento: 0,
-    }));
-
-    // Calcular totales
-    const subtotal = carrito.reduce((sum, item) => sum + item.subtotal, 0);
-    const total = subtotal;
-
-    // Preparar request
-    const request: VentaRequest = {
-      sesionCajaId: sesionActiva.id,
-      empleadoId: user.id,
-      metodoPago,
-      montoEfectivo: metodoPago === 'EFECTIVO' ? total : undefined,
-      montoTarjeta: metodoPago === 'TARJETA' ? total : undefined,
-      detalles,
-    };
-
-    crearVentaMutation.mutate(request);
-  };
-
   // Cerrar sesión
   const handleCerrarSesion = async (notas?: string) => {
     if (!sesionActiva || !user) return;
 
-    if (carrito.length > 0) {
-      toast.error('Debes cobrar o limpiar el carrito antes de cerrar la sesión');
-      return;
-    }
-
-    // Por ahora usamos valores por defecto
-    // TODO: Implementar formulario completo de cierre
     await cerrarSesionMutation.mutateAsync({
       sesionId: sesionActiva.id,
       empleadoCierreId: user.id,
       montoReal: sesionActiva.montoInicial + sesionActiva.totalIngresos,
       observaciones: notas,
+    });
+  };
+
+  // Formatear moneda
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 2
+    }).format(value);
+  };
+
+  // Formatear fecha/hora
+  const formatDateTime = (dateString: string) => {
+    // Si el string no tiene zona horaria, añadir 'Z' para indicar UTC
+    const isoString = dateString.includes('Z') || dateString.includes('+')
+      ? dateString
+      : dateString + 'Z';
+
+    return new Date(isoString).toLocaleString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/Madrid' // Zona horaria española (UTC+1 o UTC+2)
     });
   };
 
@@ -223,9 +134,9 @@ export default function PosPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Punto de Venta (POS)</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Panel de Gestión POS</h1>
           <p className="text-gray-600 mt-1">
-            Gestiona las ventas en tiempo real
+            Monitoreo y gestión de sesiones de caja en tiempo real
           </p>
         </div>
 
@@ -251,55 +162,225 @@ export default function PosPage() {
 
       {/* Mensaje si no hay sesión activa */}
       {!sesionActiva && sesionesAbiertas && sesionesAbiertas.length === 0 && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 text-blue-600" />
-            <p className="text-sm text-blue-800">
-              No hay ninguna sesión abierta. Abre una nueva sesión para comenzar a registrar
-              ventas.
+        <div className="rounded-lg border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-8">
+          <div className="text-center">
+            <div className="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+              <Activity className="h-10 w-10 text-blue-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              No hay ninguna sesión activa
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Abre una nueva sesión de caja para comenzar a operar
             </p>
+            <Button onClick={() => setModalAbierto(true)} size="lg" className="flex items-center gap-2 mx-auto">
+              <Plus className="h-5 w-5" />
+              Abrir Nueva Sesión
+            </Button>
           </div>
         </div>
       )}
 
-      {/* Contenido principal */}
+      {/* Dashboard en Tiempo Real */}
       {sesionActiva && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Columna izquierda: Ticket actual */}
-          <div className="lg:col-span-4">
-            <div className="sticky top-4 space-y-4">
-              {/* <SesionActiva sesion={sesionActiva} /> */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="font-bold text-blue-900 mb-2">
-                  Sesión: {sesionActiva.nombreCaja}
-                </h3>
-                <p className="text-sm text-blue-700">
-                  Empleado: {sesionActiva.empleadoAperturaNombre}
-                </p>
-                <p className="text-sm text-blue-700">
-                  Monto Inicial: €{sesionActiva.montoInicial.toFixed(2)}
-                </p>
-                <p className="text-sm text-blue-700">
-                  Total Ventas: {sesionActiva.totalVentas}
-                </p>
-                <p className="text-sm font-bold text-blue-900 mt-2">
-                  Total Ingresos: €{sesionActiva.totalIngresos.toFixed(2)}
-                </p>
+        <div className="space-y-6">
+          {/* Métricas Principales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Total Ingresos */}
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+              <div className="flex items-center justify-between mb-2">
+                <DollarSign className="h-8 w-8 opacity-80" />
+                <span className="text-sm font-semibold bg-white/20 px-3 py-1 rounded-full">
+                  EN VIVO
+                </span>
               </div>
-              <TicketActual
-                items={carrito}
-                onCantidadChange={handleCantidadChange}
-                onEliminarItem={handleEliminarItem}
-                onLimpiarCarrito={handleLimpiarCarrito}
-                onCobrar={handleCobrar}
-                isProcessing={crearVentaMutation.isPending}
-              />
+              <p className="text-sm font-medium opacity-90">Total Ingresos</p>
+              <p className="text-4xl font-bold mt-2">{formatCurrency(sesionActiva.totalIngresos)}</p>
+              <p className="text-xs opacity-75 mt-2">Monto Inicial: {formatCurrency(sesionActiva.montoInicial)}</p>
+            </div>
+
+            {/* Total Ventas */}
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+              <div className="flex items-center justify-between mb-2">
+                <ShoppingBag className="h-8 w-8 opacity-80" />
+                <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+              </div>
+              <p className="text-sm font-medium opacity-90">Total Ventas</p>
+              <p className="text-4xl font-bold mt-2">{sesionActiva.totalVentas}</p>
+              <p className="text-xs opacity-75 mt-2">Tickets procesados</p>
+            </div>
+
+            {/* Ticket Promedio */}
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+              <div className="flex items-center justify-between mb-2">
+                <TrendingUp className="h-8 w-8 opacity-80" />
+              </div>
+              <p className="text-sm font-medium opacity-90">Ticket Promedio</p>
+              <p className="text-4xl font-bold mt-2">
+                {sesionActiva.totalVentas > 0
+                  ? formatCurrency(sesionActiva.totalIngresos / sesionActiva.totalVentas)
+                  : formatCurrency(0)
+                }
+              </p>
+              <p className="text-xs opacity-75 mt-2">Por transacción</p>
+            </div>
+
+            {/* Tiempo Activo */}
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
+              <div className="flex items-center justify-between mb-2">
+                <Clock className="h-8 w-8 opacity-80" />
+              </div>
+              <p className="text-sm font-medium opacity-90">Sesión Activa</p>
+              <p className="text-2xl font-bold mt-2">{sesionActiva.nombreCaja}</p>
+              <p className="text-xs opacity-75 mt-2">
+                Desde: {formatDateTime(sesionActiva.fechaApertura)}
+              </p>
             </div>
           </div>
 
-          {/* Columna derecha: Grid de productos */}
-          <div className="lg:col-span-8">
-            <ProductoGrid onProductoClick={handleProductoClick} />
+          {/* Información de Sesión y Últimas Ventas */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Info de Sesión */}
+            <div className="bg-white rounded-xl shadow-md p-6 border-2 border-blue-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Información de Sesión</h3>
+                  <p className="text-sm text-gray-600">Detalles operativos</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-600">Nombre:</span>
+                  <span className="font-semibold text-gray-900">{sesionActiva.nombreCaja}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-600">Empleado:</span>
+                  <span className="font-semibold text-gray-900">{sesionActiva.empleadoAperturaNombre}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-sm text-gray-600">Estado:</span>
+                  <span className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    ACTIVA
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-gray-600">Apertura:</span>
+                  <span className="font-semibold text-gray-900">{formatDateTime(sesionActiva.fechaApertura)}</span>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
+                  <p className="text-xs text-gray-600 mb-1">Efectivo esperado en caja</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {formatCurrency(sesionActiva.montoInicial + sesionActiva.totalIngresos)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Últimas Ventas */}
+            <div className="lg:col-span-2 bg-white rounded-xl shadow-md p-6 border-2 border-gray-100">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <Activity className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">Últimas Ventas</h3>
+                    <p className="text-sm text-gray-600">Actualización en tiempo real</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-gray-600">En vivo</span>
+                </div>
+              </div>
+
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {ultimasVentas && ultimasVentas.length > 0 ? (
+                  ultimasVentas.map((venta: any) => (
+                    <div
+                      key={venta.id}
+                      className="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <ShoppingBag className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">
+                            Ticket #{venta.numeroTicket}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {venta.empleadoNombre}
+                            {venta.sesionCajaNombre && (
+                              <span className="text-blue-600 font-medium"> • {venta.sesionCajaNombre}</span>
+                            )}
+                            {' • '}{formatDateTime(venta.fecha)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-gray-900">
+                          {formatCurrency(venta.total)}
+                        </p>
+                        <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
+                          venta.metodoPago === 'EFECTIVO' ? 'bg-green-100 text-green-800' :
+                          venta.metodoPago === 'TARJETA' ? 'bg-blue-100 text-blue-800' :
+                          'bg-purple-100 text-purple-800'
+                        }`}>
+                          {venta.metodoPago}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-12 text-gray-500">
+                    <ShoppingBag className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                    <p>Aún no hay ventas registradas</p>
+                    <p className="text-sm mt-1">Las ventas aparecerán aquí en tiempo real</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Nota informativa */}
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Activity className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <h4 className="font-bold text-blue-900 mb-2">💡 Panel de Gestión</h4>
+                <p className="text-blue-800 text-sm">
+                  Este panel está diseñado para <strong>monitoreo y gestión</strong> de sesiones de caja.
+                  Para realizar ventas, utiliza el <strong>Terminal POS Standalone</strong> en el dispositivo físico de caja.
+                </p>
+                <div className="mt-4 flex gap-3">
+                  <a
+                    href="/pos-terminal/standalone"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    🖥️ Abrir Terminal POS
+                  </a>
+                  <a
+                    href="/dispositivos-pos"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-blue-600 border-2 border-blue-200 rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    ⚙️ Gestionar Dispositivos
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

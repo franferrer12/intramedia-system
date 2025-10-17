@@ -1,5 +1,6 @@
-import { FC, useEffect } from 'react';
+import { FC } from 'react';
 import { useDeviceAuth } from '../../../hooks/useDeviceAuth';
+import { useHeartbeat } from '../../../hooks/useHeartbeat';
 import { POSStandaloneLogin } from './POSStandaloneLogin';
 import { POSStandaloneTerminal } from './POSStandaloneTerminal';
 
@@ -15,19 +16,14 @@ export const StandalonePOSPage: FC = () => {
     login,
     logout,
     setDeviceUuid,
-    sendHeartbeat,
   } = useDeviceAuth();
 
-  // Heartbeat cada 5 minutos para mantener la sesión activa
-  useEffect(() => {
-    if (!isAuthenticated || !deviceData) return;
-
-    const interval = setInterval(() => {
-      sendHeartbeat();
-    }, 5 * 60 * 1000); // 5 minutos
-
-    return () => clearInterval(interval);
-  }, [isAuthenticated, deviceData, sendHeartbeat]);
+  // Hook de heartbeat - envía pings cada 30 segundos cuando está autenticado
+  useHeartbeat(
+    deviceData?.id || 0,
+    isAuthenticated && !!deviceData,
+    30000 // 30 segundos
+  );
 
   // Mostrar loader inicial
   if (isLoading) {

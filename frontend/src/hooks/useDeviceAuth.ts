@@ -5,6 +5,8 @@ const DEVICE_UUID_KEY = 'device_uuid';
 const DEVICE_TOKEN_KEY = 'device_token';
 const DEVICE_DATA_KEY = 'device_data';
 const DEVICE_CONFIG_KEY = 'device_config';
+const DEVICE_TOKEN_EXPIRES_KEY = 'device_token_expires_at';
+const DEVICE_CONFIG_LAST_UPDATE_KEY = 'device_config_last_update';
 
 export interface DeviceAuthState {
   isAuthenticated: boolean;
@@ -14,6 +16,7 @@ export interface DeviceAuthState {
   deviceConfig: ConfiguracionPOS | null;
   isLoading: boolean;
   error: string | null;
+  tokenExpiresAt: number | null;
 }
 
 export const useDeviceAuth = () => {
@@ -25,26 +28,73 @@ export const useDeviceAuth = () => {
     deviceConfig: null,
     isLoading: true,
     error: null,
+    tokenExpiresAt: null,
   });
 
   // Cargar datos del dispositivo desde localStorage al inicio
   useEffect(() => {
-    const loadDeviceData = () => {
+    const loadDeviceData = async () => {
       try {
         const uuid = localStorage.getItem(DEVICE_UUID_KEY);
         const token = localStorage.getItem(DEVICE_TOKEN_KEY);
         const dataStr = localStorage.getItem(DEVICE_DATA_KEY);
         const configStr = localStorage.getItem(DEVICE_CONFIG_KEY);
+        const expiresAtStr = localStorage.getItem(DEVICE_TOKEN_EXPIRES_KEY);
+
+        // Verificar expiración del token
+        if (expiresAtStr) {
+          const expiresAt = parseInt(expiresAtStr);
+          if (Date.now() >= expiresAt) {
+            console.warn('⚠️ Token de dispositivo expirado. Requiere nuevo login.');
+            // Limpiar datos expirados
+            localStorage.removeItem(DEVICE_TOKEN_KEY);
+            localStorage.removeItem(DEVICE_DATA_KEY);
+            localStorage.removeItem(DEVICE_CONFIG_KEY);
+            localStorage.removeItem(DEVICE_TOKEN_EXPIRES_KEY);
+            localStorage.removeItem(DEVICE_CONFIG_LAST_UPDATE_KEY);
+            setState(prev => ({ ...prev, isLoading: false }));
+            return;
+          }
+        }
 
         if (uuid && token && dataStr && configStr) {
+          const deviceData = JSON.parse(dataStr);
+          let deviceConfig = JSON.parse(configStr);
+
+          // ✅ FIX: Si la configuración no tiene productos, recargarla desde el API
+          if (!deviceConfig.productosPrecargados || deviceConfig.productosPrecargados.length === 0) {
+            const lastUpdateStr = localStorage.getItem(DEVICE_CONFIG_LAST_UPDATE_KEY);
+            const lastUpdate = lastUpdateStr ? parseInt(lastUpdateStr) : 0;
+            const oneHourAgo = Date.now() - (60 * 60 * 1000);
+
+            // Solo recargar si han pasado más de 1 hora desde la última actualización
+            if (lastUpdate < oneHourAgo) {
+              console.log('⚠️ Configuración sin productos detectada. Recargando desde API...');
+              try {
+                const fullConfig = await dispositivosPosApi.obtenerConfiguracion(deviceData.id);
+                deviceConfig = fullConfig;
+                // Actualizar localStorage con la configuración completa y timestamp
+                localStorage.setItem(DEVICE_CONFIG_KEY, JSON.stringify(fullConfig));
+                localStorage.setItem(DEVICE_CONFIG_LAST_UPDATE_KEY, Date.now().toString());
+                console.log('✅ Configuración recargada:', fullConfig.productosPrecargados?.length || 0, 'productos');
+              } catch (error) {
+                console.error('❌ Error recargando configuración:', error);
+                // Continuar con la configuración existente aunque esté incompleta
+              }
+            } else {
+              console.log('ℹ️ Configuración cacheada reciente (menos de 1 hora), omitiendo recarga');
+            }
+          }
+
           setState({
             isAuthenticated: true,
             deviceUuid: uuid,
             deviceToken: token,
-            deviceData: JSON.parse(dataStr),
-            deviceConfig: JSON.parse(configStr),
+            deviceData,
+            deviceConfig,
             isLoading: false,
             error: null,
+            tokenExpiresAt: expiresAtStr ? parseInt(expiresAtStr) : null,
           });
         } else {
           setState(prev => ({ ...prev, isLoading: false }));
@@ -64,11 +114,16 @@ export const useDeviceAuth = () => {
     try {
       const response = await dispositivosPosApi.autenticarConPIN(uuid, pin);
 
+      // Calcular timestamp de expiración (30 días para tokens de dispositivo)
+      const expiresAt = Date.now() + (30 * 24 * 60 * 60 * 1000);
+
       // Guardar en localStorage
       localStorage.setItem(DEVICE_UUID_KEY, uuid);
       localStorage.setItem(DEVICE_TOKEN_KEY, response.token);
       localStorage.setItem(DEVICE_DATA_KEY, JSON.stringify(response.dispositivo));
       localStorage.setItem(DEVICE_CONFIG_KEY, JSON.stringify(response.configuracion));
+      localStorage.setItem(DEVICE_TOKEN_EXPIRES_KEY, expiresAt.toString());
+      localStorage.setItem(DEVICE_CONFIG_LAST_UPDATE_KEY, Date.now().toString());
 
       setState({
         isAuthenticated: true,
@@ -78,6 +133,7 @@ export const useDeviceAuth = () => {
         deviceConfig: response.configuracion,
         isLoading: false,
         error: null,
+        tokenExpiresAt: expiresAt,
       });
 
       return true;
@@ -97,6 +153,8 @@ export const useDeviceAuth = () => {
     localStorage.removeItem(DEVICE_TOKEN_KEY);
     localStorage.removeItem(DEVICE_DATA_KEY);
     localStorage.removeItem(DEVICE_CONFIG_KEY);
+    localStorage.removeItem(DEVICE_TOKEN_EXPIRES_KEY);
+    localStorage.removeItem(DEVICE_CONFIG_LAST_UPDATE_KEY);
 
     setState({
       isAuthenticated: false,
@@ -106,6 +164,7 @@ export const useDeviceAuth = () => {
       deviceConfig: null,
       isLoading: false,
       error: null,
+      tokenExpiresAt: null,
     });
   };
 
@@ -120,6 +179,7 @@ export const useDeviceAuth = () => {
     try {
       const config = await dispositivosPosApi.obtenerConfiguracion(state.deviceData.id);
       localStorage.setItem(DEVICE_CONFIG_KEY, JSON.stringify(config));
+      localStorage.setItem(DEVICE_CONFIG_LAST_UPDATE_KEY, Date.now().toString());
       setState(prev => ({ ...prev, deviceConfig: config }));
     } catch (error) {
       console.error('Error refreshing config:', error);

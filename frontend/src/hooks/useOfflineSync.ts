@@ -44,11 +44,26 @@ export const useOfflineSync = (dispositivoId: number | null, isOnline: boolean) 
     if (!dispositivoId) return false;
 
     try {
+      // ⚠️ VALIDACIÓN CRÍTICA: Verificar que los montos no sean undefined
+      // Si son undefined, significa que es una venta antigua corrupta que debe eliminarse
+      if (venta.montoEfectivo === undefined || venta.montoTarjeta === undefined) {
+        console.error('❌ Venta corrupta detectada (montos undefined):', venta.uuid);
+
+        // Eliminar venta corrupta de IndexedDB
+        if (venta.id) {
+          await deleteVentaPendiente(venta.id);
+          console.log('🗑️ Venta corrupta eliminada:', venta.uuid);
+        }
+
+        return false; // No intentar sincronizar
+      }
+
       // Convert to API format
       const ventaAPI: VentaOffline = {
         uuidVenta: venta.uuid,
         datosVenta: {
           timestamp: venta.timestamp,
+          fechaVenta: venta.fechaVenta, // ⭐ Real sale creation time (ISO string)
           items: venta.items.map(item => ({
             productoId: item.productoId,
             cantidad: item.cantidad,
@@ -56,14 +71,32 @@ export const useOfflineSync = (dispositivoId: number | null, isOnline: boolean) 
           })),
           total: venta.total,
           metodoPago: venta.metodoPago,
+          montoEfectivo: venta.montoEfectivo,
+          montoTarjeta: venta.montoTarjeta,
         },
       };
 
+      console.log('📤 Sincronizando venta:', {
+        uuid: venta.uuid,
+        total: venta.total,
+        metodoPago: venta.metodoPago,
+        montoEfectivo: venta.montoEfectivo,
+        montoTarjeta: venta.montoTarjeta,
+      });
+
       // Send to API
+      console.log('🌐 Enviando petición al backend...', {
+        dispositivoId,
+        ventaUUID: venta.uuid,
+        payload: ventaAPI
+      });
+
       const resultado = await dispositivosPosApi.sincronizarVentasOffline(
         [ventaAPI],
         dispositivoId
       );
+
+      console.log('📥 Respuesta del backend:', JSON.stringify(resultado, null, 2));
 
       if (resultado.length > 0 && resultado[0].exitoso) {
         // Delete from IndexedDB on success
@@ -84,11 +117,18 @@ export const useOfflineSync = (dispositivoId: number | null, isOnline: boolean) 
       }
     } catch (error: any) {
       // Update retry info on exception
+      console.error('❌ Error al sincronizar venta:', {
+        uuid: venta.uuid,
+        error: error.message,
+        stack: error.stack,
+        response: error.response?.data
+      });
+
       if (venta.id) {
         await updateVentaPendiente(venta.id, {
           intentosSincronizacion: venta.intentosSincronizacion + 1,
           ultimoIntento: Date.now(),
-          error: error.message || 'Error de red',
+          error: error.response?.data?.message || error.message || 'Error de red',
         });
       }
       return false;
@@ -100,14 +140,17 @@ export const useOfflineSync = (dispositivoId: number | null, isOnline: boolean) 
    */
   const syncAllPending = useCallback(async (): Promise<void> => {
     if (!isOnline || !dispositivoId || isSyncingRef.current) {
+      console.log('⏸️ Sync pausado:', { isOnline, dispositivoId, isSyncing: isSyncingRef.current });
       return;
     }
 
+    console.log('🔄 Iniciando sync automático...');
     isSyncingRef.current = true;
     setState(prev => ({ ...prev, isSyncing: true, syncErrors: [] }));
 
     try {
       const ventas = await getVentasPendientes();
+      console.log(`📦 Ventas pendientes encontradas: ${ventas.length}`);
       const errors: string[] = [];
 
       for (const venta of ventas) {
@@ -137,6 +180,7 @@ export const useOfflineSync = (dispositivoId: number | null, isOnline: boolean) 
 
       // Update pending count
       const count = await getVentasPendientesCount();
+      console.log(`✅ Sync completado. Pendientes: ${count}, Errores: ${errors.length}`);
 
       setState(prev => ({
         ...prev,
@@ -188,14 +232,18 @@ export const useOfflineSync = (dispositivoId: number | null, isOnline: boolean) 
         clearInterval(syncIntervalRef.current);
         syncIntervalRef.current = null;
       }
+      console.log('⏹️ Sync interval detenido (offline o sin dispositivo)');
       return;
     }
+
+    console.log(`🔁 Sync automático activado (cada ${SYNC_INTERVAL/1000}s) para dispositivo ID=${dispositivoId}`);
 
     // Initial sync when coming online
     syncAllPending();
 
     // Setup interval
     syncIntervalRef.current = setInterval(() => {
+      console.log('⏰ Ejecutando sync programado...');
       syncAllPending();
     }, SYNC_INTERVAL);
 

@@ -70,12 +70,6 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
         }
       }
 
-      // F2 = Abrir Terminal POS
-      if (e.key === 'F2') {
-        e.preventDefault();
-        navigate('/pos-terminal');
-      }
-
       // Esc = Cerrar modales
       if (e.key === 'Escape') {
         setSearchOpen(false);
@@ -98,7 +92,6 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
       title: 'Ventas y Finanzas',
       items: [
         { name: 'Panel Gestión POS', href: '/pos', icon: Monitor },
-        { name: 'Terminal POS', href: '/pos-terminal', icon: ShoppingCart },
         { name: 'Dashboard POS', href: '/pos-dashboard', icon: BarChart3 },
         { name: 'Dispositivos POS', href: '/dispositivos-pos', icon: Smartphone },
         { name: 'Sesiones de Caja', href: '/sesiones', icon: ClipboardList },

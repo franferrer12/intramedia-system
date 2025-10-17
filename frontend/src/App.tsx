@@ -24,7 +24,6 @@ import RoiDashboardPage from './pages/activos-fijos/RoiDashboardPage';
 import PosPage from './pages/pos/PosPage';
 import SesionesPage from './pages/pos/SesionesPage';
 import { POSDashboardPage } from './pages/pos/POSDashboardPage';
-import POSTerminalPage from './pages/pos/POSTerminalPage';
 import MonitorSesionesPage from './pages/pos/MonitorSesionesPage';
 import { AyudaPage } from './pages/ayuda/AyudaPage';
 import { NovedadesPage } from './pages/ayuda/NovedadesPage';
@@ -76,7 +75,6 @@ function App() {
           <Route path="/inversiones" element={<ProtectedRoute><MainLayout><InversionesPage /></MainLayout></ProtectedRoute>} />
           <Route path="/roi" element={<ProtectedRoute><MainLayout><RoiDashboardPage /></MainLayout></ProtectedRoute>} />
           <Route path="/pos" element={<ProtectedRoute><MainLayout><PosPage /></MainLayout></ProtectedRoute>} />
-          <Route path="/pos-terminal" element={<ProtectedRoute><MainLayout><POSTerminalPage /></MainLayout></ProtectedRoute>} />
           <Route path="/pos-monitor" element={<ProtectedRoute><MainLayout><MonitorSesionesPage /></MainLayout></ProtectedRoute>} />
           <Route path="/sesiones" element={<ProtectedRoute><MainLayout><SesionesPage /></MainLayout></ProtectedRoute>} />
           <Route path="/pos-dashboard" element={<ProtectedRoute><MainLayout><POSDashboardPage /></MainLayout></ProtectedRoute>} />

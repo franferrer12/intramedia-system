@@ -5,12 +5,14 @@ import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.stream.Collectors;
 
 /**
  * Proveedor de tokens JWT
@@ -28,14 +30,31 @@ public class JwtTokenProvider {
 
     /**
      * Genera un token JWT para el usuario autenticado
+     * INCLUYE las authorities/roles del usuario en el token
      */
     public String generateToken(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return generateTokenFromUsername(userDetails.getUsername());
+
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpiration);
+
+        // Extraer roles/authorities del usuario
+        String authorities = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+
+        return Jwts.builder()
+                .setSubject(userDetails.getUsername())
+                .claim("authorities", authorities)  // ← AGREGADO: authorities en el token
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .compact();
     }
 
     /**
-     * Genera un token JWT desde el username
+     * Genera un token JWT para un dispositivo POS
+     * Los dispositivos POS obtienen el rol ROLE_POS_DEVICE automáticamente
      */
     public String generateTokenFromUsername(String username) {
         Date now = new Date();
@@ -43,6 +62,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .setSubject(username)
+                .claim("authorities", "ROLE_POS_DEVICE")  // ← AGREGADO: rol para dispositivos POS
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)

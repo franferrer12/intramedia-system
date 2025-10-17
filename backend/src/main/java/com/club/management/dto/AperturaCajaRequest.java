@@ -2,7 +2,7 @@ package com.club.management.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,7 +26,7 @@ public class AperturaCajaRequest {
     private Long empleadoAperturaId;
 
     @NotNull(message = "El monto inicial es obligatorio")
-    @Positive(message = "El monto inicial debe ser mayor a 0")
+    @PositiveOrZero(message = "El monto inicial no puede ser negativo")
     private BigDecimal montoInicial;
 
     private String observaciones;

@@ -1,36 +1,70 @@
 #!/bin/bash
-set -e
 
-echo "🚀 Starting Club Management Backend..."
-echo "📂 Current directory: $(pwd)"
+# Script de inicio del proyecto Club Management
+# Muestra enlaces clicables y arranca los servicios
 
-# Buscar el JAR file en diferentes ubicaciones posibles
-JAR_FILE=""
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║          🎵 Club Management System - Inicio                    ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
 
-if [ -f "backend/target/"*.jar ]; then
-    JAR_FILE=$(find backend/target -name "*.jar" -type f | grep -v "original" | head -n 1)
-elif [ -f "target/"*.jar ]; then
-    JAR_FILE=$(find target -name "*.jar" -type f | grep -v "original" | head -n 1)
-elif [ -f "../backend/target/"*.jar ]; then
-    JAR_FILE=$(find ../backend/target -name "*.jar" -type f | grep -v "original" | head -n 1)
-else
-    # Búsqueda recursiva como último recurso
-    JAR_FILE=$(find . -name "*.jar" -type f | grep -v "original" | grep target | head -n 1)
-fi
-
-if [ -z "$JAR_FILE" ]; then
-    echo "❌ Error: No JAR file found!"
-    echo "📂 Searching in: $(pwd)"
-    echo "🔍 Available files:"
-    find . -name "*.jar" -type f 2>/dev/null || echo "No JAR files found"
+# Verificar que Docker esté corriendo
+if ! docker info > /dev/null 2>&1; then
+    echo "❌ Error: Docker no está corriendo. Por favor, inicia Docker Desktop."
     exit 1
 fi
 
-echo "📦 Found JAR: $JAR_FILE"
-echo "🌐 Server will start on port: ${PORT:-8080}"
+echo "🚀 Iniciando servicios..."
+echo ""
 
-# Iniciar la aplicación
-java -Dserver.port=${PORT:-8080} \
-     -Xmx512m \
-     -Xms256m \
-     -jar "$JAR_FILE"
+# Iniciar servicios en Docker
+docker-compose up -d
+
+echo ""
+echo "⏳ Esperando que los servicios estén listos..."
+sleep 5
+
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║                   ✅ Servicios Iniciados                       ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "📍 Accede a las siguientes URLs:"
+echo ""
+echo "   🖥️  Frontend (App Principal):"
+echo "   👉 http://localhost:5173"
+echo "   👉 http://localhost:5173/pos              (Punto de Venta)"
+echo "   👉 http://localhost:5173/login            (Login)"
+echo ""
+echo "   📱 Terminal POS Standalone:"
+echo "   👉 http://localhost:5173/pos-terminal/pair       (Vincular Dispositivo)"
+echo "   👉 http://localhost:5173/pos-terminal/standalone (Terminal POS)"
+echo ""
+echo "   🔧 Backend (API):"
+echo "   👉 http://localhost:8080/actuator/health         (Health Check)"
+echo "   👉 http://localhost:8080/swagger-ui/index.html   (API Docs)"
+echo ""
+echo "   🗄️  Base de Datos PostgreSQL:"
+echo "   📊 Host: localhost:5432"
+echo "   👤 User: club_admin"
+echo "   🔑 DB: club_management"
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║                   🔐 Credenciales por defecto                  ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "   Usuario: admin"
+echo "   Password: admin123"
+echo ""
+echo "╔════════════════════════════════════════════════════════════════╗"
+echo "║                   📝 Comandos útiles                           ║"
+echo "╚════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "   Ver logs:           docker-compose logs -f"
+echo "   Ver logs backend:   docker-compose logs -f backend"
+echo "   Detener servicios:  docker-compose down"
+echo "   Reiniciar:          docker-compose restart"
+echo ""
+echo "¡Listo para usar! 🎉"
+echo ""

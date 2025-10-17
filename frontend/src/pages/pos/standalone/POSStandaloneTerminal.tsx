@@ -6,6 +6,8 @@ import { DispositivoPOS, ConfiguracionPOS } from '../../../api/dispositivos-pos.
 import { useOfflineSync } from '../../../hooks/useOfflineSync';
 import { addVentaPendiente, VentaOfflineDB } from '../../../utils/offlineDB';
 import { EmpleadoQuickSelect } from './EmpleadoQuickSelect';
+import { PaymentMethodModal } from './PaymentMethodModal';
+import '../../../utils/debugIndexedDB'; // Habilitar funciones de debug
 
 interface POSStandaloneTerminalProps {
   dispositivo: DispositivoPOS;
@@ -18,8 +20,8 @@ interface ProductoDTO {
   id: number;
   nombre: string;
   categoria: string;
-  precio: number;
-  stock?: number;
+  precioVenta?: number;  // Backend usa precioVenta, no precio
+  stockActual?: number;  // Backend usa stockActual, no stock
   activo: boolean;
 }
 
@@ -39,6 +41,8 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showEmpleadoSelector, setShowEmpleadoSelector] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [pendingEmpleadoData, setPendingEmpleadoData] = useState<{empleadoId?: number, empleadoNombre?: string} | null>(null);
 
   // Hook de sincronización offline
   const { isSyncing, pendingCount, triggerSync, updatePendingCount } = useOfflineSync(
@@ -109,7 +113,7 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
       return [...prev, {
         producto,
         cantidad: 1,
-        precioUnitario: producto.precio,
+        precioUnitario: producto.precioVenta ?? 0,
       }];
     });
   };
@@ -136,23 +140,73 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
 
   const handleEmpleadoSelect = (empleadoId: number, empleadoNombre: string) => {
     setShowEmpleadoSelector(false);
-    // Procesar venta con el empleado seleccionado
-    procesarVenta(empleadoId, empleadoNombre);
+    // Guardar datos del empleado y mostrar modal de pago
+    setPendingEmpleadoData({ empleadoId, empleadoNombre });
+    setShowPaymentModal(true);
   };
 
   const handleEmpleadoCancel = () => {
     setShowEmpleadoSelector(false);
+    setPendingEmpleadoData(null);
   };
 
-  const procesarVenta = async (empleadoId?: number, empleadoNombre?: string) => {
+  const handlePaymentConfirm = (
+    metodoPago: 'EFECTIVO' | 'TARJETA' | 'MIXTO',
+    montoEfectivo?: number,
+    montoTarjeta?: number
+  ) => {
+    setShowPaymentModal(false);
+    // Procesar venta con método de pago seleccionado
+    procesarVenta(
+      metodoPago,
+      montoEfectivo,
+      montoTarjeta,
+      pendingEmpleadoData?.empleadoId,
+      pendingEmpleadoData?.empleadoNombre
+    );
+    setPendingEmpleadoData(null);
+  };
+
+  const handlePaymentCancel = () => {
+    setShowPaymentModal(false);
+    setPendingEmpleadoData(null);
+  };
+
+  const iniciarCobro = () => {
     if (carrito.length === 0) {
       toast.error('El carrito está vacío');
       return;
     }
 
-    // Si está en modo tablet compartida y no hay empleado seleccionado, mostrar selector
-    if (configuracion.modoTabletCompartida && !empleadoId) {
+    // Mostrar selector si: NO hay empleado asignado O está en modo tablet compartida
+    if (!dispositivo.empleadoAsignadoId || configuracion.modoTabletCompartida) {
+      // Verificar que hay empleados disponibles para seleccionar
+      if (!configuracion.empleadosActivos || configuracion.empleadosActivos.length === 0) {
+        toast.error('No hay empleados disponibles', {
+          description: 'Debe asignar empleados al dispositivo o activar empleados en el sistema',
+        });
+        return;
+      }
       setShowEmpleadoSelector(true);
+    } else {
+      // Solo usar empleado asignado si existe y no es modo compartida
+      setPendingEmpleadoData({
+        empleadoId: dispositivo.empleadoAsignadoId,
+        empleadoNombre: dispositivo.empleadoAsignadoNombre,
+      });
+      setShowPaymentModal(true);
+    }
+  };
+
+  const procesarVenta = async (
+    metodoPago: 'EFECTIVO' | 'TARJETA' | 'MIXTO',
+    montoEfectivo?: number,
+    montoTarjeta?: number,
+    empleadoId?: number,
+    empleadoNombre?: string
+  ) => {
+    if (carrito.length === 0) {
+      toast.error('El carrito está vacío');
       return;
     }
 
@@ -167,6 +221,7 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
         uuid,
         dispositivoId: dispositivo.id,
         timestamp: Date.now(),
+        fechaVenta: new Date().toISOString(), // ⭐ ISO timestamp for real sale creation time
         items: carrito.map(item => ({
           productoId: item.producto.id,
           productoNombre: item.producto.nombre,
@@ -175,7 +230,9 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
           subtotal: item.cantidad * item.precioUnitario,
         })),
         total,
-        metodoPago: 'EFECTIVO', // Por defecto
+        metodoPago,
+        montoEfectivo,
+        montoTarjeta,
         empleadoId: empleadoId,
         empleadoNombre: empleadoNombre,
         sincronizada: false,
@@ -317,9 +374,9 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
                 <button
                   key={producto.id}
                   onClick={() => agregarAlCarrito(producto)}
-                  disabled={!producto.activo || (producto.stock !== undefined && producto.stock <= 0)}
+                  disabled={!producto.activo || (producto.stockActual !== undefined && producto.stockActual <= 0)}
                   className={`bg-white p-4 rounded-lg shadow hover:shadow-lg transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed ${
-                    !producto.activo || (producto.stock && producto.stock <= 0)
+                    !producto.activo || (producto.stockActual && producto.stockActual <= 0)
                       ? 'bg-gray-100'
                       : 'hover:scale-105'
                   }`}
@@ -330,15 +387,15 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
                   <p className="text-sm text-gray-500 mb-2">{producto.categoria}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-bold text-blue-600">
-                      {producto.precio.toFixed(2)}€
+                      {(producto.precioVenta ?? 0).toFixed(2)}€
                     </span>
-                    {producto.stock !== undefined && producto.stock !== null && (
+                    {producto.stockActual !== undefined && producto.stockActual !== null && (
                       <span className={`text-xs ${
-                        producto.stock > 10 ? 'text-green-600' :
-                        producto.stock > 0 ? 'text-orange-600' :
+                        producto.stockActual > 10 ? 'text-green-600' :
+                        producto.stockActual > 0 ? 'text-orange-600' :
                         'text-red-600'
                       }`}>
-                        Stock: {producto.stock}
+                        Stock: {producto.stockActual}
                       </span>
                     )}
                   </div>
@@ -413,7 +470,7 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
             {/* Botones de Acción */}
             <div className="space-y-2">
               <Button
-                onClick={() => procesarVenta()}
+                onClick={iniciarCobro}
                 disabled={carrito.length === 0 || isProcessing}
                 variant="primary"
                 className="w-full h-12 text-lg font-semibold"
@@ -476,6 +533,16 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
           empleados={configuracion.empleadosActivos}
           onSelect={handleEmpleadoSelect}
           onCancel={handleEmpleadoCancel}
+        />
+      )}
+
+      {/* Modal de método de pago */}
+      {showPaymentModal && (
+        <PaymentMethodModal
+          isOpen={showPaymentModal}
+          total={total}
+          onConfirm={handlePaymentConfirm}
+          onCancel={handlePaymentCancel}
         />
       )}
     </div>

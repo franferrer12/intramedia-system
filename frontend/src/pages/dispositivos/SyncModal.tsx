@@ -31,11 +31,15 @@ export const SyncModal: FC<SyncModalProps> = ({
   // Mutation para sincronizar manualmente
   const sincronizarMutation = useMutation({
     mutationFn: () => dispositivosPosApi.sincronizarVentasOffline(ventasPendientes, dispositivo.id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dispositivos-pos'] });
-      queryClient.invalidateQueries({ queryKey: ['ventas-pendientes', dispositivo.id] });
+    onSuccess: async () => {
+      // Invalidar queries para forzar refetch
+      await queryClient.invalidateQueries({ queryKey: ['dispositivos-pos'] });
+      await queryClient.invalidateQueries({ queryKey: ['ventas-pendientes', dispositivo.id] });
+
+      // Refetch inmediato para actualizar la UI
+      await refetchPendientes();
+
       toast.success('Sincronización completada');
-      refetchPendientes();
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Error al sincronizar');

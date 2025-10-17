@@ -1,4 +1,4 @@
-import { FC, useState, useEffect, useCallback } from 'react';
+import { FC, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Calendar, Users, Package, DollarSign, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -27,6 +27,15 @@ export const GlobalSearch: FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const navigate = useNavigate();
 
+  // Refs to avoid re-creating event handlers
+  const resultsRef = useRef<SearchResult[]>([]);
+  const selectedIndexRef = useRef(0);
+
+  useEffect(() => {
+    resultsRef.current = results;
+    selectedIndexRef.current = selectedIndex;
+  }, [results, selectedIndex]);
+
   // Fetch all data
   const { data: eventos = [] } = useQuery({
     queryKey: ['eventos'],
@@ -54,8 +63,14 @@ export const GlobalSearch: FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
 
   // Search logic
   useEffect(() => {
+    if (!isOpen) {
+      return; // Don't run search if modal is closed
+    }
+
     if (!searchTerm.trim()) {
-      setResults([]);
+      if (results.length > 0) {
+        setResults([]);
+      }
       return;
     }
 
@@ -139,39 +154,39 @@ export const GlobalSearch: FC<GlobalSearchProps> = ({ isOpen, onClose }) => {
 
     setResults(newResults);
     setSelectedIndex(0);
-  }, [searchTerm, eventos, empleados, productos, transacciones]);
+  }, [isOpen, searchTerm, eventos, empleados, productos, transacciones, results.length]);
 
   // Keyboard navigation
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+  useEffect(() => {
     if (!isOpen) return;
 
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex(prev => Math.min(prev + 1, results.length - 1));
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex(prev => Math.max(prev - 1, 0));
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (results[selectedIndex]) {
-          navigate(results[selectedIndex].route);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setSelectedIndex(prev => Math.min(prev + 1, resultsRef.current.length - 1));
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setSelectedIndex(prev => Math.max(prev - 1, 0));
+          break;
+        case 'Enter':
+          e.preventDefault();
+          if (resultsRef.current[selectedIndexRef.current]) {
+            navigate(resultsRef.current[selectedIndexRef.current].route);
+            onClose();
+          }
+          break;
+        case 'Escape':
+          e.preventDefault();
           onClose();
-        }
-        break;
-      case 'Escape':
-        e.preventDefault();
-        onClose();
-        break;
-    }
-  }, [isOpen, results, selectedIndex, navigate, onClose]);
+          break;
+      }
+    };
 
-  useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+  }, [isOpen, navigate, onClose]);
 
   // Focus input when opened
   useEffect(() => {

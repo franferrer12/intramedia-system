@@ -20,10 +20,12 @@ export const DispositivosPOSPage: FC = () => {
   const queryClient = useQueryClient();
 
   // Query para listar todos los dispositivos
-  const { data: dispositivos = [], isLoading } = useQuery({
+  const { data: dispositivos = [], isLoading, isFetching, refetch: refetchDispositivos } = useQuery({
     queryKey: ['dispositivos-pos'],
     queryFn: dispositivosPosApi.listarTodos,
-    refetchInterval: isModalOpen ? false : 10000, // Solo auto-refresh cuando el modal está cerrado
+    refetchInterval: isModalOpen ? false : 5000, // Refetch cada 5 segundos para actualizar estado de sync
+    staleTime: 2000, // Considerar datos obsoletos después de 2 segundos
+    refetchOnWindowFocus: true, // Refetch cuando la ventana recupera el foco
   });
 
   // Mutation para eliminar
@@ -64,6 +66,12 @@ export const DispositivosPOSPage: FC = () => {
     setIsSyncModalOpen(true);
   };
 
+  const handleSyncModalClose = () => {
+    setIsSyncModalOpen(false);
+    // Refetch dispositivos después de cerrar el modal de sync para mostrar datos actualizados
+    refetchDispositivos();
+  };
+
   const handlePairing = (dispositivo: DispositivoPOS) => {
     setSelectedDispositivo(dispositivo);
     setIsPairingModalOpen(true);
@@ -87,7 +95,11 @@ export const DispositivosPOSPage: FC = () => {
       return { estado: 'nunca', color: 'text-gray-400', icon: <WifiOff className="h-4 w-4" /> };
     }
 
-    const ultimaConexion = new Date(dispositivo.ultimaConexion);
+    // IMPORTANTE: El backend envía timestamps en UTC sin 'Z', forzar interpretación UTC
+    const timestamp = dispositivo.ultimaConexion.endsWith('Z')
+      ? dispositivo.ultimaConexion
+      : dispositivo.ultimaConexion + 'Z';
+    const ultimaConexion = new Date(timestamp);
     const ahora = new Date();
     const diferencia = ahora.getTime() - ultimaConexion.getTime();
     const minutos = Math.floor(diferencia / 60000);
@@ -106,7 +118,11 @@ export const DispositivosPOSPage: FC = () => {
       return { estado: 'nunca', color: 'text-gray-400', icon: <AlertTriangle className="h-4 w-4" /> };
     }
 
-    const ultimaSync = new Date(dispositivo.ultimaSincronizacion);
+    // IMPORTANTE: El backend envía timestamps en UTC sin 'Z', forzar interpretación UTC
+    const timestamp = dispositivo.ultimaSincronizacion.endsWith('Z')
+      ? dispositivo.ultimaSincronizacion
+      : dispositivo.ultimaSincronizacion + 'Z';
+    const ultimaSync = new Date(timestamp);
     const ahora = new Date();
     const diferencia = ahora.getTime() - ultimaSync.getTime();
     const minutos = Math.floor(diferencia / 60000);
@@ -132,14 +148,31 @@ export const DispositivosPOSPage: FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dispositivos POS</h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 mt-1 flex items-center gap-2">
             Gestiona los terminales de punto de venta del sistema
+            {isFetching && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                <RefreshCw className="h-3 w-3 animate-spin" />
+                Actualizando...
+              </span>
+            )}
           </p>
         </div>
-        <Button onClick={handleCreate} variant="primary">
-          <Plus className="h-5 w-5 mr-2" />
-          Registrar Dispositivo
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => refetchDispositivos()}
+            variant="outline"
+            className="text-gray-600 hover:text-gray-900"
+            disabled={isFetching}
+          >
+            <RefreshCw className={`h-5 w-5 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+          <Button onClick={handleCreate} variant="primary">
+            <Plus className="h-5 w-5 mr-2" />
+            Registrar Dispositivo
+          </Button>
+        </div>
       </div>
 
       {/* Estadísticas rápidas */}
@@ -293,10 +326,13 @@ export const DispositivosPOSPage: FC = () => {
                             </p>
                             {dispositivo.ultimaConexion && estadoConexion.estado !== 'nunca' && (
                               <p className="text-xs text-gray-400">
-                                {formatDistanceToNow(new Date(dispositivo.ultimaConexion), {
-                                  addSuffix: true,
-                                  locale: es,
-                                })}
+                                {formatDistanceToNow(
+                                  new Date(dispositivo.ultimaConexion.endsWith('Z') ? dispositivo.ultimaConexion : dispositivo.ultimaConexion + 'Z'),
+                                  {
+                                    addSuffix: true,
+                                    locale: es,
+                                  }
+                                )}
                               </p>
                             )}
                           </div>
@@ -312,10 +348,13 @@ export const DispositivosPOSPage: FC = () => {
                             </p>
                             {dispositivo.ultimaSincronizacion && estadoSync.estado !== 'nunca' && (
                               <p className="text-xs text-gray-400">
-                                {formatDistanceToNow(new Date(dispositivo.ultimaSincronizacion), {
-                                  addSuffix: true,
-                                  locale: es,
-                                })}
+                                {formatDistanceToNow(
+                                  new Date(dispositivo.ultimaSincronizacion.endsWith('Z') ? dispositivo.ultimaSincronizacion : dispositivo.ultimaSincronizacion + 'Z'),
+                                  {
+                                    addSuffix: true,
+                                    locale: es,
+                                  }
+                                )}
                               </p>
                             )}
                           </div>
@@ -409,7 +448,7 @@ export const DispositivosPOSPage: FC = () => {
       {isSyncModalOpen && selectedDispositivo && (
         <SyncModal
           isOpen={isSyncModalOpen}
-          onClose={() => setIsSyncModalOpen(false)}
+          onClose={handleSyncModalClose}
           dispositivo={selectedDispositivo}
         />
       )}

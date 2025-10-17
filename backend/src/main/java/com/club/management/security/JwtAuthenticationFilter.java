@@ -63,19 +63,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String username = tokenProvider.getUsernameFromToken(jwt);
                 logger.info("JWT Filter: Token valid, username: " + username);
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                logger.info("JWT Filter: User loaded, authorities: " + userDetails.getAuthorities());
+                // Check if this is a device token (UUID format: 8-4-4-4-12 hex characters)
+                // Device tokens contain the device UUID directly
+                if (isDeviceUUID(username)) {
+                    logger.info("JWT Filter: Device token detected for UUID: " + username);
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    // Create a simple authenticated token for devices
+                    // Devices don't need full UserDetails, just authentication
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    username,  // Principal is the device UUID
+                                    null,      // No credentials needed
+                                    java.util.Collections.singletonList(
+                                        new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_DEVICE")
+                                    )
+                            );
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                logger.info("JWT Filter: Authentication set in SecurityContext");
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    logger.info("JWT Filter: Device authentication set in SecurityContext");
+                } else {
+                    // Regular user authentication
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    logger.info("JWT Filter: User loaded, authorities: " + userDetails.getAuthorities());
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    logger.info("JWT Filter: Authentication set in SecurityContext");
+                }
             } else {
                 logger.warn("JWT Filter: Token validation failed or empty");
             }
@@ -95,5 +117,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return bearerToken.substring(7);
         }
         return null;
+    }
+
+    /**
+     * Verifica si un string es un UUID válido de dispositivo POS
+     * UUID format: 8-4-4-4-12 hex characters (ej: 0ff54a38-ee5f-45bf-850d-ec8c900698f4)
+     */
+    private boolean isDeviceUUID(String str) {
+        if (str == null || str.length() != 36) {
+            return false;
+        }
+        // UUID regex: 8 hex - 4 hex - 4 hex - 4 hex - 12 hex
+        return str.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
     }
 }

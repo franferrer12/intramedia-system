@@ -120,7 +120,7 @@ export default defineConfig({
         ]
       },
       devOptions: {
-        enabled: true,
+        enabled: false, // DESHABILITADO: Causaba problemas de cache en desarrollo
         type: 'module'
       }
     })

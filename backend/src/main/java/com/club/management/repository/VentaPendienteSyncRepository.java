@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface VentaPendienteSyncRepository extends JpaRepository<VentaPendienteSync, Long> {
@@ -17,6 +18,8 @@ public interface VentaPendienteSyncRepository extends JpaRepository<VentaPendien
     List<VentaPendienteSync> findBySincronizadaFalseAndProximoIntentoBefore(LocalDateTime fecha);
 
     boolean existsByUuidVentaAndSincronizadaTrue(String uuidVenta);
+
+    Optional<VentaPendienteSync> findByUuidVenta(String uuidVenta);
 
     @Query("SELECT v FROM VentaPendienteSync v WHERE v.dispositivo.id = :dispositivoId ORDER BY v.fechaCreacion DESC")
     List<VentaPendienteSync> findByDispositivoIdOrderByFechaDesc(@Param("dispositivoId") Long dispositivoId);

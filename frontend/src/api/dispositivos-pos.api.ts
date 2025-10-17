@@ -183,7 +183,9 @@ export const dispositivosPosApi = {
   },
 
   autenticarConPIN: async (uuid: string, pin: string): Promise<AuthDispositivoResponse> => {
-    const response = await axios.post('/auth/device/login', { uuid, pin });
+    const response = await axios.post('/auth/pos/login', null, {
+      params: { uuid, pin }
+    });
     return response.data;
   },
 
