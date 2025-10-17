@@ -16,7 +16,6 @@ import {
   ArrowRightLeft,
   Bell,
   Building2,
-  ShoppingCart,
   ClipboardList,
   Monitor,
   HelpCircle,
