@@ -204,14 +204,15 @@ public class PedidoService {
         try {
             // Buscar o crear categoría "Compras a Proveedores"
             CategoriaTransaccion categoriaCompras = categoriaTransaccionRepository
-                    .findByNombreAndTipo("Compras a Proveedores", CategoriaTransaccion.TipoTransaccion.GASTO)
-                    .orElseGet(() -> {
-                        CategoriaTransaccion nuevaCategoria = new CategoriaTransaccion();
-                        nuevaCategoria.setNombre("Compras a Proveedores");
-                        nuevaCategoria.setTipo(CategoriaTransaccion.TipoTransaccion.GASTO);
-                        nuevaCategoria.setDescripcion("Gastos por compras a proveedores");
-                        return categoriaTransaccionRepository.save(nuevaCategoria);
-                    });
+                    .findByNombreAndTipo("Compras a Proveedores", CategoriaTransaccion.TipoTransaccion.GASTO);
+
+            if (categoriaCompras == null) {
+                categoriaCompras = new CategoriaTransaccion();
+                categoriaCompras.setNombre("Compras a Proveedores");
+                categoriaCompras.setTipo(CategoriaTransaccion.TipoTransaccion.GASTO);
+                categoriaCompras.setDescripcion("Gastos por compras a proveedores");
+                categoriaCompras = categoriaTransaccionRepository.save(categoriaCompras);
+            }
 
             TransaccionRequest transaccionRequest = new TransaccionRequest();
             transaccionRequest.setTipo(TipoTransaccion.GASTO);
