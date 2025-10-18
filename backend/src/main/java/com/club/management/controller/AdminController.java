@@ -2,7 +2,7 @@ package com.club.management.controller;
 
 import com.club.management.dto.ConfiguracionSistemaDTO;
 import com.club.management.dto.SystemLogDTO;
-import com.club.management.dto.UsuarioDTO;
+import com.club.management.dto.response.UsuarioDTO;
 import com.club.management.entity.SystemLog;
 import com.club.management.service.ConfiguracionService;
 import com.club.management.service.SystemLogService;
