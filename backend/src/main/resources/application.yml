@@ -204,9 +204,11 @@ spring:
       on-profile: alpha
 
   datasource:
-    # Render proporciona DATABASE_URL en formato postgresql://...
-    # Spring necesita jdbc:postgresql://...
-    url: jdbc:${DATABASE_URL}
+    # Render usa DATABASE_URL pero está mal formado para JDBC
+    # Usar variables separadas como en producción
+    url: jdbc:postgresql://dpg-d3m3r6adbo4c73bi9bag-a.render.com:5432/club_management_qrey
+    username: ${DB_USER:club_admin}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
