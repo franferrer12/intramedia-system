@@ -204,11 +204,11 @@ public class PedidoService {
         try {
             // Buscar o crear categoría "Compras a Proveedores"
             CategoriaTransaccion categoriaCompras = categoriaTransaccionRepository
-                    .findByNombreAndTipo("Compras a Proveedores", TipoTransaccion.GASTO)
+                    .findByNombreAndTipo("Compras a Proveedores", CategoriaTransaccion.TipoTransaccion.GASTO)
                     .orElseGet(() -> {
                         CategoriaTransaccion nuevaCategoria = new CategoriaTransaccion();
                         nuevaCategoria.setNombre("Compras a Proveedores");
-                        nuevaCategoria.setTipo(TipoTransaccion.GASTO);
+                        nuevaCategoria.setTipo(CategoriaTransaccion.TipoTransaccion.GASTO);
                         nuevaCategoria.setDescripcion("Gastos por compras a proveedores");
                         return categoriaTransaccionRepository.save(nuevaCategoria);
                     });

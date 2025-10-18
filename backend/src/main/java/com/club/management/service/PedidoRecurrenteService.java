@@ -264,7 +264,7 @@ public class PedidoRecurrenteService {
         Pedido pedido = new Pedido();
         pedido.setProveedor(plantilla.getProveedor());
         pedido.setFechaPedido(LocalDateTime.now());
-        pedido.setEstado(Pedido.EstadoPedido.BORRADOR);
+        pedido.setEstado(EstadoPedido.BORRADOR);
         pedido.setObservaciones(plantilla.getObservaciones());
 
         // Convertir detalles JSON a entidades DetallePedido
@@ -273,7 +273,7 @@ public class PedidoRecurrenteService {
 
         // Calcular total
         BigDecimal total = detalles.stream()
-                .map(d -> d.getPrecioUnitario().multiply(BigDecimal.valueOf(d.getCantidad())))
+                .map(d -> d.getPrecioUnitario().multiply(d.getCantidad()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         pedido.setTotal(total);
 
