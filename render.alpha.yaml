@@ -1,6 +1,7 @@
 # Render Blueprint - Configuración para ALPHA (Staging)
 # Este archivo configura el entorno de pruebas antes de producción
 # Docs: https://render.com/docs/blueprint-spec
+# Auto-sync enabled - Last updated: 2025-10-18
 
 services:
   # Backend Alpha (Spring Boot)
