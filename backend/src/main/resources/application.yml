@@ -204,9 +204,9 @@ spring:
       on-profile: alpha
 
   datasource:
-    # Render usa DATABASE_URL pero está mal formado para JDBC
+    # Render internal network usa hostname corto sin .render.com
     # Usar variables separadas como en producción
-    url: jdbc:postgresql://dpg-d3m3r6adbo4c73bi9bag-a.render.com:5432/club_management_qrey
+    url: jdbc:postgresql://dpg-d3m3r6adbo4c73bi9bag-a:5432/club_management_qrey
     username: ${DB_USER:club_admin}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
