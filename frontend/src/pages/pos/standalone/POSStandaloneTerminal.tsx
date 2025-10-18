@@ -36,6 +36,8 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
   configuracion,
   onLogout,
 }) => {
+  console.log('🔴 RENDER POSStandaloneTerminal - Componente cargado con debug logs v2');
+
   const [carrito, setCarrito] = useState<CarritoItem[]>([]);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<string | null>(null);
@@ -43,6 +45,8 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
   const [showEmpleadoSelector, setShowEmpleadoSelector] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [pendingEmpleadoData, setPendingEmpleadoData] = useState<{empleadoId?: number, empleadoNombre?: string} | null>(null);
+
+  console.log('🔴 Estado actual pendingEmpleadoData:', pendingEmpleadoData);
 
   // Hook de sincronización offline
   const { isSyncing, pendingCount, triggerSync, updatePendingCount } = useOfflineSync(
@@ -139,9 +143,30 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
   };
 
   const handleEmpleadoSelect = (empleadoId: number, empleadoNombre: string) => {
+    console.log('🔵 Empleado seleccionado:', { empleadoId, empleadoNombre });
+
+    // ⭐ VALIDACIÓN: Verificar que empleadoId sea válido
+    if (!empleadoId || empleadoId <= 0) {
+      console.error('❌ ERROR: empleadoId inválido recibido:', empleadoId);
+      toast.error('Error al seleccionar empleado', {
+        description: 'ID de empleado inválido'
+      });
+      return;
+    }
+
+    if (!empleadoNombre || empleadoNombre.trim() === '') {
+      console.error('❌ ERROR: empleadoNombre vacío');
+      toast.error('Error al seleccionar empleado', {
+        description: 'Nombre de empleado inválido'
+      });
+      return;
+    }
+
     setShowEmpleadoSelector(false);
     // Guardar datos del empleado y mostrar modal de pago
     setPendingEmpleadoData({ empleadoId, empleadoNombre });
+    console.log('🔵 pendingEmpleadoData guardado:', { empleadoId, empleadoNombre });
+    console.log('🔵 Mostrando modal de pago...');
     setShowPaymentModal(true);
   };
 
@@ -155,6 +180,11 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
     montoEfectivo?: number,
     montoTarjeta?: number
   ) => {
+    console.log('🟢 handlePaymentConfirm - pendingEmpleadoData:', pendingEmpleadoData);
+    console.log('🟢 Pasando a procesarVenta:', {
+      empleadoId: pendingEmpleadoData?.empleadoId,
+      empleadoNombre: pendingEmpleadoData?.empleadoNombre
+    });
     setShowPaymentModal(false);
     // Procesar venta con método de pago seleccionado
     procesarVenta(
@@ -205,8 +235,43 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
     empleadoId?: number,
     empleadoNombre?: string
   ) => {
+    console.log('🟡 procesarVenta recibió:', { metodoPago, montoEfectivo, montoTarjeta, empleadoId, empleadoNombre });
+
     if (carrito.length === 0) {
       toast.error('El carrito está vacío');
+      return;
+    }
+
+    // ⭐ VALIDACIÓN CRÍTICA: En modo tablet compartida, empleadoId es OBLIGATORIO
+    if (configuracion.modoTabletCompartida && !empleadoId) {
+      console.error('❌ ERROR: Intento de crear venta sin empleadoId en modo tablet compartida');
+      console.error('❌ Estado actual:', {
+        empleadoId,
+        empleadoNombre,
+        pendingEmpleadoData,
+        dispositivo: dispositivo.empleadoAsignadoId
+      });
+      toast.error('Error: No se pudo determinar el empleado', {
+        description: 'Por favor, selecciona un empleado nuevamente'
+      });
+      // Reintentar mostrando selector de empleado
+      setShowEmpleadoSelector(true);
+      return;
+    }
+
+    // Si NO es modo compartida y no hay empleadoId, usar el del dispositivo
+    if (!empleadoId && dispositivo.empleadoAsignadoId) {
+      console.log('ℹ️ Usando empleado asignado al dispositivo:', dispositivo.empleadoAsignadoId);
+      empleadoId = dispositivo.empleadoAsignadoId;
+      empleadoNombre = dispositivo.empleadoAsignadoNombre;
+    }
+
+    // Última validación: NO crear venta sin empleadoId
+    if (!empleadoId) {
+      console.error('❌ ERROR CRÍTICO: No hay empleadoId disponible');
+      toast.error('Error: No se puede procesar la venta sin empleado', {
+        description: 'Contacta con el administrador'
+      });
       return;
     }
 
@@ -238,6 +303,8 @@ export const POSStandaloneTerminal: FC<POSStandaloneTerminalProps> = ({
         sincronizada: false,
         intentosSincronizacion: 0,
       };
+
+      console.log('🟡 Guardando venta en IndexedDB:', ventaOffline);
 
       // Guardar en IndexedDB
       await addVentaPendiente(ventaOffline);

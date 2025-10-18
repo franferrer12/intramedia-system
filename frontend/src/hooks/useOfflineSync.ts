@@ -73,6 +73,8 @@ export const useOfflineSync = (dispositivoId: number | null, isOnline: boolean) 
           metodoPago: venta.metodoPago,
           montoEfectivo: venta.montoEfectivo,
           montoTarjeta: venta.montoTarjeta,
+          empleadoId: venta.empleadoId,  // ⭐ CRÍTICO: Incluir empleadoId para multi-dispositivo
+          empleadoNombre: venta.empleadoNombre,
         },
       };
 

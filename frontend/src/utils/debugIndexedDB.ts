@@ -173,15 +173,64 @@ export const limpiarVentasCorruptas = (): Promise<number> => {
   });
 };
 
+export const limpiarVentasBloqueadas = (): Promise<number> => {
+  console.log('🧹 LIMPIANDO VENTAS BLOQUEADAS (10+ intentos o sin empleadoId)...');
+
+  return new Promise((resolve, reject) => {
+    const dbRequest = indexedDB.open('POSOfflineDB', 2);
+
+    dbRequest.onsuccess = (event: any) => {
+      const db = event.target.result;
+      const transaction = db.transaction(['ventasPendientes'], 'readwrite');
+      const store = transaction.objectStore('ventasPendientes');
+      const getAllRequest = store.getAll();
+
+      getAllRequest.onsuccess = () => {
+        const ventas = getAllRequest.result || [];
+        let eliminadas = 0;
+
+        ventas.forEach((venta: any) => {
+          // Eliminar ventas bloqueadas (10+ intentos) O sin empleadoId
+          if (venta.intentosSincronizacion >= 10 || !venta.empleadoId) {
+            store.delete(venta.id);
+            const razon = venta.intentosSincronizacion >= 10 ? '10+ intentos' : 'sin empleadoId';
+            console.log(`🗑️ Eliminando venta bloqueada: ${venta.uuid} (${razon})`);
+            eliminadas++;
+          }
+        });
+
+        transaction.oncomplete = () => {
+          console.log(`✅ Limpieza completada: ${eliminadas} ventas eliminadas`);
+          console.log('🔄 Recargando página en 2 segundos...');
+          setTimeout(() => window.location.reload(), 2000);
+          resolve(eliminadas);
+        };
+      };
+
+      getAllRequest.onerror = () => {
+        console.error('Error al leer ventas:', getAllRequest.error);
+        reject(getAllRequest.error);
+      };
+    };
+
+    dbRequest.onerror = () => {
+      console.error('Error al abrir IndexedDB:', dbRequest.error);
+      reject(dbRequest.error);
+    };
+  });
+};
+
 // Exponer funciones globalmente en desarrollo
 if (typeof window !== 'undefined') {
   (window as any).debugPOS = debugPendientes;
   (window as any).eliminarVenta = eliminarVenta;
   (window as any).limpiarVentasPOS = limpiarTodasLasVentas;
   (window as any).limpiarVentasCorruptas = limpiarVentasCorruptas;
-  console.log('Funciones de debug POS disponibles:');
+  (window as any).limpiarVentasBloqueadas = limpiarVentasBloqueadas;
+  console.log('🛠️ Funciones de debug POS disponibles:');
   console.log('- debugPOS() - Ver ventas pendientes');
   console.log('- eliminarVenta(id) - Eliminar una venta específica');
   console.log('- limpiarVentasPOS() - Limpiar TODAS las ventas');
   console.log('- limpiarVentasCorruptas() - Limpiar ventas sin empleadoId');
+  console.log('- limpiarVentasBloqueadas() - Limpiar ventas con 10+ intentos (RECOMENDADO)');
 }
