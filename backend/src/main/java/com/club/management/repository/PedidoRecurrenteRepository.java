@@ -1,7 +1,7 @@
 package com.club.management.repository;
 
-import com.club.management.model.PedidoRecurrente;
-import com.club.management.model.PlantillaPedido;
+import com.club.management.entity.PedidoRecurrente;
+import com.club.management.entity.PlantillaPedido;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -1,7 +1,7 @@
 package com.club.management.service;
 
 import com.club.management.dto.PedidoRecurrenteDTO;
-import com.club.management.model.*;
+import com.club.management.entity.*;
 import com.club.management.repository.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;

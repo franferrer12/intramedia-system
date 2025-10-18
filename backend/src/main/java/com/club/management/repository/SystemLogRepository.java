@@ -1,6 +1,6 @@
 package com.club.management.repository;
 
-import com.club.management.model.SystemLog;
+import com.club.management.entity.SystemLog;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

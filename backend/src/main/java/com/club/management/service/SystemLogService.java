@@ -1,8 +1,8 @@
 package com.club.management.service;
 
 import com.club.management.dto.SystemLogDTO;
-import com.club.management.model.SystemLog;
-import com.club.management.model.Usuario;
+import com.club.management.entity.SystemLog;
+import com.club.management.entity.Usuario;
 import com.club.management.repository.SystemLogRepository;
 import com.club.management.repository.UsuarioRepository;
 import com.fasterxml.jackson.databind.JsonNode;

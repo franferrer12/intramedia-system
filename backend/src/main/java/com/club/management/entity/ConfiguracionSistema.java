@@ -1,4 +1,4 @@
-package com.club.management.model;
+package com.club.management.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

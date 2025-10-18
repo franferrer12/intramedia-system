@@ -1,8 +1,8 @@
 package com.club.management.service;
 
 import com.club.management.dto.ConfiguracionSistemaDTO;
-import com.club.management.model.ConfiguracionSistema;
-import com.club.management.model.Usuario;
+import com.club.management.entity.ConfiguracionSistema;
+import com.club.management.entity.Usuario;
 import com.club.management.repository.ConfiguracionSistemaRepository;
 import com.club.management.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;

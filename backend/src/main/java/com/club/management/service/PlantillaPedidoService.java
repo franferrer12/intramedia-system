@@ -1,10 +1,10 @@
 package com.club.management.service;
 
 import com.club.management.dto.PlantillaPedidoDTO;
-import com.club.management.model.Pedido;
-import com.club.management.model.PlantillaPedido;
-import com.club.management.model.Proveedor;
-import com.club.management.model.Usuario;
+import com.club.management.entity.Pedido;
+import com.club.management.entity.PlantillaPedido;
+import com.club.management.entity.Proveedor;
+import com.club.management.entity.Usuario;
 import com.club.management.repository.PedidoRepository;
 import com.club.management.repository.PlantillaPedidoRepository;
 import com.club.management.repository.ProveedorRepository;
