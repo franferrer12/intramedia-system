@@ -66,4 +66,12 @@ public class Usuario {
         RRHH,       // Solo personal y nóminas
         LECTURA     // Solo consulta
     }
+
+    /**
+     * Alias para getUsername() - compatibilidad con código que usa "nombre"
+     * Retorna el username como nombre para visualización
+     */
+    public String getNombre() {
+        return this.username;
+    }
 }

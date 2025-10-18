@@ -106,4 +106,35 @@ public class DetallePedido {
                 .divide(cantidadPedida, 4, java.math.RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
     }
+
+    // ========== ALIAS METHODS FOR COMPATIBILITY ==========
+
+    /**
+     * Alias para getCantidadPedida() - compatibilidad con código que usa "cantidad"
+     */
+    public BigDecimal getCantidad() {
+        return this.cantidadPedida;
+    }
+
+    /**
+     * Alias para setCantidadPedida() - compatibilidad con código que usa "cantidad"
+     * Acepta Integer y convierte a BigDecimal
+     */
+    public void setCantidad(Integer cantidad) {
+        this.cantidadPedida = BigDecimal.valueOf(cantidad);
+    }
+
+    /**
+     * Alias get para isCompletamenteRecibido() - compatibilidad con Lombok getters
+     */
+    public Boolean getIsCompletamenteRecibido() {
+        return isCompletamenteRecibido();
+    }
+
+    /**
+     * Alias get para isParcialmenteRecibido() - compatibilidad con Lombok getters
+     */
+    public Boolean getIsParcialmenteRecibido() {
+        return isParcialmenteRecibido();
+    }
 }

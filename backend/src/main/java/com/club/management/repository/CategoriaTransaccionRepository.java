@@ -15,4 +15,6 @@ public interface CategoriaTransaccionRepository extends JpaRepository<CategoriaT
     List<CategoriaTransaccion> findByTipo(TipoTransaccion tipo);
 
     List<CategoriaTransaccion> findByTipoAndActivaTrue(TipoTransaccion tipo);
+
+    CategoriaTransaccion findByNombreAndTipo(String nombre, TipoTransaccion tipo);
 }

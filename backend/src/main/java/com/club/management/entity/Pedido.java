@@ -194,4 +194,55 @@ public class Pedido {
 
         return algunRecibido && algunFaltante;
     }
+
+    // ========== ALIAS METHODS FOR COMPATIBILITY ==========
+
+    /**
+     * Alias para getNotas() - compatibilidad con código que usa "observaciones"
+     */
+    public String getObservaciones() {
+        return this.notas;
+    }
+
+    /**
+     * Alias para setNotas() - compatibilidad con código que usa "observaciones"
+     */
+    public void setObservaciones(String observaciones) {
+        this.notas = observaciones;
+    }
+
+    /**
+     * Alias get para isPuedeEditar() - compatibilidad con Lombok getters
+     */
+    public Boolean getIsPuedeEditar() {
+        return isPuedeEditar();
+    }
+
+    /**
+     * Alias get para isPuedeRecepcionar() - compatibilidad con Lombok getters
+     */
+    public Boolean getIsPuedeRecepcionar() {
+        return isPuedeRecepcionar();
+    }
+
+    /**
+     * Alias get para isPuedeCancelar() - compatibilidad con Lombok getters
+     */
+    public Boolean getIsPuedeCancelar() {
+        return isPuedeCancelar();
+    }
+
+    /**
+     * Alias get para isCompletamenteRecibido() - compatibilidad con Lombok getters
+     */
+    public Boolean getIsCompletamenteRecibido() {
+        return isCompletamenteRecibido();
+    }
+
+    /**
+     * Alias get para isParcialmenteRecibido() - compatibilidad con Lombok getters
+     */
+    public Boolean getIsParcialmenteRecibido() {
+        return isParcialmenteRecibido();
+    }
 }
