@@ -204,7 +204,9 @@ spring:
       on-profile: alpha
 
   datasource:
-    url: ${DATABASE_URL}
+    # Render proporciona DATABASE_URL en formato postgresql://...
+    # Spring necesita jdbc:postgresql://...
+    url: jdbc:${DATABASE_URL}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
