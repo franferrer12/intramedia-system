@@ -1,13 +1,15 @@
-# Render Blueprint - Configuración para deploy automático
+# Render Blueprint - Configuración para PRODUCCIÓN
+# Este archivo configura el entorno de producción estable
 # Docs: https://render.com/docs/blueprint-spec
 
 services:
-  # Backend (Spring Boot)
+  # Backend Producción (Spring Boot)
   - type: web
     name: club-management-backend
     env: docker
-    region: oregon # Puedes cambiar a: frankfurt (Europa), singapore (Asia)
-    plan: free # Cambiar a 'starter' ($7/mes) cuando quieras eliminar el sleep
+    region: oregon
+    plan: free
+    branch: main  # ← Solo deploya desde rama main (producción)
     dockerfilePath: ./Dockerfile
     healthCheckPath: /actuator/health
     envVars:
@@ -26,12 +28,13 @@ services:
       - key: SPRING_DATASOURCE_HIKARI_AUTO_COMMIT
         value: "false" # Fix para "Cannot commit when autoCommit is enabled"
 
-  # Frontend (React + Vite + Nginx)
+  # Frontend Producción (React + Vite + Nginx)
   - type: web
     name: club-management-frontend
     env: docker
     region: oregon
     plan: free
+    branch: main  # ← Solo deploya desde rama main (producción)
     dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
     envVars:
