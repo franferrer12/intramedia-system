@@ -15,10 +15,9 @@ services:
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: alpha
-      - key: DATABASE_URL
-        fromDatabase:
-          name: club-management-db
-          property: connectionString
+      # DATABASE_URL debe configurarse manualmente desde Render Dashboard
+      # porque el plan gratuito solo permite 1 BD y ya existe club-management-db
+      # Copia el valor de DATABASE_URL desde el servicio de producción
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRATION
