@@ -5,6 +5,7 @@ import { dashboardApi } from '../../api/dashboard.api';
 import { productosApi } from '../../api/productos.api';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
+import { AlertasPedidos } from '../../components/pedidos/AlertasPedidos';
 
 export const DashboardPage = () => {
   const navigate = useNavigate();
@@ -141,6 +142,9 @@ export const DashboardPage = () => {
           )}
         </div>
       )}
+
+      {/* Alertas de Pedidos */}
+      <AlertasPedidos />
 
       {/* Acciones Rápidas */}
       <Card>

@@ -6,11 +6,16 @@ import com.club.management.entity.Usuario;
 import com.club.management.entity.Usuario.RolUsuario;
 import com.club.management.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -176,6 +181,90 @@ public class UsuarioService {
         usuario.setActivo(!usuario.getActivo());
         Usuario updatedUsuario = usuarioRepository.save(usuario);
         return mapToDTO(updatedUsuario);
+    }
+
+    /**
+     * Get current authenticated user ID from security context
+     */
+    public Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+
+        String username = authentication.getName();
+        return usuarioRepository.findByUsername(username)
+                .map(Usuario::getId)
+                .orElse(null);
+    }
+
+    /**
+     * Update user role (wrapper for cambiarRol that accepts String)
+     */
+    @Transactional
+    public UsuarioDTO updateRol(Long id, String rol) {
+        RolUsuario rolUsuario = RolUsuario.valueOf(rol);
+        return cambiarRol(id, rolUsuario);
+    }
+
+    /**
+     * Reset user password and generate a temporary one
+     */
+    @Transactional
+    public String resetPassword(Long id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
+
+        // Generate temporary password (8 characters: letters + numbers)
+        String tempPassword = generateTemporaryPassword(8);
+
+        usuario.setPassword(passwordEncoder.encode(tempPassword));
+        usuarioRepository.save(usuario);
+
+        return tempPassword;
+    }
+
+    /**
+     * Get user statistics for admin dashboard
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getEstadisticas() {
+        List<Usuario> allUsers = usuarioRepository.findAll();
+
+        Map<String, Object> stats = new HashMap<>();
+
+        // Total users
+        stats.put("totalUsuarios", allUsers.size());
+
+        // Active/Inactive counts
+        long activos = allUsers.stream().filter(Usuario::getActivo).count();
+        stats.put("usuariosActivos", activos);
+        stats.put("usuariosInactivos", allUsers.size() - activos);
+
+        // Count by role
+        Map<String, Long> usuariosPorRol = allUsers.stream()
+                .collect(Collectors.groupingBy(
+                        u -> u.getRol().name(),
+                        Collectors.counting()
+                ));
+        stats.put("usuariosPorRol", usuariosPorRol);
+
+        return stats;
+    }
+
+    /**
+     * Generate a random temporary password
+     */
+    private String generateTemporaryPassword(int length) {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        SecureRandom random = new SecureRandom();
+        StringBuilder password = new StringBuilder();
+
+        for (int i = 0; i < length; i++) {
+            password.append(chars.charAt(random.nextInt(chars.length())));
+        }
+
+        return password.toString();
     }
 
     /**

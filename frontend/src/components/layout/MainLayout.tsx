@@ -22,6 +22,9 @@ import {
   Search,
   Keyboard,
   Smartphone,
+  ShoppingCart,
+  Settings,
+  Repeat,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../ui/Button';
@@ -110,6 +113,9 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
       items: [
         { name: 'Productos', href: '/inventario', icon: Package },
         { name: 'Proveedores', href: '/proveedores', icon: TruckIcon },
+        { name: 'Pedidos', href: '/pedidos', icon: ShoppingCart },
+        { name: 'Dashboard Pedidos', href: '/pedidos/dashboard', icon: BarChart3 },
+        { name: 'Plantillas y Recurrentes', href: '/pedidos/plantillas', icon: Repeat },
         { name: 'Movimientos', href: '/movimientos-stock', icon: ArrowRightLeft },
         { name: 'Alertas de Stock', href: '/alertas-stock', icon: Bell },
       ]
@@ -133,6 +139,7 @@ export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
       title: 'Configuración',
       items: [
         { name: 'Automatizaciones', href: '/configuracion/automatizacion', icon: Clock, highlight: true },
+        { name: 'Panel de Administración', href: '/admin', icon: Settings },
       ]
     }
   ];

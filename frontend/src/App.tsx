@@ -33,6 +33,10 @@ import { StandalonePOSPage } from './pages/pos/standalone/StandalonePOSPage';
 import { POSPairPage } from './pages/pos/standalone/POSPairPage';
 import { WelcomePage } from './pages/welcome/WelcomePage';
 import { DispositivosPOSPage } from './pages/dispositivos/DispositivosPOSPage';
+import PedidosPage from './pages/pedidos/PedidosPage';
+import PedidosDashboardPage from './pages/pedidos/PedidosDashboardPage';
+import PlantillasRecurrentesPage from './pages/pedidos/PlantillasRecurrentesPage';
+import AdminPage from './pages/admin/AdminPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,6 +71,9 @@ function App() {
           <Route path="/analytics" element={<ProtectedRoute><MainLayout><AnalyticsPage /></MainLayout></ProtectedRoute>} />
           <Route path="/usuarios" element={<ProtectedRoute><MainLayout><UsuariosPage /></MainLayout></ProtectedRoute>} />
           <Route path="/proveedores" element={<ProtectedRoute><MainLayout><ProveedoresPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/pedidos" element={<ProtectedRoute><MainLayout><PedidosPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/pedidos/dashboard" element={<ProtectedRoute><MainLayout><PedidosDashboardPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/pedidos/plantillas" element={<ProtectedRoute><MainLayout><PlantillasRecurrentesPage /></MainLayout></ProtectedRoute>} />
           <Route path="/inventario" element={<ProtectedRoute><MainLayout><ProductosPage /></MainLayout></ProtectedRoute>} />
           <Route path="/inventario/dashboard" element={<ProtectedRoute><MainLayout><DashboardInventarioPage /></MainLayout></ProtectedRoute>} />
           <Route path="/movimientos-stock" element={<ProtectedRoute><MainLayout><MovimientosPage /></MainLayout></ProtectedRoute>} />
@@ -83,6 +90,7 @@ function App() {
           <Route path="/ayuda/asistente" element={<ProtectedRoute><MainLayout><AsistenteVirtualPage /></MainLayout></ProtectedRoute>} />
           <Route path="/ayuda/novedades" element={<ProtectedRoute><MainLayout><NovedadesPage /></MainLayout></ProtectedRoute>} />
           <Route path="/configuracion/automatizacion" element={<ProtectedRoute><MainLayout><AutomacionPage /></MainLayout></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><MainLayout><AdminPage /></MainLayout></ProtectedRoute>} />
           <Route path="/backoffice" element={<Navigate to="/dashboard" replace />} />
         </Routes>
         <Toaster position="top-right" richColors />

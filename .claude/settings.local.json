@@ -38,7 +38,13 @@
       "Bash(/dev/null)",
       "Bash(TOKEN=\"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGhvcml0aWVzIjoiUk9MRV9BRE1JTiIsImlhdCI6MTc2MDY0OTg3OSwiZXhwIjoxNzYwNzM2Mjc5fQ.9FX7fNlnXgR9u7U0qhmiyUX5t7VJcfr0EP8aELaMBVs-Hwy15LfKXPrqGeNsGyqM_fKpa4dh-MTbonwhEOJYSg\")",
       "Bash(TOKEN=\"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1dGhvcml0aWVzIjoiUk9MRV9BRE1JTiIsImlhdCI6MTc2MDY1MDMyNSwiZXhwIjoxNzYwNzM2NzI1fQ.__QhCEEN15wy4GYGknQ_EkuMjU0jd-izmnhhd56dqd71hKnRjtOhPi01S-JEZgo-U_36vyb-vLhLa45YsznohQ\")",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(printf \"✅ Deploy en progreso\\n\\n\" printf \"📝 Commits pusheados:\\n\" printf \"   1. 41896a0 - Sistema POS multi-dispositivo (5 fixes críticos)\\n\" printf \"   2. 1ea223d - Corrección de imports para build de Render\\n\\n\" printf \"🔄 Render está haciendo auto-deploy desde GitHub...\\n\\n\" printf \"📊 URLs de monitoreo:\\n\" printf \"   Dashboard: https://dashboard.render.com\\n\" printf \"   Backend:   https://club-management-backend-tw9f.onrender.com\\n\" printf \"   Frontend:  https://club-management-frontend-tw9f.onrender.com\\n\\n\" printf \"⏱️  Tiempo estimado de deploy:\\n\" printf \"   - Backend:  5-7 minutos\\n\" printf \"   - Frontend: 3-5 minutos\\n\\n\" printf \"Verificando estado actual del backend...\\n\" curl -s -w \"\\nHTTP Status: %{http_code}\\n\" https://club-management-backend-tw9f.onrender.com/actuator/health)",
+      "Bash(printf:*)",
+      "Bash(printf \"7. Render hará redeploy automáticamente (~2-3 minutos)\\n\\n\")",
+      "Bash(git revert:*)"
     ],
     "deny": [],
     "ask": []

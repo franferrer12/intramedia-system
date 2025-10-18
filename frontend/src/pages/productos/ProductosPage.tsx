@@ -3,13 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productosApi } from '../../api/productos.api';
 import { reportesApi } from '../../api/reportes.api';
 import { Producto } from '../../types';
-import { Package, Plus, Edit, Trash2, AlertTriangle, TrendingDown, FileDown, CheckCircle2, XCircle, Wine, Droplet, LayoutGrid, List } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, AlertTriangle, TrendingDown, FileDown, CheckCircle2, XCircle, Wine, Droplet, LayoutGrid, List, BarChart2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { notify, handleApiError } from '../../utils/notifications';
 import { useConfirmation, confirmDelete } from '../../hooks/useConfirmation';
 import { ProductoModal } from '../../components/productos/ProductoModal';
 import { ProductoCard } from '../../components/productos/ProductoCard';
 import { useIsMobile } from '../../hooks/useMediaQuery';
+import { HistoricoPreciosModal } from '../../components/pedidos/HistoricoPreciosModal';
 
 export const ProductosPage: FC = () => {
   const queryClient = useQueryClient();
@@ -18,6 +19,8 @@ export const ProductosPage: FC = () => {
   const [vistaActual, setVistaActual] = useState<'tabla' | 'tarjetas'>('tabla');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
+  const [showHistoricoPrecios, setShowHistoricoPrecios] = useState(false);
+  const [productoHistorico, setProductoHistorico] = useState<Producto | null>(null);
   const { confirm, ConfirmationDialog } = useConfirmation();
 
   const { data: productos = [], isLoading } = useQuery<Producto[]>({
@@ -74,6 +77,11 @@ export const ProductosPage: FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedProducto(null);
+  };
+
+  const handleVerHistoricoPrecios = (producto: Producto) => {
+    setProductoHistorico(producto);
+    setShowHistoricoPrecios(true);
   };
 
   // Calcular porcentaje de stock
@@ -302,6 +310,7 @@ export const ProductosPage: FC = () => {
               producto={producto}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onVerHistoricoPrecios={handleVerHistoricoPrecios}
             />
           ))}
           {productosFiltrados.length === 0 && (
@@ -449,6 +458,13 @@ export const ProductosPage: FC = () => {
                     <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
                         <button
+                          onClick={() => handleVerHistoricoPrecios(producto)}
+                          className="text-purple-600 hover:text-purple-900"
+                          title="Ver Histórico de Precios"
+                        >
+                          <BarChart2 className="h-4 w-4" />
+                        </button>
+                        <button
                           onClick={() => handleEdit(producto)}
                           className="text-blue-600 hover:text-blue-900"
                           title="Editar"
@@ -478,6 +494,17 @@ export const ProductosPage: FC = () => {
         onClose={handleCloseModal}
         producto={selectedProducto}
       />
+      {productoHistorico && (
+        <HistoricoPreciosModal
+          isOpen={showHistoricoPrecios}
+          onClose={() => {
+            setShowHistoricoPrecios(false);
+            setProductoHistorico(null);
+          }}
+          productoId={productoHistorico.id}
+          productoNombre={productoHistorico.nombre}
+        />
+      )}
     </div>
   );
 };

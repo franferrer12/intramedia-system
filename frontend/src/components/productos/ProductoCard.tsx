@@ -1,14 +1,15 @@
 import { FC } from 'react';
 import { Producto } from '../../types';
-import { Edit, Trash2, AlertTriangle, CheckCircle2, XCircle, Wine, Droplet, TrendingUp } from 'lucide-react';
+import { Edit, Trash2, AlertTriangle, CheckCircle2, XCircle, Wine, Droplet, TrendingUp, BarChart2 } from 'lucide-react';
 
 interface ProductoCardProps {
   producto: Producto;
   onEdit: (producto: Producto) => void;
   onDelete: (id: number, nombre: string) => void;
+  onVerHistoricoPrecios?: (producto: Producto) => void;
 }
 
-export const ProductoCard: FC<ProductoCardProps> = ({ producto, onEdit, onDelete }) => {
+export const ProductoCard: FC<ProductoCardProps> = ({ producto, onEdit, onDelete, onVerHistoricoPrecios }) => {
   // Calculate stock percentage
   const getStockPercentage = () => {
     if (producto.stockMaximo && producto.stockMaximo > 0) {
@@ -119,6 +120,15 @@ export const ProductoCard: FC<ProductoCardProps> = ({ producto, onEdit, onDelete
           </div>
         </div>
         <div className="flex items-center gap-1 ml-2">
+          {onVerHistoricoPrecios && (
+            <button
+              onClick={() => onVerHistoricoPrecios(producto)}
+              className="p-2 text-purple-600 hover:bg-purple-50 rounded transition-colors"
+              aria-label="Ver Histórico de Precios"
+            >
+              <BarChart2 className="h-4 w-4" />
+            </button>
+          )}
           <button
             onClick={() => onEdit(producto)}
             className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
