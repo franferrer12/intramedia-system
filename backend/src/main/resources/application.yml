@@ -204,16 +204,15 @@ spring:
       on-profile: alpha
 
   datasource:
-    # FREE tier: SSL con NonValidatingFactory para evitar EOFException
-    # Render PostgreSQL requiere SSL pero no valida certificados en free tier
-    url: jdbc:postgresql://dpg-d3m3r6adbo4c73bi9bag-a.oregon-postgres.render.com:5432/club_management_qrey?sslmode=require&sslfactory=org.postgresql.ssl.NonValidatingFactory
-    username: ${DB_USER:club_admin}
-    password: ${DB_PASSWORD}
+    # FREE tier: Usar DATABASE_URL directamente (Spring Boot lo parsea automáticamente)
+    # Render provee DATABASE_URL en formato: postgresql://user:pass@host:port/db
+    # Spring Boot lo convierte automáticamente a JDBC URL con configuración SSL correcta
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/club_management}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
-      connection-timeout: 20000
+      connection-timeout: 30000
       auto-commit: false
 
   jpa:
