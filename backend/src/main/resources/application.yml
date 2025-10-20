@@ -204,9 +204,9 @@ spring:
       on-profile: alpha
 
   datasource:
-    # FREE tier: hostname externo con SSL + disable GSS encryption
-    # GSS encryption causa EOFException en Render PostgreSQL
-    url: jdbc:postgresql://dpg-d3m3r6adbo4c73bi9bag-a.oregon-postgres.render.com:5432/club_management_qrey?sslmode=require&gssEncMode=disable
+    # FREE tier: hostname externo + SSL configurado via Hikari properties
+    # Configuración SSL directa para evitar EOFException en Render PostgreSQL
+    url: jdbc:postgresql://dpg-d3m3r6adbo4c73bi9bag-a.oregon-postgres.render.com:5432/club_management_qrey
     username: ${DB_USER:club_admin}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -215,6 +215,10 @@ spring:
       minimum-idle: 5
       connection-timeout: 20000
       auto-commit: false
+      data-source-properties:
+        ssl: true
+        sslmode: require
+        gssEncMode: disable
 
   jpa:
     hibernate:
