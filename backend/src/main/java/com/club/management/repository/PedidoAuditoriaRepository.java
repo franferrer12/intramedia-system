@@ -57,7 +57,7 @@ public interface PedidoAuditoriaRepository extends JpaRepository<PedidoAuditoria
     /**
      * Obtener últimos N cambios de un pedido
      */
-    @Query("SELECT a FROM PedidoAuditoria a WHERE a.pedido.id = :pedidoId ORDER BY a.fechaCambio DESC")
+    @Query(value = "SELECT * FROM pedido_auditoria WHERE pedido_id = :pedidoId ORDER BY fecha_cambio DESC LIMIT :limit", nativeQuery = true)
     List<PedidoAuditoria> findTopNByPedidoId(@Param("pedidoId") Long pedidoId, @Param("limit") int limit);
 
     /**
