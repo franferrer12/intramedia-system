@@ -204,9 +204,9 @@ spring:
       on-profile: alpha
 
   datasource:
-    # FREE tier debe usar hostname externo con SSL requerido
-    # Render PostgreSQL requiere SSL por defecto
-    url: jdbc:postgresql://dpg-d3m3r6adbo4c73bi9bag-a.oregon-postgres.render.com:5432/club_management_qrey?sslmode=require
+    # FREE tier: hostname externo con SSL + disable GSS encryption
+    # GSS encryption causa EOFException en Render PostgreSQL
+    url: jdbc:postgresql://dpg-d3m3r6adbo4c73bi9bag-a.oregon-postgres.render.com:5432/club_management_qrey?sslmode=require&gssEncMode=disable
     username: ${DB_USER:club_admin}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
