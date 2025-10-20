@@ -204,9 +204,9 @@ spring:
       on-profile: alpha
 
   datasource:
-    # Render internal network usa hostname corto sin .render.com
+    # FREE tier debe usar hostname externo (no tiene acceso a red privada)
     # Usar variables separadas como en producción
-    url: jdbc:postgresql://dpg-d3m3r6adbo4c73bi9bag-a:5432/club_management_qrey
+    url: jdbc:postgresql://dpg-d3m3r6adbo4c73bi9bag-a.oregon-postgres.render.com:5432/club_management_qrey
     username: ${DB_USER:club_admin}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
