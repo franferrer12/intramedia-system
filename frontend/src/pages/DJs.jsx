@@ -163,7 +163,7 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header - Compacto y Horizontal */}
-        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between z-20 shadow-sm">
           <div className="flex items-center gap-4">
             <PhotoUpload
               currentPhoto={currentPhoto}
@@ -201,7 +201,7 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
         </div>
 
         {/* Tabs */}
-        <div className="sticky top-[65px] bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 z-10">
+        <div className="sticky top-[65px] bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 z-10 shadow-sm">
           <div className="flex gap-1 overflow-x-auto">
             {tabs.map(tab => {
               const Icon = tab.icon;
@@ -225,11 +225,11 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
         </div>
 
         {/* Content */}
-        <div className="p-4 md:p-6 space-y-4">{activeTab === 'estadisticas' && (
+        <div className="p-4 md:p-6 pt-6 space-y-4">{activeTab === 'estadisticas' && (
           <>
 
           {/* KPIs - 3D Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" style={{ scrollMarginTop: '110px' }}>
             <DJStatCard3D
               title="Total Eventos"
               value={stats?.resumen?.total_eventos || 0}
@@ -274,7 +274,7 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
 
           {/* Comparativa con Agencia */}
           {stats?.comparativa_agencia && (
-            <div className="card bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
+            <div className="card bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20" style={{ scrollMarginTop: '110px' }}>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Comparativa con Promedio de Agencia</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-white dark:bg-gray-800 rounded-lg">
@@ -300,7 +300,7 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
           )}
 
           {/* Gráficos */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4" style={{ scrollMarginTop: '110px' }}>
             {/* Evolución Mensual */}
             <div className="card dark:bg-gray-700 dark:border-gray-600">
               <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">Evolución Mensual - Eventos</h3>
@@ -333,7 +333,7 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
           </div>
 
           {/* Top Locales y Categorías */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4" style={{ scrollMarginTop: '110px' }}>
             {/* Top Locales */}
             <div className="card dark:bg-gray-700 dark:border-gray-600">
               <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">Top 5 Locales</h3>
