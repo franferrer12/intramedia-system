@@ -224,12 +224,17 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-4 md:p-6 pt-6 space-y-4">{activeTab === 'estadisticas' && (
-          <>
+        {/* Content - Con espacio superior para headers fijos */}
+        <div className="space-y-4">
+          {/* Spacer para headers fijos (65px header + 47px tabs = 112px) */}
+          <div className="h-[112px]"></div>
 
-          {/* KPIs - 3D Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" style={{ scrollMarginTop: '110px' }}>
+          <div className="px-4 md:px-6 pb-6 space-y-4">
+            {activeTab === 'estadisticas' && (
+              <>
+
+              {/* KPIs - 3D Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <DJStatCard3D
               title="Total Eventos"
               value={stats?.resumen?.total_eventos || 0}
@@ -274,7 +279,7 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
 
           {/* Comparativa con Agencia */}
           {stats?.comparativa_agencia && (
-            <div className="card bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20" style={{ scrollMarginTop: '110px' }}>
+            <div className="card bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Comparativa con Promedio de Agencia</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-white dark:bg-gray-800 rounded-lg">
@@ -300,7 +305,7 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
           )}
 
           {/* Gráficos */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4" style={{ scrollMarginTop: '110px' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Evolución Mensual */}
             <div className="card dark:bg-gray-700 dark:border-gray-600">
               <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">Evolución Mensual - Eventos</h3>
@@ -333,7 +338,7 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
           </div>
 
           {/* Top Locales y Categorías */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4" style={{ scrollMarginTop: '110px' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Top Locales */}
             <div className="card dark:bg-gray-700 dark:border-gray-600">
               <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">Top 5 Locales</h3>
@@ -443,6 +448,7 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
             eventosData={djEventos}
           />
         )}
+          </div>
         </div>
       </div>
     </div>
