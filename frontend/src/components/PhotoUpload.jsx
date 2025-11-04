@@ -79,10 +79,10 @@ const PhotoUpload = ({ currentPhoto, djId, djName, onPhotoUpdate }) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex items-center gap-3">
       {/* Preview de la foto */}
-      <div className="relative">
-        <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 border-4 border-white shadow-lg">
+      <div className="relative group">
+        <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200 dark:border-gray-600 shadow">
           {preview ? (
             <img
               src={preview}
@@ -91,7 +91,7 @@ const PhotoUpload = ({ currentPhoto, djId, djName, onPhotoUpdate }) => {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
-              <Camera className="w-12 h-12 text-white opacity-50" />
+              <Camera className="w-6 h-6 text-white opacity-70" />
             </div>
           )}
         </div>
@@ -99,45 +99,52 @@ const PhotoUpload = ({ currentPhoto, djId, djName, onPhotoUpdate }) => {
         {/* Loading overlay */}
         {uploading && (
           <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
-            <Loader className="w-8 h-8 text-white animate-spin" />
+            <Loader className="w-5 h-5 text-white animate-spin" />
           </div>
         )}
 
-        {/* Botón de eliminar foto */}
+        {/* Botón de eliminar foto (aparece al hacer hover) */}
         {preview && !uploading && (
           <button
             onClick={handleRemovePhoto}
-            className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+            className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100 shadow-md"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3 h-3" />
           </button>
+        )}
+
+        {/* Indicador de cambio de foto al hacer hover */}
+        {!uploading && (
+          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-full flex items-center justify-center transition-all cursor-pointer"
+               onClick={() => fileInputRef.current?.click()}>
+            <Upload className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
         )}
       </div>
 
-      {/* Botones de acción */}
-      <div className="flex gap-2">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
+      {/* Input oculto */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
 
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          className="btn btn-primary flex items-center gap-2"
-        >
-          <Upload className="w-4 h-4" />
-          {preview ? 'Cambiar Foto' : 'Subir Foto'}
-        </button>
-      </div>
+      {/* Botón compacto */}
+      <button
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploading}
+        className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors flex items-center gap-1.5"
+      >
+        <Upload className="w-3.5 h-3.5" />
+        {preview ? 'Cambiar' : 'Subir'}
+      </button>
 
-      <p className="text-xs text-gray-500 text-center">
-        Formatos: JPG, PNG, GIF, WEBP<br />
-        Tamaño máximo: 5MB
-      </p>
+      {/* Info compacta */}
+      <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:inline">
+        JPG, PNG, WEBP (Max 5MB)
+      </span>
     </div>
   );
 };

@@ -162,8 +162,8 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
+        {/* Header - Compacto y Horizontal */}
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between z-10">
           <div className="flex items-center gap-4">
             <PhotoUpload
               currentPhoto={currentPhoto}
@@ -176,15 +176,15 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
               }}
             />
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{dj.nombre}</h2>
-              <p className="text-gray-600 dark:text-gray-400">Panel de gestión y seguimiento</p>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{dj.nombre}</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{dj.email || 'Panel de gestión y seguimiento'}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-              className="input w-28"
+              className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             >
               {[2024, 2025, 2026].map(year => (
                 <option key={year} value={year}>{year}</option>
@@ -193,6 +193,7 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              title="Cerrar"
             >
               <X className="w-5 h-5" />
             </button>
@@ -200,22 +201,23 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
         </div>
 
         {/* Tabs */}
-        <div className="sticky top-[77px] bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 z-10">
-          <div className="flex gap-1">
+        <div className="sticky top-[65px] bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 z-10">
+          <div className="flex gap-1 overflow-x-auto">
             {tabs.map(tab => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all ${
+                  className={`flex items-center gap-2 px-3 py-2.5 border-b-2 transition-all whitespace-nowrap text-sm ${
                     activeTab === tab.id
                       ? 'border-blue-600 text-blue-600 dark:text-blue-400 font-medium'
                       : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
-                  {tab.label}
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
                 </button>
               );
             })}
@@ -223,11 +225,11 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">{activeTab === 'estadisticas' && (
+        <div className="p-4 md:p-6 space-y-4">{activeTab === 'estadisticas' && (
           <>
 
           {/* KPIs - 3D Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <DJStatCard3D
               title="Total Eventos"
               value={stats?.resumen?.total_eventos || 0}
@@ -298,11 +300,11 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
           )}
 
           {/* Gráficos */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Evolución Mensual */}
             <div className="card dark:bg-gray-700 dark:border-gray-600">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Evolución Mensual - Eventos</h3>
-              <ResponsiveContainer width="100%" height={250}>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">Evolución Mensual - Eventos</h3>
+              <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={evolucionMensual}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="mes" />
@@ -315,8 +317,8 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
 
             {/* Facturación e Ingresos */}
             <div className="card dark:bg-gray-700 dark:border-gray-600">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Facturación vs Ingresos</h3>
-              <ResponsiveContainer width="100%" height={250}>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">Facturación vs Ingresos</h3>
+              <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={evolucionMensual}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="mes" />
@@ -331,10 +333,10 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
           </div>
 
           {/* Top Locales y Categorías */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Top Locales */}
             <div className="card dark:bg-gray-700 dark:border-gray-600">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Top 5 Locales</h3>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">Top 5 Locales</h3>
               {topLocales.length > 0 ? (
                 <div className="space-y-3">
                   {topLocales.map((local, idx) => (
@@ -359,9 +361,9 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
 
             {/* Distribución por Categoría */}
             <div className="card dark:bg-gray-700 dark:border-gray-600">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Distribución por Categoría</h3>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">Distribución por Categoría</h3>
               {categorias.length > 0 ? (
-                <ResponsiveContainer width="100%" height={250}>
+                <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie
                       data={categorias}
