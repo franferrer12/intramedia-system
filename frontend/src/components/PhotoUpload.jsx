@@ -136,15 +136,11 @@ const PhotoUpload = ({ currentPhoto, djId, djName, onPhotoUpdate }) => {
         onClick={() => fileInputRef.current?.click()}
         disabled={uploading}
         className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors flex items-center gap-1.5"
+        title="Formatos: JPG, PNG, GIF, WEBP | Max: 5MB"
       >
         <Upload className="w-3.5 h-3.5" />
         {preview ? 'Cambiar' : 'Subir'}
       </button>
-
-      {/* Info compacta */}
-      <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:inline">
-        JPG, PNG, WEBP (Max 5MB)
-      </span>
     </div>
   );
 };
