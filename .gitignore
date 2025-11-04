@@ -1,0 +1,85 @@
+# ============================================
+# IntraMedia System - Git Ignore
+# ============================================
+
+# Environment Variables (CRITICAL - DO NOT COMMIT)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+*.tgz
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Testing
+.cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS files
+Thumbs.db
+.DS_Store
+*.orig
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Docker volumes
+postgres_data/
+
+# Backups
+backups/*.sql
+backups/*.sql.gz
+
+# Uploads (if any)
+uploads/
+public/uploads/
+
+# Secrets
+*.pem
+*.key
+*.cert
+secrets/
+
+# Database dumps
+*.dump
+*.sql.gz
+
+# Optional: Ignore build artifacts
+.next/
+.nuxt/
+.cache/
