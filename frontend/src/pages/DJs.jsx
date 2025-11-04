@@ -161,9 +161,9 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header - Compacto y Horizontal */}
-        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between z-20 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-6xl w-full max-h-[90vh] flex flex-col">
+        {/* Header - Compacto y Horizontal - FIJO */}
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between shrink-0 rounded-t-lg">
           <div className="flex items-center gap-4">
             <PhotoUpload
               currentPhoto={currentPhoto}
@@ -200,8 +200,8 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="sticky top-[65px] bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 z-10 shadow-sm">
+        {/* Tabs - FIJAS */}
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 shrink-0 shadow-sm">
           <div className="flex gap-1 overflow-x-auto">
             {tabs.map(tab => {
               const Icon = tab.icon;
@@ -224,12 +224,9 @@ const DJDetailModal = ({ dj, onClose, onUpdate }) => {
           </div>
         </div>
 
-        {/* Content - Con espacio superior para headers fijos */}
-        <div className="space-y-4">
-          {/* Spacer para headers fijos (65px header + 47px tabs = 112px) */}
-          <div className="h-[112px]"></div>
-
-          <div className="px-4 md:px-6 pb-6 space-y-4">
+        {/* Content - CON SCROLL */}
+        <div className="flex-1 overflow-y-auto rounded-b-lg">
+          <div className="p-4 md:p-6 space-y-4">
             {activeTab === 'estadisticas' && (
               <>
 
