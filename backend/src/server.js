@@ -1,7 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
 import pool from './config/database.js';
+import swaggerSpec from './config/swagger.js';
+import logger from './utils/logger.js';
 import { compression } from './middleware/compression.js';
 import { securityHeaders } from './middleware/security.js';
 import { performanceMiddleware, getPerformanceMetrics, resetMetrics } from './middleware/performanceMonitor.js';
@@ -71,7 +74,7 @@ app.use(compression());
 app.use(jobsUXMiddleware);
 
 // 6. Security headers (AFTER CORS and body parsers)
-// Temporarily disabled for debugging
+// TEMPORARILY DISABLED - Helmet interfering with CORS
 // app.use(securityHeaders());
 
 // Servir archivos estáticos (uploads)
@@ -81,6 +84,18 @@ app.use('/uploads', express.static('uploads'));
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path}`, req.query);
   next();
+});
+
+// API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'IntraMedia API Docs',
+}));
+
+// Swagger JSON
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
 });
 
 // Rutas principales

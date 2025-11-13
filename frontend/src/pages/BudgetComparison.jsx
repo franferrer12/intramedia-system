@@ -52,6 +52,7 @@ const BudgetComparison = () => {
     } catch (error) {
       toast.error('Error al cargar datos de comparativa');
       console.error(error);
+      setData([]); // Always set empty array on error
     } finally {
       setLoading(false);
     }

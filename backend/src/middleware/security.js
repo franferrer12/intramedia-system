@@ -1,59 +1,77 @@
+import helmet from 'helmet';
+
 /**
  * Security Headers Middleware
- * Adds essential HTTP security headers to all responses
+ * Uses Helmet.js for comprehensive security headers
  *
  * Headers included:
  * - X-Content-Type-Options: Prevents MIME sniffing
  * - X-Frame-Options: Prevents clickjacking
  * - X-XSS-Protection: Enables XSS filter
- * - Strict-Transport-Security: Enforces HTTPS
+ * - Strict-Transport-Security: Enforces HTTPS (production only)
  * - Content-Security-Policy: Prevents XSS and injection attacks
  * - Referrer-Policy: Controls referrer information
  * - Permissions-Policy: Controls browser features
  */
 
 export const securityHeaders = () => {
-  return (req, res, next) => {
-    // Prevent MIME sniffing
-    res.setHeader('X-Content-Type-Options', 'nosniff');
+  return helmet({
+    // Content Security Policy
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        fontSrc: ["'self'", 'data:'],
+        connectSrc: ["'self'", 'http://localhost:*', 'https:'],
+        frameSrc: ["'none'"],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
+      },
+    },
+
+    // Strict Transport Security (HTTPS only in production)
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+
+    // Hide X-Powered-By header
+    hidePoweredBy: true,
 
     // Prevent clickjacking
-    res.setHeader('X-Frame-Options', 'DENY');
+    frameguard: {
+      action: 'deny',
+    },
 
-    // Enable XSS filter
-    res.setHeader('X-XSS-Protection', '1; mode=block');
+    // Prevent MIME sniffing
+    noSniff: true,
 
-    // Enforce HTTPS (only in production)
-    if (process.env.NODE_ENV === 'production') {
-      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    }
+    // Referrer policy
+    referrerPolicy: {
+      policy: 'strict-origin-when-cross-origin',
+    },
 
-    // Content Security Policy
-    res.setHeader(
-      'Content-Security-Policy',
-      "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-      "style-src 'self' 'unsafe-inline'; " +
-      "img-src 'self' data: https:; " +
-      "font-src 'self' data:; " +
-      "connect-src 'self' http://localhost:* https:; " +
-      "frame-ancestors 'none'"
-    );
+    // XSS Protection
+    xssFilter: true,
 
-    // Control referrer information
-    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    // DNS Prefetch Control
+    dnsPrefetchControl: {
+      allow: false,
+    },
 
-    // Disable sensitive browser features
-    res.setHeader(
-      'Permissions-Policy',
-      'camera=(), microphone=(), geolocation=(), interest-cohort=()'
-    );
-
-    // Remove server fingerprinting
-    res.removeHeader('X-Powered-By');
-
-    next();
-  };
+    // Permissions Policy
+    permissionsPolicy: {
+      features: {
+        camera: ["'none'"],
+        microphone: ["'none'"],
+        geolocation: ["'none'"],
+        payment: ["'none'"],
+      },
+    },
+  });
 };
 
 export default securityHeaders;
