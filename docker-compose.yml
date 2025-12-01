@@ -1,5 +1,7 @@
 services:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   # PostgreSQL Database
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   database:
     image: postgres:16-alpine
     container_name: intramedia-db
@@ -9,6 +11,9 @@ services:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       PGDATA: /var/lib/postgresql/data/pgdata
+      # Performance tuning
+      POSTGRES_SHARED_BUFFERS: 256MB
+      POSTGRES_MAX_CONNECTIONS: 200
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/migrations:/docker-entrypoint-initdb.d:ro
@@ -22,8 +27,42 @@ services:
       start_period: 10s
     networks:
       - intramedia-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Redis Cache (Optional - for production)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  redis:
+    image: redis:7-alpine
+    container_name: intramedia-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - intramedia-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    profiles:
+      - production
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   # Backend API
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   backend:
     build:
       context: ./backend
@@ -34,27 +73,50 @@ services:
     depends_on:
       database:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+        required: false
     environment:
       NODE_ENV: production
       PORT: ${PORT:-3001}
+
+      # Database
       DB_HOST: database
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-intra_media_system}
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_POOL_MAX: 20
+
+      # Redis Cache
+      REDIS_ENABLED: ${REDIS_ENABLED:-true}
+      REDIS_URL: redis://redis:6379
+
+      # Auth
       JWT_SECRET: ${JWT_SECRET}
-      INSTAGRAM_CLIENT_ID: ${INSTAGRAM_CLIENT_ID}
-      INSTAGRAM_CLIENT_SECRET: ${INSTAGRAM_CLIENT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+
+      # OAuth
+      INSTAGRAM_APP_ID: ${INSTAGRAM_APP_ID}
+      INSTAGRAM_APP_SECRET: ${INSTAGRAM_APP_SECRET}
       INSTAGRAM_REDIRECT_URI: ${INSTAGRAM_REDIRECT_URI}
+
+      # Email
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER}
-      SMTP_PASS: ${SMTP_PASS}
-      SMTP_FROM: ${SMTP_FROM}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      EMAIL_FROM: ${EMAIL_FROM}
+
+      # Security & Performance
+      RATE_LIMIT_ENABLED: true
+      HELMET_ENABLED: true
+      LOG_LEVEL: ${LOG_LEVEL:-info}
     ports:
       - "${PORT:-3001}:3001"
     volumes:
       - ./backend/logs:/app/logs
+      - ./backend/uploads:/app/uploads
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
       interval: 30s
@@ -63,8 +125,15 @@ services:
       start_period: 40s
     networks:
       - intramedia-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   # Frontend (React + Nginx)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   frontend:
     build:
       context: ./frontend
@@ -87,12 +156,28 @@ services:
       start_period: 5s
     networks:
       - intramedia-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Networks
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 networks:
   intramedia-network:
     driver: bridge
     name: intramedia-network
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Persistent Volumes
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 volumes:
   postgres_data:
     name: intramedia-postgres-data
+    driver: local
+
+  redis_data:
+    name: intramedia-redis-data
+    driver: local

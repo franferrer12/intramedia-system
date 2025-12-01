@@ -1,0 +1,73 @@
+config:
+  target: "http://localhost:3001"
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      name: "Smoke Test - Low Load"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+  processor: "./processor.js"
+
+scenarios:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Health & Status Checks
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  - name: "Health Check"
+    weight: 20
+    flow:
+      - get:
+          url: "/health"
+          capture:
+            - json: "$.status"
+              as: "health_status"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: "success"
+            - equals:
+                - "{{ health_status }}"
+                - "ok"
+
+  - name: "Root Endpoint"
+    weight: 10
+    flow:
+      - get:
+          url: "/"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: "version"
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Read Operations (GET)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  - name: "List Eventos"
+    weight: 30
+    flow:
+      - get:
+          url: "/api/eventos"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: "data"
+
+  - name: "List DJs"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/djs"
+          expect:
+            - statusCode: 200
+            - contentType: json
+
+  - name: "List Clientes"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/clientes"
+          expect:
+            - statusCode: 200
+            - contentType: json

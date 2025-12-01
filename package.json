@@ -1,0 +1,52 @@
+{
+  "name": "intra-media-system",
+  "version": "2.3.0",
+  "description": "Multi-Tenant DJ Agency Management System",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "dev": "concurrently -n backend,frontend -c yellow,cyan \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
+    "test": "cd backend && npm test",
+    "test:unit": "cd backend && npm run test:unit",
+    "test:middleware": "cd backend && npm run test:middleware",
+    "test:coverage": "cd backend && npm run test:coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:load": "artillery run load-tests/config.smoke.yml",
+    "test:load:full": "artillery run load-tests/config.load.yml",
+    "build": "cd frontend && npm run build",
+    "lint": "cd frontend && npm run lint",
+    "docker:up": "docker-compose up -d",
+    "docker:up:prod": "docker-compose --profile production up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:ps": "docker-compose ps",
+    "health": "./scripts/health-check.sh",
+    "backup": "./scripts/backup.sh",
+    "deploy": "./scripts/deploy.sh production",
+    "deploy:dev": "./scripts/deploy.sh dev"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "artillery": "^2.0.21",
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "keywords": [
+    "dj-management",
+    "multi-tenant",
+    "event-management",
+    "financial-tracking",
+    "api",
+    "rest-api"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/franferrer12/intramedia.git"
+  },
+  "author": "IntraMedia Development Team",
+  "license": "ISC"
+}

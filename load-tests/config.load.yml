@@ -1,0 +1,110 @@
+config:
+  target: "http://localhost:3001"
+  phases:
+    # Warm-up phase
+    - duration: 30
+      arrivalRate: 5
+      name: "Warm-up"
+
+    # Ramp-up phase
+    - duration: 60
+      arrivalRate: 5
+      rampTo: 50
+      name: "Ramp-up load"
+
+    # Sustained load
+    - duration: 120
+      arrivalRate: 50
+      name: "Sustained load"
+
+    # Spike
+    - duration: 30
+      arrivalRate: 100
+      name: "Spike"
+
+    # Cool-down
+    - duration: 30
+      arrivalRate: 10
+      name: "Cool-down"
+
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+  payload:
+    path: "./test-data.csv"
+    fields:
+      - "dj_id"
+      - "cliente_id"
+    order: "sequence"
+
+scenarios:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Mixed Read/Write Workload (70% reads, 30% writes)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  - name: "Read Heavy - List Eventos"
+    weight: 40
+    flow:
+      - get:
+          url: "/api/eventos"
+          qs:
+            page: "{{ $randomNumber(1, 10) }}"
+            limit: 20
+          expect:
+            - statusCode: 200
+
+  - name: "Read - Get Evento Details"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/eventos/{{ $randomNumber(1, 1000) }}"
+          expect:
+            - statusCode: [200, 404]
+
+  - name: "Read - List DJs"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/djs"
+          expect:
+            - statusCode: 200
+
+  - name: "Write - Create Evento"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/eventos"
+          json:
+            fecha: "2025-12-31"
+            mes: "diciembre"
+            evento: "Load Test Event {{ $randomString(6) }}"
+            ciudad_lugar: "Madrid"
+            dj_id: "{{ dj_id }}"
+            cliente_id: "{{ cliente_id }}"
+            horas: "{{ $randomNumber(2, 8) }}"
+            cache_total: 1000
+            parte_dj: 700
+            parte_agencia: 300
+            cobrado_cliente: false
+            pagado_dj: false
+          expect:
+            - statusCode: [201, 400]
+
+  - name: "Write - Update Evento"
+    weight: 10
+    flow:
+      - put:
+          url: "/api/eventos/{{ $randomNumber(1, 100) }}"
+          json:
+            horas: "{{ $randomNumber(3, 7) }}"
+          expect:
+            - statusCode: [200, 404]
+
+  - name: "Stats - Monthly Summary"
+    weight: 5
+    flow:
+      - get:
+          url: "/api/eventos/stats/{{ $randomElement(['enero', 'febrero', 'marzo', 'diciembre']) }}"
+          expect:
+            - statusCode: 200
