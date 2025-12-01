@@ -1,9 +1,11 @@
 import db from '../config/database.js';
 import scraperService from './socialMediaScraperService.js';
+import emailService from './emailService.js';
+import Notification from '../models/Notification.js';
 
 /**
  * Scheduled Jobs Service
- * Handles automatic updates of social media metrics
+ * Handles automatic updates and maintenance tasks
  */
 
 let jobIntervals = [];
@@ -147,6 +149,81 @@ async function cleanOldSnapshots() {
 }
 
 /**
+ * Process email notification queue
+ */
+async function processEmailQueue() {
+  console.log('📧 [Scheduled Job] Processing email queue...');
+
+  try {
+    const result = await emailService.processQueue();
+
+    if (result.skipped) {
+      console.log('⚠️  Email service not configured, skipping queue processing');
+    } else {
+      console.log(`✅ Email queue processed: ${result.processed} sent, ${result.failed} failed`);
+    }
+  } catch (error) {
+    console.error('❌ Error processing email queue:', error);
+  }
+}
+
+/**
+ * Clean old notifications (keep last 90 days)
+ */
+async function cleanOldNotifications() {
+  console.log('🧹 [Scheduled Job] Cleaning old notifications (keeping last 90 days)...');
+
+  try {
+    const deletedCount = await Notification.cleanupOld(90);
+    console.log(`✅ Deleted ${deletedCount} old notifications`);
+  } catch (error) {
+    console.error('❌ Error cleaning old notifications:', error);
+  }
+}
+
+/**
+ * Clean expired notifications
+ */
+async function cleanExpiredNotifications() {
+  console.log('🧹 [Scheduled Job] Cleaning expired notifications...');
+
+  try {
+    const deletedCount = await Notification.cleanupExpired();
+    console.log(`✅ Deleted ${deletedCount} expired notifications`);
+  } catch (error) {
+    console.error('❌ Error cleaning expired notifications:', error);
+  }
+}
+
+/**
+ * Retry failed notifications
+ */
+async function retryFailedNotifications() {
+  console.log('🔄 [Scheduled Job] Retrying failed notifications...');
+
+  try {
+    const retryCount = await Notification.retryFailed();
+    console.log(`✅ Retried ${retryCount} failed notifications`);
+  } catch (error) {
+    console.error('❌ Error retrying failed notifications:', error);
+  }
+}
+
+/**
+ * Clean old emails from queue (keep last 30 days)
+ */
+async function cleanOldEmails() {
+  console.log('🧹 [Scheduled Job] Cleaning old emails from queue (keeping last 30 days)...');
+
+  try {
+    const deletedCount = await emailService.cleanupOldEmails(30);
+    console.log(`✅ Deleted ${deletedCount} old emails from queue`);
+  } catch (error) {
+    console.error('❌ Error cleaning old emails:', error);
+  }
+}
+
+/**
  * Delay helper function
  */
 function delay(ms) {
@@ -187,6 +264,57 @@ export function startScheduledJobs() {
     const interval = setInterval(cleanOldSnapshots, 7 * 24 * 60 * 60 * 1000); // Every 7 days
     jobIntervals.push(interval);
   }, weeklyCleanTime);
+
+  // Job 3: Process email queue every 5 minutes
+  console.log(`📅 Email queue processing scheduled every 5 minutes`);
+
+  setTimeout(() => {
+    processEmailQueue();
+    const interval = setInterval(processEmailQueue, 5 * 60 * 1000); // Every 5 minutes
+    jobIntervals.push(interval);
+  }, 30000); // Start 30 seconds after startup
+
+  // Job 4: Retry failed notifications every 15 minutes
+  console.log(`📅 Failed notifications retry scheduled every 15 minutes`);
+
+  setTimeout(() => {
+    retryFailedNotifications();
+    const interval = setInterval(retryFailedNotifications, 15 * 60 * 1000); // Every 15 minutes
+    jobIntervals.push(interval);
+  }, 60000); // Start 1 minute after startup
+
+  // Job 5: Clean expired notifications daily at 1 AM
+  const dailyExpiredCleanTime = getMillisecondsUntilNextRun(1, 0);
+  console.log(`📅 Expired notifications cleanup scheduled for 1:00 AM`);
+  console.log(`   Next run in: ${Math.round(dailyExpiredCleanTime / 1000 / 60)} minutes`);
+
+  setTimeout(() => {
+    cleanExpiredNotifications();
+    const interval = setInterval(cleanExpiredNotifications, 24 * 60 * 60 * 1000); // Every 24 hours
+    jobIntervals.push(interval);
+  }, dailyExpiredCleanTime);
+
+  // Job 6: Clean old notifications weekly (Sunday at 3 AM)
+  const weeklyNotifCleanTime = getMillisecondsUntilNextRun(3, 0, 0); // Sunday 3:00 AM
+  console.log(`📅 Old notifications cleanup scheduled for Sunday 3:00 AM`);
+  console.log(`   Next run in: ${Math.round(weeklyNotifCleanTime / 1000 / 60 / 60)} hours`);
+
+  setTimeout(() => {
+    cleanOldNotifications();
+    const interval = setInterval(cleanOldNotifications, 7 * 24 * 60 * 60 * 1000); // Every 7 days
+    jobIntervals.push(interval);
+  }, weeklyNotifCleanTime);
+
+  // Job 7: Clean old emails weekly (Sunday at 4 AM)
+  const weeklyEmailCleanTime = getMillisecondsUntilNextRun(4, 0, 0); // Sunday 4:00 AM
+  console.log(`📅 Old emails cleanup scheduled for Sunday 4:00 AM`);
+  console.log(`   Next run in: ${Math.round(weeklyEmailCleanTime / 1000 / 60 / 60)} hours`);
+
+  setTimeout(() => {
+    cleanOldEmails();
+    const interval = setInterval(cleanOldEmails, 7 * 24 * 60 * 60 * 1000); // Every 7 days
+    jobIntervals.push(interval);
+  }, weeklyEmailCleanTime);
 
   console.log('✅ Scheduled jobs started successfully');
   console.log('');
@@ -246,5 +374,10 @@ export default {
   stopScheduledJobs,
   triggerManualUpdate,
   updateAllSocialMediaMetrics,
-  cleanOldSnapshots
+  cleanOldSnapshots,
+  processEmailQueue,
+  cleanOldNotifications,
+  cleanExpiredNotifications,
+  retryFailedNotifications,
+  cleanOldEmails
 };

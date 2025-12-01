@@ -34,6 +34,7 @@ import executiveDashboardRoutes from './routes/executiveDashboard.js';
 import comparativeAnalysisRoutes from './routes/comparativeAnalysis.js';
 import quotationsRoutes from './routes/quotations.js';
 import contractsRoutes from './routes/contracts.js';
+import notificationsRoutes from './routes/notifications.js';
 
 // Importar servicios
 import { startScheduledJobs, stopScheduledJobs } from './services/scheduledJobsService.js';
@@ -134,7 +135,8 @@ app.get('/', (req, res) => {
       executiveDashboard: '/api/executive-dashboard',
       comparativeAnalysis: '/api/comparative-analysis',
       quotations: '/api/quotations',
-      contracts: '/api/contracts'
+      contracts: '/api/contracts',
+      notifications: '/api/notifications'
     }
   });
 });
@@ -275,6 +277,7 @@ app.use('/api/executive-dashboard', executiveDashboardRoutes);
 app.use('/api/comparative-analysis', comparativeAnalysisRoutes);
 app.use('/api/quotations', quotationsRoutes);
 app.use('/api/contracts', contractsRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 // 404 Handler
 app.use((req, res) => {
