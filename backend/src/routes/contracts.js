@@ -10,7 +10,7 @@ import {
 } from '../schemas/contract.schema.js';
 import { shortCache, longCache } from '../middleware/cache.js';
 import { createRateLimit } from '../middleware/rateLimit.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticate } from '../middleware/auth.js';
 import {
   createContract,
   getAllContracts,
@@ -20,19 +20,19 @@ import {
   updateContractStatus,
   deleteContract,
   getContractHistory,
-  getExpiringSoonContracts
+  getExpiringContracts
 } from '../controllers/contractsController.js';
 
 const router = express.Router();
 
 /**
  * IMPORTANT: All contract routes require authentication
- * The authenticateToken middleware ensures req.user is populated
+ * The authenticate middleware ensures req.user is populated
  */
 
 // GET /api/contracts - Obtener todos los contratos (con paginación y filtros)
 router.get('/',
-  authenticateToken,
+  authenticate,
   validate({ query: listContractsQuerySchema }),
   validatePagination({ maxLimit: 50 }),
   shortCache,
@@ -41,14 +41,14 @@ router.get('/',
 
 // GET /api/contracts/expiring-soon - Contratos próximos a vencer
 router.get('/expiring-soon',
-  authenticateToken,
+  authenticate,
   longCache,
-  getExpiringSoonContracts
+  getExpiringContracts
 );
 
 // GET /api/contracts/:id - Obtener un contrato específico
 router.get('/:id',
-  authenticateToken,
+  authenticate,
   validate({ params: contractIdSchema }),
   shortCache,
   getContractById
@@ -56,7 +56,7 @@ router.get('/:id',
 
 // GET /api/contracts/:id/history - Obtener historial de cambios
 router.get('/:id/history',
-  authenticateToken,
+  authenticate,
   validate({ params: contractIdSchema }),
   longCache,
   getContractHistory
@@ -64,7 +64,7 @@ router.get('/:id/history',
 
 // POST /api/contracts - Crear nuevo contrato
 router.post('/',
-  authenticateToken,
+  authenticate,
   createRateLimit,
   sanitizeBody,
   validate({ body: createContractSchema }),
@@ -73,7 +73,7 @@ router.post('/',
 
 // PUT /api/contracts/:id - Actualizar contrato
 router.put('/:id',
-  authenticateToken,
+  authenticate,
   validate({
     params: contractIdSchema,
     body: updateContractSchema
@@ -84,7 +84,7 @@ router.put('/:id',
 
 // POST /api/contracts/:id/sign - Firmar contrato
 router.post('/:id/sign',
-  authenticateToken,
+  authenticate,
   validate({
     params: contractIdSchema,
     body: signContractSchema
@@ -94,7 +94,7 @@ router.post('/:id/sign',
 
 // PATCH /api/contracts/:id/status - Cambiar estado del contrato
 router.patch('/:id/status',
-  authenticateToken,
+  authenticate,
   validate({
     params: contractIdSchema,
     body: updateStatusSchema
@@ -104,7 +104,7 @@ router.patch('/:id/status',
 
 // DELETE /api/contracts/:id - Soft delete de contrato
 router.delete('/:id',
-  authenticateToken,
+  authenticate,
   validateId,
   deleteContract
 );
