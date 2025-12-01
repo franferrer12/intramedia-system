@@ -35,6 +35,7 @@ import comparativeAnalysisRoutes from './routes/comparativeAnalysis.js';
 import quotationsRoutes from './routes/quotations.js';
 import contractsRoutes from './routes/contracts.js';
 import notificationsRoutes from './routes/notifications.js';
+import rolesRoutes from './routes/roles.js';
 
 // Importar servicios
 import { startScheduledJobs, stopScheduledJobs } from './services/scheduledJobsService.js';
@@ -136,7 +137,8 @@ app.get('/', (req, res) => {
       comparativeAnalysis: '/api/comparative-analysis',
       quotations: '/api/quotations',
       contracts: '/api/contracts',
-      notifications: '/api/notifications'
+      notifications: '/api/notifications',
+      roles: '/api/roles'
     }
   });
 });
@@ -278,6 +280,7 @@ app.use('/api/comparative-analysis', comparativeAnalysisRoutes);
 app.use('/api/quotations', quotationsRoutes);
 app.use('/api/contracts', contractsRoutes);
 app.use('/api/notifications', notificationsRoutes);
+app.use('/api/roles', rolesRoutes);
 
 // 404 Handler
 app.use((req, res) => {
