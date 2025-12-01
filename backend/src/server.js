@@ -38,6 +38,7 @@ import notificationsRoutes from './routes/notifications.js';
 import rolesRoutes from './routes/roles.js';
 import availabilityRoutes from './routes/availability.js';
 import reservationsRoutes from './routes/reservations.js';
+import documentsRoutes from './routes/documents.js';
 
 // Importar servicios
 import { startScheduledJobs, stopScheduledJobs } from './services/scheduledJobsService.js';
@@ -287,6 +288,7 @@ app.use('/api/notifications', notificationsRoutes);
 app.use('/api/roles', rolesRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/reservations', reservationsRoutes);
+app.use('/api/documents', documentsRoutes);
 
 // 404 Handler
 app.use((req, res) => {
