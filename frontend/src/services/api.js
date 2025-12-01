@@ -189,4 +189,163 @@ export const monthlyExpensesAPI = {
   getBudgetVsReal: (params) => api.get('/monthly-expenses/budget-vs-real', { params })
 };
 
+// === AVAILABILITY ===
+export const availabilityAPI = {
+  // Obtener todas las disponibilidades con filtros
+  getAll: (filters = {}) => {
+    const params = new URLSearchParams(filters).toString();
+    return api.get(`/availability${params ? `?${params}` : ''}`);
+  },
+
+  // Obtener disponibilidad por ID
+  getById: (id) => api.get(`/availability/${id}`),
+
+  // Crear/actualizar disponibilidad
+  upsert: (data) => api.post('/availability', data),
+
+  // Actualizar disponibilidad existente
+  update: (id, data) => api.put(`/availability/${id}`, data),
+
+  // Eliminar disponibilidad
+  delete: (id) => api.delete(`/availability/${id}`),
+
+  // Verificar disponibilidad de DJ
+  checkAvailability: (djId, fecha, horaInicio, horaFin) => {
+    const params = new URLSearchParams({
+      dj_id: djId,
+      fecha,
+      ...(horaInicio && { hora_inicio: horaInicio }),
+      ...(horaFin && { hora_fin: horaFin })
+    });
+    return api.get(`/availability/check?${params.toString()}`);
+  },
+
+  // Detectar conflictos
+  detectConflicts: (djId, fecha, horaInicio, horaFin, excludeId) => {
+    const params = new URLSearchParams({
+      dj_id: djId,
+      fecha,
+      ...(horaInicio && { hora_inicio: horaInicio }),
+      ...(horaFin && { hora_fin: horaFin }),
+      ...(excludeId && { exclude_id: excludeId })
+    });
+    return api.get(`/availability/conflicts?${params.toString()}`);
+  },
+
+  // Buscar DJs disponibles
+  findAvailableDJs: (fecha, horaInicio, horaFin, agencyId) => {
+    const params = new URLSearchParams({
+      fecha,
+      ...(horaInicio && { hora_inicio: horaInicio }),
+      ...(horaFin && { hora_fin: horaFin }),
+      ...(agencyId && { agency_id: agencyId })
+    });
+    return api.get(`/availability/available-djs?${params.toString()}`);
+  },
+
+  // 🆕 Sugerencias inteligentes de DJs alternativos
+  getSmartSuggestions: (originalDjId, fecha, horaInicio, horaFin, agencyId) => {
+    const params = new URLSearchParams({
+      original_dj_id: originalDjId,
+      fecha,
+      ...(horaInicio && { hora_inicio: horaInicio }),
+      ...(horaFin && { hora_fin: horaFin }),
+      ...(agencyId && { agency_id: agencyId })
+    });
+    return api.get(`/availability/smart-suggestions?${params.toString()}`);
+  },
+
+  // 🆕 Resumen completo del calendario mensual
+  getCalendarSummary: (year, month, djId, agencyId) => {
+    const params = new URLSearchParams({
+      year,
+      month,
+      ...(djId && { dj_id: djId }),
+      ...(agencyId && { agency_id: agencyId })
+    });
+    return api.get(`/availability/calendar-summary?${params.toString()}`);
+  },
+
+  // Obtener calendario mensual de DJ
+  getCalendar: (djId, year, month) => {
+    const params = new URLSearchParams({ year, month });
+    return api.get(`/availability/dj/${djId}/calendar?${params.toString()}`);
+  },
+
+  // Obtener disponibilidad por rango de fechas
+  getByDateRange: (djId, fechaInicio, fechaFin) => {
+    const params = new URLSearchParams({
+      fecha_inicio: fechaInicio,
+      fecha_fin: fechaFin
+    });
+    return api.get(`/availability/dj/${djId}/range?${params.toString()}`);
+  },
+
+  // Obtener disponibilidad de agencia
+  getAgencyAvailability: (year, month) => {
+    const params = new URLSearchParams({ year, month });
+    return api.get(`/availability/agency?${params.toString()}`);
+  },
+
+  // Marcar fecha como no disponible
+  markUnavailable: (djId, fecha, motivo, notas) => {
+    return api.post('/availability/mark-unavailable', {
+      dj_id: djId,
+      fecha,
+      motivo,
+      notas
+    });
+  },
+
+  // Marcar fecha como disponible
+  markAvailable: (djId, fecha) => {
+    return api.post('/availability/mark-available', {
+      dj_id: djId,
+      fecha
+    });
+  },
+
+  // Reservar fecha para evento
+  reserveForEvent: (djId, fecha, eventoId, horaInicio, horaFin) => {
+    return api.post('/availability/reserve', {
+      dj_id: djId,
+      fecha,
+      evento_id: eventoId,
+      hora_inicio: horaInicio,
+      hora_fin: horaFin
+    });
+  },
+
+  // Bloquear rango de fechas
+  blockDateRange: (djId, fechaInicio, fechaFin, motivo, notas) => {
+    return api.post('/availability/block-range', {
+      dj_id: djId,
+      fecha_inicio: fechaInicio,
+      fecha_fin: fechaFin,
+      motivo,
+      notas
+    });
+  },
+
+  // 🆕 Notificar conflictos
+  notifyConflicts: (djId, fecha, conflicts) => {
+    return api.post('/availability/notify-conflicts', {
+      dj_id: djId,
+      fecha,
+      conflicts
+    });
+  },
+
+  // Obtener estadísticas de disponibilidad
+  getStats: (djId, year, month) => {
+    const params = new URLSearchParams({ year, month });
+    return api.get(`/availability/dj/${djId}/stats?${params.toString()}`);
+  },
+
+  // Limpiar registros antiguos (admin)
+  cleanupOld: (days = 90) => {
+    return api.post(`/availability/cleanup?days=${days}`);
+  }
+};
+
 export default api;

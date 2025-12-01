@@ -24,6 +24,7 @@ import Nominas from './pages/Nominas';
 import Socios from './pages/Socios';
 import DataCleanup from './pages/DataCleanup';
 import Calendario from './pages/Calendario';
+import CalendarioAvanzado from './pages/CalendarioAvanzado';
 import Solicitudes from './pages/Solicitudes';
 import ProfitDistributionSettings from './pages/ProfitDistributionSettings';
 import MonthlyExpenseManager from './pages/MonthlyExpenseManager';
@@ -76,6 +77,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="eventos" element={<Eventos />} />
             <Route path="calendario" element={<Calendario />} />
+            <Route path="calendario-avanzado" element={<CalendarioAvanzado />} />
             <Route path="djs" element={<DJs />} />
             <Route path="solicitudes" element={<Solicitudes />} />
             <Route path="clientes" element={<Clientes />} />

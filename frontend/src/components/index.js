@@ -55,3 +55,11 @@ export { default as PageTransition, FadeTransition, SlideTransition } from './Pa
 // ========================================
 
 export { default as ExportButton } from './ExportButton';
+
+// ========================================
+// SPRINT 4.1.2 - Availability Management
+// ========================================
+
+export { default as DJAvailabilityCalendar } from './DJAvailabilityCalendar';
+export { default as SmartSuggestionsPanel } from './SmartSuggestionsPanel';
+export { default as CalendarViewSwitcher } from './CalendarViewSwitcher';
