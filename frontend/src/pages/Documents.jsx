@@ -614,11 +614,10 @@ function Documents() {
                       alt={selectedDocument.title}
                       className="w-full h-full object-contain"
                     />
-                  ) : (
-                    React.createElement(getFileIcon(selectedDocument.mime_type), {
-                      className: "w-32 h-32 text-slate-400"
-                    })
-                  )}
+                  ) : (() => {
+                    const Icon = getFileIcon(selectedDocument.mime_type);
+                    return <Icon className="w-32 h-32 text-slate-400" />;
+                  })()}
                 </div>
 
                 {/* Actions */}

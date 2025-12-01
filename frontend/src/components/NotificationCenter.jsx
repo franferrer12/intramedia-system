@@ -11,7 +11,7 @@ import {
   TrendingUp,
   Package
 } from 'lucide-react';
-import { AuthContext } from '../contexts/AuthContext';
+import AuthContext from '../contexts/AuthContext';
 
 /**
  * NotificationCenter - Sistema de notificaciones inteligente
