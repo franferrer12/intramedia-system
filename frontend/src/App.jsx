@@ -39,6 +39,8 @@ import ExecutiveDashboard from './pages/ExecutiveDashboard';
 import JobsDemo from './pages/JobsDemo';
 import SettingsPage from './pages/SettingsPage';
 import Documents from './pages/Documents';
+import Reservations from './pages/Reservations';
+import PublicBookingForm from './pages/PublicBookingForm';
 
 function App() {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
@@ -60,6 +62,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/leads/public" element={<PublicLeadForm />} />
+          <Route path="/booking" element={<PublicBookingForm />} />
 
           {/* Protected Routes */}
           <Route
@@ -104,6 +107,7 @@ function App() {
             <Route path="jobs-demo" element={<JobsDemo />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="documents" element={<Documents />} />
+            <Route path="reservations" element={<Reservations />} />
           </Route>
         </Routes>
       </AuthProvider>
