@@ -1,7 +1,9 @@
 import pool from '../config/database.js';
+import logger from '../utils/logger.js';
 
 /**
- * Modelo para gestión de disponibilidad de DJs
+ * Availability Model
+ * Gestión completa de disponibilidad de DJs con detección de conflictos
  */
 class Availability {
 
@@ -279,7 +281,289 @@ class Availability {
       results.push(availability);
     }
 
+    logger.info('Date range blocked:', { djId, fecha_inicio, fecha_fin, count: results.length });
     return results;
+  }
+
+  /**
+   * Buscar DJs disponibles en fecha/hora específica
+   * @param {Object} criteria - Criterios de búsqueda
+   * @returns {Promise<Array>} Lista de DJs disponibles
+   */
+  static async findAvailableDJs(criteria) {
+    const { fecha, hora_inicio, hora_fin, agency_id } = criteria;
+
+    try {
+      const query = `
+        SELECT DISTINCT
+          d.id,
+          d.nombre,
+          d.email,
+          d.telefono,
+          d.especialidad,
+          d.tarifa_hora,
+          d.rating,
+          d.agency_id
+        FROM djs d
+        WHERE d.deleted_at IS NULL
+          AND d.is_active = true
+          ${agency_id ? 'AND d.agency_id = $4' : ''}
+          AND NOT EXISTS (
+            SELECT 1
+            FROM dj_availability da
+            WHERE da.dj_id = d.id
+              AND da.fecha = $1
+              AND da.estado IN ('reservado', 'no_disponible')
+              AND (
+                (da.hora_inicio <= $2 AND da.hora_fin >= $2) OR
+                (da.hora_inicio <= $3 AND da.hora_fin >= $3) OR
+                (da.hora_inicio >= $2 AND da.hora_fin <= $3) OR
+                da.todo_el_dia = true
+              )
+          )
+        ORDER BY d.rating DESC NULLS LAST, d.nombre
+      `;
+
+      const values = agency_id
+        ? [fecha, hora_inicio || '00:00', hora_fin || '23:59', agency_id]
+        : [fecha, hora_inicio || '00:00', hora_fin || '23:59'];
+
+      const result = await pool.query(query, values);
+
+      logger.info('Available DJs found:', {
+        fecha,
+        hora_inicio,
+        hora_fin,
+        count: result.rows.length
+      });
+
+      return result.rows;
+    } catch (error) {
+      logger.error('Error finding available DJs:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Detección avanzada de conflictos con detalles
+   * @param {number} djId - ID del DJ
+   * @param {string} fecha - Fecha
+   * @param {string} horaInicio - Hora inicio
+   * @param {string} horaFin - Hora fin
+   * @param {number} excludeId - ID a excluir
+   * @returns {Promise<Object>} Resultado con conflictos detallados
+   */
+  static async detectConflicts(djId, fecha, horaInicio = '00:00', horaFin = '23:59', excludeId = null) {
+    try {
+      let query = `
+        SELECT
+          da.*,
+          e.evento as evento_nombre,
+          e.ubicacion as evento_ubicacion
+        FROM dj_availability da
+        LEFT JOIN eventos e ON da.evento_id = e.id
+        WHERE da.dj_id = $1
+          AND da.fecha = $2
+          AND (
+            (da.hora_inicio <= $3 AND da.hora_fin >= $3) OR
+            (da.hora_inicio <= $4 AND da.hora_fin >= $4) OR
+            (da.hora_inicio >= $3 AND da.hora_fin <= $4) OR
+            da.todo_el_dia = true
+          )
+      `;
+
+      const values = [djId, fecha, horaInicio, horaFin];
+
+      if (excludeId) {
+        query += ` AND da.id != $5`;
+        values.push(excludeId);
+      }
+
+      const result = await pool.query(query, values);
+
+      const conflicts = result.rows.map(row => ({
+        id: row.id,
+        fecha: row.fecha,
+        hora_inicio: row.hora_inicio,
+        hora_fin: row.hora_fin,
+        estado: row.estado,
+        evento_nombre: row.evento_nombre,
+        evento_ubicacion: row.evento_ubicacion,
+        motivo: row.motivo,
+        notas: row.notas,
+        severity: row.estado === 'reservado' ? 'high' : row.estado === 'no_disponible' ? 'medium' : 'low'
+      }));
+
+      return {
+        has_conflicts: conflicts.length > 0,
+        count: conflicts.length,
+        conflicts
+      };
+    } catch (error) {
+      logger.error('Error detecting conflicts:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtener todas las disponibilidades con paginación y filtros
+   * @param {Object} filters - Filtros
+   * @returns {Promise<Object>} Resultados paginados
+   */
+  static async findAll(filters = {}) {
+    const {
+      dj_id,
+      agency_id,
+      estado,
+      fecha_desde,
+      fecha_hasta,
+      page = 1,
+      limit = 50
+    } = filters;
+
+    try {
+      let query = `
+        SELECT
+          da.*,
+          d.nombre as dj_nombre,
+          d.agency_id,
+          e.evento as evento_nombre,
+          e.ubicacion as evento_ubicacion
+        FROM dj_availability da
+        INNER JOIN djs d ON da.dj_id = d.id
+        LEFT JOIN eventos e ON da.evento_id = e.id
+        WHERE 1=1
+      `;
+
+      const conditions = [];
+      const values = [];
+
+      if (dj_id) {
+        conditions.push(`da.dj_id = $${values.length + 1}`);
+        values.push(dj_id);
+      }
+
+      if (agency_id) {
+        conditions.push(`d.agency_id = $${values.length + 1}`);
+        values.push(agency_id);
+      }
+
+      if (estado) {
+        conditions.push(`da.estado = $${values.length + 1}`);
+        values.push(estado);
+      }
+
+      if (fecha_desde) {
+        conditions.push(`da.fecha >= $${values.length + 1}`);
+        values.push(fecha_desde);
+      }
+
+      if (fecha_hasta) {
+        conditions.push(`da.fecha <= $${values.length + 1}`);
+        values.push(fecha_hasta);
+      }
+
+      if (conditions.length > 0) {
+        query += ` AND ${conditions.join(' AND ')}`;
+      }
+
+      query += ` ORDER BY da.fecha DESC, da.hora_inicio`;
+
+      // Paginación
+      const offset = (page - 1) * limit;
+      query += ` LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
+      values.push(limit, offset);
+
+      const result = await pool.query(query, values);
+
+      // Obtener total
+      let countQuery = `
+        SELECT COUNT(*) as total
+        FROM dj_availability da
+        INNER JOIN djs d ON da.dj_id = d.id
+        WHERE 1=1
+      `;
+
+      if (conditions.length > 0) {
+        countQuery += ` AND ${conditions.join(' AND ')}`;
+      }
+
+      const countResult = await pool.query(countQuery, values.slice(0, -2));
+      const total = parseInt(countResult.rows[0].total);
+
+      return {
+        success: true,
+        data: result.rows,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          total_pages: Math.ceil(total / limit)
+        }
+      };
+    } catch (error) {
+      logger.error('Error finding availabilities:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Limpiar registros antiguos
+   * @param {number} daysToKeep - Días a mantener
+   * @returns {Promise<Object>} Resultado
+   */
+  static async cleanupOld(daysToKeep = 90) {
+    try {
+      const query = `
+        DELETE FROM dj_availability
+        WHERE fecha < CURRENT_DATE - INTERVAL '${daysToKeep} days'
+          AND estado NOT IN ('reservado')
+        RETURNING id
+      `;
+
+      const result = await pool.query(query);
+
+      logger.info('Old availability records cleaned up:', {
+        count: result.rows.length,
+        daysToKeep
+      });
+
+      return {
+        success: true,
+        cleaned: result.rows.length
+      };
+    } catch (error) {
+      logger.error('Error cleaning up old availability:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtener disponibilidad por ID
+   * @param {number} id - ID de la disponibilidad
+   * @returns {Promise<Object|null>} Disponibilidad encontrada
+   */
+  static async findById(id) {
+    try {
+      const query = `
+        SELECT
+          da.*,
+          d.nombre as dj_nombre,
+          d.agency_id,
+          e.evento as evento_nombre,
+          e.ubicacion as evento_ubicacion
+        FROM dj_availability da
+        INNER JOIN djs d ON da.dj_id = d.id
+        LEFT JOIN eventos e ON da.evento_id = e.id
+        WHERE da.id = $1
+      `;
+
+      const result = await pool.query(query, [id]);
+      return result.rows[0] || null;
+    } catch (error) {
+      logger.error('Error finding availability by ID:', error);
+      throw error;
+    }
   }
 }
 
