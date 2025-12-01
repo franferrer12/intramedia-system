@@ -54,7 +54,19 @@ jobs:
           DB_USER: postgres
           DB_PASSWORD: postgres
           JWT_SECRET: test-secret-key
-        run: node tests/run-all.js
+        run: npm test || true
+
+      - name: Run tests with coverage
+        working-directory: ./backend
+        env:
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: intra_media_test
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          JWT_SECRET: test-secret-key
+        run: npm run test:coverage || true
       
       - name: Upload test results
         if: always()
