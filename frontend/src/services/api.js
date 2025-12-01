@@ -348,6 +348,68 @@ export const availabilityAPI = {
   }
 };
 
+// === RESERVATIONS ===
+export const reservationsAPI = {
+  // Public endpoints (no auth required)
+  checkAvailability: (data) => api.post('/reservations/check-availability', data),
+
+  createHold: (data) => api.post('/reservations/hold', data),
+
+  createReservation: (data) => api.post('/reservations', data),
+
+  getByNumber: (reservationNumber) => api.get(`/reservations/number/${reservationNumber}`),
+
+  // Admin endpoints (auth required)
+  getAll: (filters = {}) => {
+    const params = new URLSearchParams(filters).toString();
+    return api.get(`/reservations${params ? `?${params}` : ''}`);
+  },
+
+  getById: (id) => api.get(`/reservations/${id}`),
+
+  update: (id, data) => api.put(`/reservations/${id}`, data),
+
+  delete: (id) => api.delete(`/reservations/${id}`),
+
+  getRequiringAction: (params = {}) => {
+    const queryParams = new URLSearchParams(params).toString();
+    return api.get(`/reservations/requiring-action${queryParams ? `?${queryParams}` : ''}`);
+  },
+
+  getStats: (params = {}) => {
+    const queryParams = new URLSearchParams(params).toString();
+    return api.get(`/reservations/stats${queryParams ? `?${queryParams}` : ''}`);
+  },
+
+  getStatusHistory: (id) => api.get(`/reservations/${id}/history`),
+
+  extendHold: (id, minutes = 30) => {
+    return api.post(`/reservations/${id}/extend-hold`, { minutes });
+  },
+
+  confirmReservation: (id, data = {}) => {
+    return api.post(`/reservations/${id}/confirm`, data);
+  },
+
+  approveReservation: (id, data = {}) => {
+    return api.post(`/reservations/${id}/approve`, data);
+  },
+
+  cancelReservation: (id, reason) => {
+    return api.post(`/reservations/${id}/cancel`, { reason });
+  },
+
+  rejectReservation: (id, reason) => {
+    return api.post(`/reservations/${id}/reject`, { reason });
+  },
+
+  convertToEvento: (id, eventData = {}) => {
+    return api.post(`/reservations/${id}/convert-to-evento`, eventData);
+  },
+
+  expireOldHolds: () => api.post('/reservations/expire-holds'),
+};
+
 // === DOCUMENTS ===
 export const documentsAPI = {
   // Get all documents with filters
