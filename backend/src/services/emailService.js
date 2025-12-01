@@ -1,6 +1,7 @@
 /**
  * Email Service
  * Servicio para envío de emails con templates y procesamiento de cola
+ * Soporta SMTP, SendGrid y Mailgun
  */
 
 import nodemailer from 'nodemailer';
@@ -10,28 +11,39 @@ import logger from '../utils/logger.js';
 class EmailService {
   constructor() {
     this.transporter = null;
+    this.provider = null;
     this.isConfigured = false;
     this.configure();
   }
 
   /**
    * Configurar transporter de nodemailer
+   * Soporta: SMTP, SendGrid, Mailgun
    */
   configure() {
     try {
-      const config = {
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_PORT === '465', // true for 465, false for other ports
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASSWORD
-        }
-      };
+      const provider = (process.env.EMAIL_PROVIDER || 'smtp').toLowerCase();
+      this.provider = provider;
 
-      // Validar configuración
-      if (!config.host || !config.auth.user || !config.auth.pass) {
-        logger.warn('Email service not configured - missing SMTP credentials');
+      let config = null;
+
+      switch (provider) {
+        case 'sendgrid':
+          config = this.configureSendGrid();
+          break;
+
+        case 'mailgun':
+          config = this.configureMailgun();
+          break;
+
+        case 'smtp':
+        default:
+          config = this.configureSMTP();
+          break;
+      }
+
+      if (!config) {
+        logger.warn(`Email service not configured - missing ${provider} credentials`);
         return;
       }
 
@@ -44,13 +56,87 @@ class EmailService {
           logger.error('Email service verification failed:', error);
           this.isConfigured = false;
         } else {
-          logger.info('Email service configured and ready');
+          logger.info(`Email service configured with ${provider} and ready`);
         }
       });
     } catch (error) {
       logger.error('Error configuring email service:', error);
       this.isConfigured = false;
     }
+  }
+
+  /**
+   * Configurar SMTP genérico
+   * @returns {Object} Configuración SMTP
+   */
+  configureSMTP() {
+    const config = {
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_PORT === '465',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD
+      }
+    };
+
+    // Validar configuración
+    if (!config.host || !config.auth.user || !config.auth.pass) {
+      return null;
+    }
+
+    return config;
+  }
+
+  /**
+   * Configurar SendGrid
+   * @returns {Object} Configuración SendGrid
+   */
+  configureSendGrid() {
+    const apiKey = process.env.SENDGRID_API_KEY;
+
+    if (!apiKey) {
+      return null;
+    }
+
+    // SendGrid usa SMTP con API Key
+    return {
+      host: 'smtp.sendgrid.net',
+      port: 587,
+      secure: false,
+      auth: {
+        user: 'apikey',
+        pass: apiKey
+      }
+    };
+  }
+
+  /**
+   * Configurar Mailgun
+   * @returns {Object} Configuración Mailgun
+   */
+  configureMailgun() {
+    const user = process.env.MAILGUN_SMTP_USERNAME;
+    const pass = process.env.MAILGUN_SMTP_PASSWORD;
+    const domain = process.env.MAILGUN_DOMAIN || 'us';
+
+    if (!user || !pass) {
+      return null;
+    }
+
+    const host = domain === 'eu'
+      ? 'smtp.eu.mailgun.org'
+      : 'smtp.mailgun.org';
+
+    return {
+      host,
+      port: 587,
+      secure: false,
+      auth: {
+        user,
+        pass
+      }
+    };
   }
 
   /**
@@ -474,6 +560,103 @@ class EmailService {
       logger.error('Error cancelling pending emails:', error);
       throw error;
     }
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // MÉTODOS HELPER PARA TIPOS DE NOTIFICACIÓN COMUNES
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  /**
+   * Enviar notificación de cotización
+   * @param {Object} quotation - Datos de la cotización
+   * @param {string} recipientEmail - Email del destinatario
+   * @returns {Promise<Object>} Resultado del envío
+   */
+  async sendQuotationEmail(quotation, recipientEmail) {
+    const subject = `Nueva Cotización: ${quotation.title}`;
+    const html = `
+      <h2>Nueva Cotización</h2>
+      <p>Se ha generado una nueva cotización para tu evento.</p>
+      <p><strong>Número:</strong> ${quotation.quotation_number}</p>
+      <p><strong>Evento:</strong> ${quotation.title}</p>
+      <p><strong>Fecha del Evento:</strong> ${quotation.event_date || 'Por definir'}</p>
+      <p><strong>Total:</strong> $${quotation.total}</p>
+      <p><strong>Válida hasta:</strong> ${quotation.valid_until}</p>
+      <p><a href="${process.env.FRONTEND_URL}/quotations/${quotation.id}">Ver Cotización</a></p>
+    `;
+
+    return await this.sendEmail({
+      to: recipientEmail,
+      subject,
+      html
+    });
+  }
+
+  /**
+   * Enviar notificación de evento
+   * @param {Object} evento - Datos del evento
+   * @param {string} recipientEmail - Email del destinatario
+   * @param {string} type - Tipo de notificación (created, updated, cancelled)
+   * @returns {Promise<Object>} Resultado del envío
+   */
+  async sendEventEmail(evento, recipientEmail, type = 'created') {
+    const subjects = {
+      created: `Nuevo Evento: ${evento.evento}`,
+      updated: `Evento Actualizado: ${evento.evento}`,
+      cancelled: `Evento Cancelado: ${evento.evento}`,
+      reminder: `Recordatorio: ${evento.evento}`
+    };
+
+    const subject = subjects[type] || subjects.created;
+
+    const html = `
+      <h2>${subject}</h2>
+      <p><strong>Evento:</strong> ${evento.evento}</p>
+      <p><strong>Fecha:</strong> ${evento.fecha}</p>
+      <p><strong>Ubicación:</strong> ${evento.ubicacion || 'Por definir'}</p>
+      <p><strong>Cliente:</strong> ${evento.cliente_nombre || ''}</p>
+      <p><strong>DJ:</strong> ${evento.dj_nombre || 'Por asignar'}</p>
+      <p><a href="${process.env.FRONTEND_URL}/eventos/${evento.id}">Ver Detalles</a></p>
+    `;
+
+    return await this.sendEmail({
+      to: recipientEmail,
+      subject,
+      html
+    });
+  }
+
+  /**
+   * Enviar notificación de pago
+   * @param {Object} payment - Datos del pago
+   * @param {string} recipientEmail - Email del destinatario
+   * @returns {Promise<Object>} Resultado del envío
+   */
+  async sendPaymentEmail(payment, recipientEmail) {
+    const subject = `Confirmación de Pago - $${payment.amount}`;
+    const html = `
+      <h2>Pago Recibido</h2>
+      <p>Hemos recibido tu pago correctamente.</p>
+      <p><strong>Monto:</strong> $${payment.amount}</p>
+      <p><strong>Concepto:</strong> ${payment.concept}</p>
+      <p><strong>Método:</strong> ${payment.method}</p>
+      <p><strong>Fecha:</strong> ${new Date().toLocaleDateString()}</p>
+      <p>Gracias por tu preferencia.</p>
+    `;
+
+    return await this.sendEmail({
+      to: recipientEmail,
+      subject,
+      html
+    });
+  }
+
+  /**
+   * Obtener provider actual
+   * @returns {string} Nombre del provider
+   */
+  getProvider() {
+    return this.provider;
   }
 }
 
