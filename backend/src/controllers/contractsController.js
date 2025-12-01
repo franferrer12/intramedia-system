@@ -133,7 +133,7 @@ export const signContract = async (req, res) => {
   try {
     const { id } = req.params;
     const { party } = req.body; // 'a' or 'b'
-    const userId = req.user?.id || 1;
+    const userId = req.user.id;
 
     if (!['a', 'b'].includes(party)) {
       return res.status(400).json({
@@ -173,7 +173,7 @@ export const updateContractStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, reason } = req.body;
-    const userId = req.user?.id || 1;
+    const userId = req.user.id;
 
     const validStatuses = ['draft', 'pending_review', 'pending_signature', 'signed', 'active', 'expired', 'cancelled', 'terminated'];
     
@@ -208,7 +208,7 @@ export const updateContractStatus = async (req, res) => {
 export const deleteContract = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user?.id || 1;
+    const userId = req.user.id;
 
     const deleted = await Contract.delete(id, userId);
 
