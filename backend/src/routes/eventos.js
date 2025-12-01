@@ -12,7 +12,14 @@ import {
   getPartnerSummary
 } from '../controllers/eventosController.js';
 import { paginationMiddleware } from '../middleware/pagination.js';
-import { field, validate } from '../middleware/validation.js';
+import { validate, validateId, sanitizeBody } from '../middleware/validate.js';
+import {
+  createEventoSchema,
+  updateEventoSchema,
+  updatePagoSchema,
+  listEventosQuerySchema,
+  eventoIdSchema
+} from '../schemas/evento.schema.js';
 import { softDeleteController, restoreController } from '../middleware/softDelete.js';
 import { shortCache, longCache } from '../middleware/cache.js';
 import { createRateLimit } from '../middleware/rateLimit.js';
@@ -20,7 +27,12 @@ import { createRateLimit } from '../middleware/rateLimit.js';
 const router = express.Router();
 
 // GET /api/eventos - Obtener todos los eventos (con paginación y filtros)
-router.get('/', paginationMiddleware, shortCache, getEventos);
+router.get('/',
+  validate({ query: listEventosQuerySchema }),
+  paginationMiddleware,
+  shortCache,
+  getEventos
+);
 
 // GET /api/eventos/upcoming - Eventos próximos
 router.get('/upcoming', shortCache, getUpcomingEventos);
@@ -38,44 +50,26 @@ router.get('/financial-summary/partners', longCache, getPartnerSummary);
 router.get('/:id/financial-breakdown', longCache, getFinancialBreakdown);
 
 // GET /api/eventos/:id - Obtener un evento específico
-router.get('/:id', getEvento);
+router.get('/:id',
+  validate({ params: eventoIdSchema }),
+  getEvento
+);
 
 // POST /api/eventos - Crear nuevo evento
 router.post('/',
   createRateLimit,
-  validate([
-    field('evento').required().minLength(3).maxLength(200),
-    field('dj_id').required().numeric(),
-    field('cliente_id').optional().numeric(),
-    field('fecha').required().date(),
-    field('mes').required().minLength(3).maxLength(20),
-    field('estado').optional().isIn(['confirmado', 'pendiente', 'cancelado', 'completado']),
-    field('horas').optional().numeric().positive(),
-    field('precio_cliente').optional().numeric().min(0),
-    field('cobrado_cliente').optional(),
-    field('pagado_dj').optional(),
-    field('parte_dj').optional().numeric().min(0),
-    field('observaciones').optional().maxLength(500)
-  ]),
+  sanitizeBody,
+  validate({ body: createEventoSchema }),
   createEvento
 );
 
 // PUT /api/eventos/:id - Actualizar evento
 router.put('/:id',
-  validate([
-    field('evento').optional().minLength(3).maxLength(200),
-    field('dj_id').optional().numeric(),
-    field('cliente_id').optional().numeric(),
-    field('fecha').optional().date(),
-    field('mes').optional().minLength(3).maxLength(20),
-    field('estado').optional().isIn(['confirmado', 'pendiente', 'cancelado', 'completado']),
-    field('horas').optional().numeric().positive(),
-    field('precio_cliente').optional().numeric().min(0),
-    field('cobrado_cliente').optional(),
-    field('pagado_dj').optional(),
-    field('parte_dj').optional().numeric().min(0),
-    field('observaciones').optional().maxLength(500)
-  ]),
+  validate({
+    params: eventoIdSchema,
+    body: updateEventoSchema
+  }),
+  sanitizeBody,
   updateEvento
 );
 
@@ -92,33 +86,41 @@ router.post('/:id/restore', restoreController('eventos', 'Evento'));
 import pool from '../config/database.js';
 
 // POST /api/eventos/:id/paid - Marcar como pagado al DJ (1 clic)
-router.post('/:id/paid', async (req, res) => {
-  try {
-    await pool.query(
-      'UPDATE eventos SET pagado_dj = true, updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL',
-      [req.params.id]
-    );
-    res.ok(); // Solo código 200, sin body (Jobs-style)
-  } catch (error) {
-    res.simpleError('Algo salió mal', 500);
+router.post('/:id/paid',
+  validateId,
+  async (req, res) => {
+    try {
+      await pool.query(
+        'UPDATE eventos SET pagado_dj = true, updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL',
+        [req.params.id]
+      );
+      res.ok(); // Solo código 200, sin body (Jobs-style)
+    } catch (error) {
+      res.simpleError('Algo salió mal', 500);
+    }
   }
-});
+);
 
 // POST /api/eventos/:id/cobrado - Marcar como cobrado al cliente (1 clic)
-router.post('/:id/cobrado', async (req, res) => {
-  try {
-    await pool.query(
-      'UPDATE eventos SET cobrado_cliente = true, updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL',
-      [req.params.id]
-    );
-    res.ok();
-  } catch (error) {
-    res.simpleError('Algo salió mal', 500);
+router.post('/:id/cobrado',
+  validateId,
+  async (req, res) => {
+    try {
+      await pool.query(
+        'UPDATE eventos SET cobrado_cliente = true, updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL',
+        [req.params.id]
+      );
+      res.ok();
+    } catch (error) {
+      res.simpleError('Algo salió mal', 500);
+    }
   }
-});
+);
 
 // POST /api/eventos/:id/duplicate - Duplicar evento (1 clic)
-router.post('/:id/duplicate', async (req, res) => {
+router.post('/:id/duplicate',
+  validateId,
+  async (req, res) => {
   try {
     const result = await pool.query(
       `INSERT INTO eventos (

@@ -33,6 +33,7 @@ import financialAlertsRoutes from './routes/financialAlerts.js';
 import executiveDashboardRoutes from './routes/executiveDashboard.js';
 import comparativeAnalysisRoutes from './routes/comparativeAnalysis.js';
 import quotationsRoutes from './routes/quotations.js';
+import contractsRoutes from './routes/contracts.js';
 
 // Importar servicios
 import { startScheduledJobs, stopScheduledJobs } from './services/scheduledJobsService.js';
@@ -70,12 +71,12 @@ app.use(performanceMiddleware());
 // 4. Compression
 app.use(compression());
 
-// 5. Jobs-Style UX Middleware (después de parsers, antes de rutas)
-app.use(jobsUXMiddleware);
+// 5. Security headers (AFTER CORS and body parsers, BEFORE routes)
+// Helmet enabled with development-friendly settings
+app.use(securityHeaders());
 
-// 6. Security headers (AFTER CORS and body parsers)
-// TEMPORARILY DISABLED - Helmet interfering with CORS
-// app.use(securityHeaders());
+// 6. Jobs-Style UX Middleware (después de parsers, antes de rutas)
+app.use(jobsUXMiddleware);
 
 // Servir archivos estáticos (uploads)
 app.use('/uploads', express.static('uploads'));
@@ -132,7 +133,8 @@ app.get('/', (req, res) => {
       clientesFinancial: '/api/clientes-financial',
       executiveDashboard: '/api/executive-dashboard',
       comparativeAnalysis: '/api/comparative-analysis',
-      quotations: '/api/quotations'
+      quotations: '/api/quotations',
+      contracts: '/api/contracts'
     }
   });
 });
@@ -272,6 +274,7 @@ app.use('/api/financial-alerts', financialAlertsRoutes);
 app.use('/api/executive-dashboard', executiveDashboardRoutes);
 app.use('/api/comparative-analysis', comparativeAnalysisRoutes);
 app.use('/api/quotations', quotationsRoutes);
+app.use('/api/contracts', contractsRoutes);
 
 // 404 Handler
 app.use((req, res) => {

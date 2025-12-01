@@ -15,9 +15,11 @@ import helmet from 'helmet';
  */
 
 export const securityHeaders = () => {
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+
   return helmet({
-    // Content Security Policy
-    contentSecurityPolicy: {
+    // Content Security Policy - relaxed in development
+    contentSecurityPolicy: isDevelopment ? false : {
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
@@ -27,7 +29,7 @@ export const securityHeaders = () => {
         connectSrc: ["'self'", 'http://localhost:*', 'https:'],
         frameSrc: ["'none'"],
         objectSrc: ["'none'"],
-        upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
+        upgradeInsecureRequests: [],
       },
     },
 
