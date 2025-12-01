@@ -21,7 +21,10 @@ import {
   reserveForEvent,
   blockDateRange,
   getStats,
-  cleanupOld
+  cleanupOld,
+  getSmartSuggestions,
+  getCalendarSummary,
+  notifyConflicts
 } from '../controllers/availabilityController.js';
 import { authenticate } from '../middleware/auth.js';
 import { requirePermission, requireAdminOrManager } from '../middleware/authorization.js';
@@ -107,6 +110,41 @@ router.get('/agency',
   ]),
   shortCache,
   getAgencyAvailability
+);
+
+/**
+ * GET /api/availability/smart-suggestions
+ * Obtener sugerencias inteligentes de DJs alternativos
+ * Usa algoritmo de similitud basado en especialidad, rating y precio
+ */
+router.get('/smart-suggestions',
+  requirePermission('availability', 'read'),
+  validate([
+    field('original_dj_id').required().numeric().positive(),
+    field('fecha').required().date(),
+    field('hora_inicio').optional(),
+    field('hora_fin').optional(),
+    field('agency_id').optional().numeric().positive()
+  ]),
+  shortCache,
+  getSmartSuggestions
+);
+
+/**
+ * GET /api/availability/calendar-summary
+ * Obtener resumen completo del calendario mensual
+ * Incluye todos los días del mes con estadísticas agregadas
+ */
+router.get('/calendar-summary',
+  requirePermission('availability', 'read'),
+  validate([
+    field('year').required().numeric().positive(),
+    field('month').required().numeric().min(1).max(12),
+    field('dj_id').optional().numeric().positive(),
+    field('agency_id').optional().numeric().positive()
+  ]),
+  shortCache,
+  getCalendarSummary
 );
 
 /**
@@ -267,6 +305,22 @@ router.post('/block-range',
     next();
   },
   blockDateRange
+);
+
+/**
+ * POST /api/availability/notify-conflicts
+ * Notificar conflictos de disponibilidad
+ * Crea notificaciones automáticas cuando se detectan conflictos
+ */
+router.post('/notify-conflicts',
+  requirePermission('availability', 'create'),
+  createRateLimit,
+  validate([
+    field('dj_id').required().numeric().positive(),
+    field('fecha').required().date(),
+    field('conflicts').required()
+  ]),
+  notifyConflicts
 );
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

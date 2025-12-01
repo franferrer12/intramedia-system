@@ -562,6 +562,140 @@ export const cleanupOld = async (req, res) => {
   }
 };
 
+/**
+ * Obtener sugerencias inteligentes de DJs alternativos
+ * Usa algoritmo de similitud para recomendar DJs cuando el original no está disponible
+ */
+export const getSmartSuggestions = async (req, res) => {
+  try {
+    const { original_dj_id, fecha, hora_inicio, hora_fin, agency_id } = req.query;
+
+    if (!original_dj_id || !fecha) {
+      return res.status(400).json({
+        success: false,
+        message: 'original_dj_id y fecha son requeridos'
+      });
+    }
+
+    const criteria = {
+      original_dj_id: parseInt(original_dj_id),
+      fecha,
+      hora_inicio,
+      hora_fin,
+      agency_id: agency_id || req.agency?.id
+    };
+
+    const suggestions = await Availability.findSmartSuggestions(criteria);
+
+    res.json({
+      success: true,
+      data: suggestions,
+      count: suggestions.length,
+      message: suggestions.length > 0
+        ? `Se encontraron ${suggestions.length} DJs alternativos disponibles`
+        : 'No se encontraron DJs alternativos disponibles'
+    });
+  } catch (error) {
+    logger.error('Error getting smart suggestions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener sugerencias inteligentes',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Obtener resumen completo del calendario mensual
+ * Incluye todos los días del mes con estadísticas agregadas
+ */
+export const getCalendarSummary = async (req, res) => {
+  try {
+    const { year, month } = req.query;
+    const { dj_id, agency_id } = req.params;
+
+    if (!year || !month) {
+      return res.status(400).json({
+        success: false,
+        message: 'year y month son requeridos (formato: YYYY y MM)'
+      });
+    }
+
+    // Validar formato de year y month
+    const yearNum = parseInt(year);
+    const monthNum = parseInt(month);
+
+    if (yearNum < 2020 || yearNum > 2100 || monthNum < 1 || monthNum > 12) {
+      return res.status(400).json({
+        success: false,
+        message: 'year o month inválidos'
+      });
+    }
+
+    const summary = await Availability.getCalendarSummary(
+      dj_id || null,
+      agency_id || req.agency?.id || null,
+      year,
+      month
+    );
+
+    res.json({
+      success: true,
+      data: summary
+    });
+  } catch (error) {
+    logger.error('Error getting calendar summary:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener resumen del calendario',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Notificar conflictos de disponibilidad
+ * Crea notificaciones automáticas cuando se detectan conflictos
+ */
+export const notifyConflicts = async (req, res) => {
+  try {
+    const { dj_id, fecha, conflicts } = req.body;
+
+    if (!dj_id || !fecha || !conflicts) {
+      return res.status(400).json({
+        success: false,
+        message: 'dj_id, fecha y conflicts son requeridos'
+      });
+    }
+
+    if (!Array.isArray(conflicts)) {
+      return res.status(400).json({
+        success: false,
+        message: 'conflicts debe ser un array'
+      });
+    }
+
+    const result = await Availability.notifyConflicts(
+      parseInt(dj_id),
+      fecha,
+      conflicts
+    );
+
+    res.json({
+      success: true,
+      message: result.message || 'Notificaciones enviadas exitosamente',
+      data: result
+    });
+  } catch (error) {
+    logger.error('Error notifying conflicts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al enviar notificaciones de conflictos',
+      error: error.message
+    });
+  }
+};
+
 export default {
   getAllAvailabilities,
   getAvailabilityById,
@@ -579,5 +713,8 @@ export default {
   reserveForEvent,
   blockDateRange,
   getStats,
-  cleanupOld
+  cleanupOld,
+  getSmartSuggestions,
+  getCalendarSummary,
+  notifyConflicts
 };

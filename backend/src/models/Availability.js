@@ -565,6 +565,318 @@ class Availability {
       throw error;
     }
   }
+
+  /**
+   * SPRINT 4.1.3: Sugerencias inteligentes de DJs alternativos
+   * Encuentra DJs similares cuando el solicitado no está disponible
+   * @param {Object} criteria - Criterios de búsqueda y DJ original
+   * @returns {Promise<Array>} Lista de DJs sugeridos con score de similitud
+   */
+  static async findSmartSuggestions(criteria) {
+    const { original_dj_id, fecha, hora_inicio, hora_fin, agency_id } = criteria;
+
+    try {
+      // Obtener info del DJ original
+      const originalDj = await pool.query(
+        'SELECT especialidad, tarifa_hora, rating FROM djs WHERE id = $1',
+        [original_dj_id]
+      );
+
+      if (originalDj.rows.length === 0) {
+        return [];
+      }
+
+      const original = originalDj.rows[0];
+
+      // Buscar DJs disponibles con scoring de similitud
+      const query = `
+        WITH available_djs AS (
+          SELECT DISTINCT
+            d.id,
+            d.nombre,
+            d.email,
+            d.telefono,
+            d.especialidad,
+            d.tarifa_hora,
+            d.rating,
+            d.agency_id
+          FROM djs d
+          WHERE d.deleted_at IS NULL
+            AND d.is_active = true
+            AND d.id != $1
+            ${agency_id ? 'AND d.agency_id = $6' : ''}
+            AND NOT EXISTS (
+              SELECT 1
+              FROM dj_availability da
+              WHERE da.dj_id = d.id
+                AND da.fecha = $2
+                AND da.estado IN ('reservado', 'no_disponible')
+                AND (
+                  (da.hora_inicio <= $3 AND da.hora_fin >= $3) OR
+                  (da.hora_inicio <= $4 AND da.hora_fin >= $4) OR
+                  (da.hora_inicio >= $3 AND da.hora_fin <= $4) OR
+                  da.todo_el_dia = true
+                )
+            )
+        )
+        SELECT
+          *,
+          -- Similarity score (0-100)
+          (
+            -- Especialidad match (40 puntos)
+            CASE WHEN especialidad = $5 THEN 40 ELSE 0 END +
+            -- Rating similarity (30 puntos)
+            (30 - ABS(rating - ${original.rating || 0}) * 6) +
+            -- Price similarity (30 puntos - max 20% difference)
+            CASE
+              WHEN $7::numeric IS NULL THEN 15
+              WHEN ABS(tarifa_hora - $7) / NULLIF($7, 0) <= 0.2 THEN 30
+              WHEN ABS(tarifa_hora - $7) / NULLIF($7, 0) <= 0.5 THEN 15
+              ELSE 5
+            END
+          ) as similarity_score,
+          -- Motivo de la sugerencia
+          CASE
+            WHEN especialidad = $5 THEN 'Misma especialidad'
+            WHEN rating >= ${original.rating || 0} THEN 'Rating similar o superior'
+            ELSE 'Disponible en la fecha'
+          END as reason
+        FROM available_djs
+        ORDER BY similarity_score DESC, rating DESC NULLS LAST
+        LIMIT 10
+      `;
+
+      const values = agency_id
+        ? [original_dj_id, fecha, hora_inicio || '00:00', hora_fin || '23:59',
+           original.especialidad, agency_id, original.tarifa_hora]
+        : [original_dj_id, fecha, hora_inicio || '00:00', hora_fin || '23:59',
+           original.especialidad, original.tarifa_hora];
+
+      const result = await pool.query(query, values);
+
+      logger.info('Smart suggestions generated:', {
+        originalDjId: original_dj_id,
+        fecha,
+        suggestions: result.rows.length
+      });
+
+      return result.rows;
+    } catch (error) {
+      logger.error('Error generating smart suggestions:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * SPRINT 4.1.2: Resumen del calendario para vista mensual
+   * Obtiene resumen del mes con estadísticas y eventos destacados
+   * @param {number} djId - ID del DJ (opcional)
+   * @param {number} agencyId - ID de la agencia
+   * @param {number} year - Año
+   * @param {number} month - Mes (1-12)
+   * @returns {Promise<Object>} Resumen del calendario
+   */
+  static async getCalendarSummary(djId, agencyId, year, month) {
+    try {
+      // Obtener todos los días del mes con disponibilidad
+      const daysQuery = djId
+        ? `
+          SELECT
+            fecha,
+            COUNT(*) FILTER (WHERE estado = 'disponible') as disponible_count,
+            COUNT(*) FILTER (WHERE estado = 'reservado') as reservado_count,
+            COUNT(*) FILTER (WHERE estado = 'no_disponible') as no_disponible_count,
+            COUNT(*) FILTER (WHERE estado = 'tentativo') as tentativo_count,
+            jsonb_agg(
+              jsonb_build_object(
+                'id', da.id,
+                'estado', da.estado,
+                'hora_inicio', da.hora_inicio,
+                'hora_fin', da.hora_fin,
+                'evento_nombre', e.evento,
+                'color', da.color,
+                'motivo', da.motivo
+              )
+            ) FILTER (WHERE da.id IS NOT NULL) as events
+          FROM generate_series(
+            DATE '${year}-${String(month).padStart(2, '0')}-01',
+            (DATE '${year}-${String(month).padStart(2, '0')}-01' + INTERVAL '1 month - 1 day')::date,
+            '1 day'::interval
+          ) AS fecha
+          LEFT JOIN dj_availability da ON da.fecha = fecha::date AND da.dj_id = $1
+          LEFT JOIN eventos e ON da.evento_id = e.id
+          GROUP BY fecha
+          ORDER BY fecha
+        `
+        : `
+          SELECT
+            fecha,
+            COUNT(DISTINCT da.dj_id) FILTER (WHERE estado = 'disponible') as disponible_count,
+            COUNT(DISTINCT da.dj_id) FILTER (WHERE estado = 'reservado') as reservado_count,
+            COUNT(DISTINCT da.dj_id) FILTER (WHERE estado = 'no_disponible') as no_disponible_count,
+            COUNT(DISTINCT da.dj_id) FILTER (WHERE estado = 'tentativo') as tentativo_count,
+            jsonb_agg(
+              DISTINCT jsonb_build_object(
+                'dj_id', d.id,
+                'dj_nombre', d.nombre,
+                'estado', da.estado,
+                'evento_nombre', e.evento
+              )
+            ) FILTER (WHERE da.id IS NOT NULL) as dj_events
+          FROM generate_series(
+            DATE '${year}-${String(month).padStart(2, '0')}-01',
+            (DATE '${year}-${String(month).padStart(2, '0')}-01' + INTERVAL '1 month - 1 day')::date,
+            '1 day'::interval
+          ) AS fecha
+          LEFT JOIN dj_availability da ON da.fecha = fecha::date
+          LEFT JOIN djs d ON da.dj_id = d.id AND d.agency_id = $1
+          LEFT JOIN eventos e ON da.evento_id = e.id
+          GROUP BY fecha
+          ORDER BY fecha
+        `;
+
+      const daysValues = djId ? [djId] : [agencyId];
+      const daysResult = await pool.query(daysQuery, daysValues);
+
+      // Estadísticas del mes
+      const statsQuery = djId
+        ? `
+          SELECT
+            COUNT(DISTINCT fecha) as total_days_with_events,
+            COUNT(*) FILTER (WHERE estado = 'reservado') as total_reservado,
+            COUNT(*) FILTER (WHERE estado = 'disponible') as total_disponible,
+            COUNT(*) FILTER (WHERE estado = 'no_disponible') as total_no_disponible,
+            COUNT(DISTINCT evento_id) FILTER (WHERE evento_id IS NOT NULL) as unique_events
+          FROM dj_availability
+          WHERE dj_id = $1
+            AND EXTRACT(YEAR FROM fecha) = $2
+            AND EXTRACT(MONTH FROM fecha) = $3
+        `
+        : `
+          SELECT
+            COUNT(DISTINCT fecha) as total_days_with_events,
+            COUNT(DISTINCT dj_id) as total_djs_active,
+            COUNT(*) FILTER (WHERE estado = 'reservado') as total_reservado,
+            COUNT(*) FILTER (WHERE estado = 'disponible') as total_disponible,
+            COUNT(DISTINCT evento_id) FILTER (WHERE evento_id IS NOT NULL) as unique_events
+          FROM dj_availability da
+          INNER JOIN djs d ON da.dj_id = d.id
+          WHERE d.agency_id = $1
+            AND EXTRACT(YEAR FROM da.fecha) = $2
+            AND EXTRACT(MONTH FROM da.fecha) = $3
+        `;
+
+      const statsValues = djId ? [djId, year, month] : [agencyId, year, month];
+      const statsResult = await pool.query(statsQuery, statsValues);
+
+      return {
+        year,
+        month,
+        days: daysResult.rows,
+        statistics: statsResult.rows[0],
+        calendar_type: djId ? 'individual' : 'agency'
+      };
+    } catch (error) {
+      logger.error('Error getting calendar summary:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * SPRINT 4.1.3: Notificar conflictos automáticamente
+   * Crea notificaciones cuando se detectan conflictos de disponibilidad
+   * @param {number} djId - ID del DJ
+   * @param {string} fecha - Fecha del conflicto
+   * @param {Array} conflicts - Lista de conflictos detectados
+   * @returns {Promise<Object>} Resultado de las notificaciones
+   */
+  static async notifyConflicts(djId, fecha, conflicts) {
+    try {
+      if (conflicts.length === 0) {
+        return { notified: 0, message: 'No hay conflictos que notificar' };
+      }
+
+      // Obtener info del DJ y su agencia
+      const djInfo = await pool.query(
+        `SELECT d.nombre, d.email, d.agency_id, a.admin_email
+         FROM djs d
+         LEFT JOIN agencies a ON d.agency_id = a.id
+         WHERE d.id = $1`,
+        [djId]
+      );
+
+      if (djInfo.rows.length === 0) {
+        throw new Error('DJ no encontrado');
+      }
+
+      const dj = djInfo.rows[0];
+
+      // Crear registro de notificación en la tabla de notificaciones
+      const notificationData = {
+        dj_id: djId,
+        agency_id: dj.agency_id,
+        type: 'conflict_alert',
+        priority: 'high',
+        title: `Conflicto de disponibilidad - ${dj.nombre}`,
+        message: `Se detectaron ${conflicts.length} conflicto(s) de disponibilidad para ${dj.nombre} el ${fecha}`,
+        data: JSON.stringify({
+          fecha,
+          conflicts: conflicts.map(c => ({
+            hora_inicio: c.hora_inicio,
+            hora_fin: c.hora_fin,
+            estado: c.estado,
+            evento: c.evento_nombre,
+            severity: c.severity
+          }))
+        }),
+        created_at: new Date()
+      };
+
+      // Insertar notificación (asumiendo que existe la tabla notifications)
+      const insertQuery = `
+        INSERT INTO notifications (
+          dj_id, agency_id, type, priority, title, message, data, created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id
+      `;
+
+      const insertResult = await pool.query(insertQuery, [
+        notificationData.dj_id,
+        notificationData.agency_id,
+        notificationData.type,
+        notificationData.priority,
+        notificationData.title,
+        notificationData.message,
+        notificationData.data,
+        notificationData.created_at
+      ]);
+
+      logger.info('Conflict notification created:', {
+        djId,
+        fecha,
+        conflictCount: conflicts.length,
+        notificationId: insertResult.rows[0].id
+      });
+
+      return {
+        notified: 1,
+        notification_id: insertResult.rows[0].id,
+        message: 'Notificación de conflicto creada exitosamente',
+        conflicts_count: conflicts.length
+      };
+    } catch (error) {
+      // Si falla la inserción (ej: tabla no existe), solo loguear
+      if (error.code === '42P01') { // tabla no existe
+        logger.warn('Notifications table not found, conflict logged but not stored');
+        return {
+          notified: 0,
+          message: 'Conflicto detectado pero tabla de notificaciones no disponible'
+        };
+      }
+      logger.error('Error notifying conflicts:', error);
+      throw error;
+    }
+  }
 }
 
 export default Availability;
