@@ -11,7 +11,9 @@
     "migrate:real": "node src/utils/migrateRealData.js",
     "db:setup": "psql -U postgres -c 'CREATE DATABASE intra_media_system;' && npm run db:migrate",
     "db:migrate": "psql -U postgres -d intra_media_system -f ../database/schema.sql",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test tests/cache.test.js tests/compression.test.js tests/performance.test.js tests/rateLimit.test.js tests/security.test.js",
+    "test:watch": "node --test --watch tests/",
+    "test:coverage": "node --test --experimental-test-coverage tests/"
   },
   "keywords": [
     "djs",
@@ -54,6 +56,9 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "@types/jest": "^30.0.0",
+    "jest": "^30.2.0",
+    "nodemon": "^3.0.2",
+    "supertest": "^7.1.4"
   }
 }

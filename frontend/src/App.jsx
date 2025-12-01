@@ -36,6 +36,7 @@ import AgencyDJManagement from './components/AgencyDJManagement';
 import FinancialAlerts from './pages/FinancialAlerts';
 import ExecutiveDashboard from './pages/ExecutiveDashboard';
 import JobsDemo from './pages/JobsDemo';
+import SettingsPage from './pages/SettingsPage';
 
 function App() {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
@@ -98,6 +99,7 @@ function App() {
             <Route path="financial-alerts" element={<FinancialAlerts />} />
             <Route path="executive-dashboard" element={<ExecutiveDashboard />} />
             <Route path="jobs-demo" element={<JobsDemo />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>
       </AuthProvider>

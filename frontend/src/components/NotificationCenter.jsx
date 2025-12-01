@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bell,
@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Package
 } from 'lucide-react';
+import { AuthContext } from '../contexts/AuthContext';
 
 /**
  * NotificationCenter - Sistema de notificaciones inteligente
@@ -27,9 +28,9 @@ const NotificationCenter = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // TODO: Get djId from authenticated user context
-  // For now, using djId=1 as default
-  const currentDjId = 1;
+  // Get authenticated user from context
+  const { user } = useContext(AuthContext);
+  const currentDjId = user?.dj_id || user?.id || null;
 
   // Fetch notifications from backend
   useEffect(() => {

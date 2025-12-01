@@ -64,9 +64,11 @@ export const getContractById = async (req, res) => {
 };
 
 // Crear nuevo contrato
+// IMPORTANT: This endpoint MUST have auth middleware applied in routes
 export const createContract = async (req, res) => {
   try {
-    const userId = req.user?.id || 1; // TODO: Get from auth middleware
+    // Auth middleware ensures req.user is populated
+    const userId = req.user.id;
     const contractData = {
       ...req.body,
       created_by: userId
@@ -92,10 +94,11 @@ export const createContract = async (req, res) => {
 };
 
 // Actualizar contrato
+// IMPORTANT: This endpoint MUST have auth middleware applied in routes
 export const updateContract = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user?.id || 1;
+    const userId = req.user.id;
     const updates = req.body;
 
     const contract = await Contract.update(id, updates, userId);
