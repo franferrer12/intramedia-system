@@ -38,6 +38,7 @@ import FinancialAlerts from './pages/FinancialAlerts';
 import ExecutiveDashboard from './pages/ExecutiveDashboard';
 import JobsDemo from './pages/JobsDemo';
 import SettingsPage from './pages/SettingsPage';
+import Documents from './pages/Documents';
 
 function App() {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
@@ -102,6 +103,7 @@ function App() {
             <Route path="executive-dashboard" element={<ExecutiveDashboard />} />
             <Route path="jobs-demo" element={<JobsDemo />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="documents" element={<Documents />} />
           </Route>
         </Routes>
       </AuthProvider>

@@ -348,4 +348,108 @@ export const availabilityAPI = {
   }
 };
 
+// === DOCUMENTS ===
+export const documentsAPI = {
+  // Get all documents with filters
+  getAll: (filters = {}) => {
+    const params = new URLSearchParams(filters).toString();
+    return api.get(`/documents${params ? `?${params}` : ''}`);
+  },
+
+  // Get document by ID
+  getById: (id) => api.get(`/documents/${id}`),
+
+  // Upload document
+  upload: (formData) => {
+    return api.post('/documents', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  // Update document metadata
+  update: (id, data) => api.put(`/documents/${id}`, data),
+
+  // Delete document
+  delete: (id) => api.delete(`/documents/${id}`),
+
+  // Download document
+  download: (id) => {
+    return api.get(`/documents/${id}/download`, {
+      responseType: 'blob',
+    });
+  },
+
+  // Search documents
+  search: (query, filters = {}) => {
+    const params = new URLSearchParams({ q: query, ...filters }).toString();
+    return api.get(`/documents/search?${params}`);
+  },
+
+  // Get recent documents
+  getRecent: (limit = 10) => {
+    return api.get(`/documents/recent?limit=${limit}`);
+  },
+
+  // Get document statistics
+  getStats: () => api.get('/documents/stats'),
+
+  // Get popular tags
+  getTags: (limit = 50) => {
+    return api.get(`/documents/tags?limit=${limit}`);
+  },
+
+  // === VERSIONING ===
+
+  // Get version history
+  getVersionHistory: (id) => api.get(`/documents/${id}/versions`),
+
+  // Create new version
+  createVersion: (id, formData) => {
+    return api.post(`/documents/${id}/versions`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  // Rollback to version
+  rollbackVersion: (id, version) => {
+    return api.post(`/documents/${id}/versions/${version}/rollback`);
+  },
+
+  // === SHARING ===
+
+  // Get document shares
+  getShares: (id) => api.get(`/documents/${id}/shares`),
+
+  // Share document
+  share: (id, shareData) => api.post(`/documents/${id}/share`, shareData),
+
+  // Unshare document
+  unshare: (shareId) => api.delete(`/documents/shares/${shareId}`),
+
+  // Generate share link
+  generateShareLink: (id, options = {}) => {
+    return api.post(`/documents/${id}/share-link`, options);
+  },
+
+  // Revoke share link
+  revokeShareLink: (id) => api.delete(`/documents/${id}/share-link`),
+
+  // Get shared document (public)
+  getSharedDocument: (token, password) => {
+    const params = password ? `?password=${encodeURIComponent(password)}` : '';
+    return api.get(`/documents/shared/${token}${params}`);
+  },
+
+  // === AUDIT ===
+
+  // Get access logs (admin only)
+  getAccessLogs: (id, limit = 50, offset = 0) => {
+    return api.get(`/documents/${id}/logs?limit=${limit}&offset=${offset}`);
+  },
+};
+
 export default api;
