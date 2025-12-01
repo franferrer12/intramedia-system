@@ -37,6 +37,7 @@ import contractsRoutes from './routes/contracts.js';
 import notificationsRoutes from './routes/notifications.js';
 import rolesRoutes from './routes/roles.js';
 import availabilityRoutes from './routes/availability.js';
+import reservationsRoutes from './routes/reservations.js';
 
 // Importar servicios
 import { startScheduledJobs, stopScheduledJobs } from './services/scheduledJobsService.js';
@@ -140,7 +141,8 @@ app.get('/', (req, res) => {
       contracts: '/api/contracts',
       notifications: '/api/notifications',
       roles: '/api/roles',
-      availability: '/api/availability'
+      availability: '/api/availability',
+      reservations: '/api/reservations'
     }
   });
 });
@@ -284,6 +286,7 @@ app.use('/api/contracts', contractsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/roles', rolesRoutes);
 app.use('/api/availability', availabilityRoutes);
+app.use('/api/reservations', reservationsRoutes);
 
 // 404 Handler
 app.use((req, res) => {
