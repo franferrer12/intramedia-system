@@ -41,6 +41,7 @@ import SettingsPage from './pages/SettingsPage';
 import Documents from './pages/Documents';
 import Reservations from './pages/Reservations';
 import PublicBookingForm from './pages/PublicBookingForm';
+import Payments from './pages/Payments';
 
 function App() {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
@@ -108,6 +109,7 @@ function App() {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="documents" element={<Documents />} />
             <Route path="reservations" element={<Reservations />} />
+            <Route path="payments" element={<Payments />} />
           </Route>
         </Routes>
       </AuthProvider>

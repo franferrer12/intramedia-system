@@ -514,4 +514,34 @@ export const documentsAPI = {
   },
 };
 
+// === PAYMENTS ===
+export const paymentsAPI = {
+  // === PAYMENT INTENTS ===
+
+  // Create payment intent
+  createIntent: (data) => api.post('/payments/intent', data),
+
+  // === PAYMENTS ===
+
+  // Get all payments
+  getAll: (filters = {}) => {
+    const params = new URLSearchParams(filters).toString();
+    return api.get(`/payments${params ? `?${params}` : ''}`);
+  },
+
+  // Get payment by ID
+  getById: (id) => api.get(`/payments/${id}`),
+
+  // Get payment statistics
+  getStats: (filters = {}) => {
+    const params = new URLSearchParams(filters).toString();
+    return api.get(`/payments/stats${params ? `?${params}` : ''}`);
+  },
+
+  // === REFUNDS ===
+
+  // Create refund
+  createRefund: (id, refundData) => api.post(`/payments/${id}/refund`, refundData),
+};
+
 export default api;
