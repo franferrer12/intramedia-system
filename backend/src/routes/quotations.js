@@ -1,6 +1,6 @@
 /**
  * Quotations Routes
- * Rutas para el sistema de cotizaciones
+ * Sistema completo de rutas para cotizaciones
  */
 
 import express from 'express';
@@ -9,12 +9,19 @@ import {
   getQuotationById,
   createQuotation,
   updateQuotation,
-  changeQuotationState,
-  convertToEvent,
-  getQuotationsStats,
-  markExpiredQuotations,
   deleteQuotation,
-  restoreQuotation
+  updateQuotationStatus,
+  sendQuotation,
+  acceptQuotation,
+  rejectQuotation,
+  convertToEvento,
+  duplicateQuotation,
+  getQuotationHistory,
+  getQuotationStats,
+  expireOldQuotations,
+  createFromTemplate,
+  getExpiringSoon,
+  generateQuotationPDF
 } from '../controllers/quotationsController.js';
 import { authenticate } from '../middleware/auth.js';
 import { requirePermission, requireAdminOrManager } from '../middleware/authorization.js';
@@ -28,9 +35,13 @@ const router = express.Router();
 // Middleware de autenticación en todas las rutas
 router.use(authenticate);
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RUTAS DE LECTURA
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 /**
  * GET /api/quotations
- * Obtener todas las cotizaciones con paginación
+ * Obtener todas las cotizaciones con filtros y paginación
  */
 router.get('/',
   requirePermission('financial', 'read'),
@@ -40,23 +51,55 @@ router.get('/',
 );
 
 /**
- * GET /api/quotations/stats
- * Obtener estadísticas de cotizaciones
+ * GET /api/quotations/expiring-soon
+ * Obtener cotizaciones próximas a expirar
  */
-router.get('/stats',
+router.get('/expiring-soon',
   requirePermission('financial', 'read'),
   shortCache,
-  getQuotationsStats
+  getExpiringSoon
 );
 
 /**
  * GET /api/quotations/:id
- * Obtener una cotización por ID
+ * Obtener una cotización por ID con items
  */
 router.get('/:id',
   requirePermission('financial', 'read'),
   getQuotationById
 );
+
+/**
+ * GET /api/quotations/:id/history
+ * Obtener historial de cambios de una cotización
+ */
+router.get('/:id/history',
+  requirePermission('financial', 'read'),
+  getQuotationHistory
+);
+
+/**
+ * GET /api/quotations/agencies/:agency_id/stats
+ * Obtener estadísticas de cotizaciones por agencia
+ */
+router.get('/agencies/:agency_id/stats',
+  requirePermission('financial', 'read'),
+  shortCache,
+  getQuotationStats
+);
+
+/**
+ * GET /api/quotations/:id/pdf
+ * Generar y descargar PDF de cotización
+ */
+router.get('/:id/pdf',
+  requirePermission('financial', 'read'),
+  generateQuotationPDF
+);
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RUTAS DE CREACIÓN
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 /**
  * POST /api/quotations
@@ -66,34 +109,39 @@ router.post('/',
   requirePermission('financial', 'update'),
   createRateLimit,
   validate([
-    field('cliente_nombre').required().minLength(2).maxLength(100),
-    field('cliente_email').optional().email(),
-    field('cliente_telefono').optional().phone(),
-    field('cliente_empresa').optional().maxLength(100),
-    field('tipo_evento').required().maxLength(100),
-    field('fecha_evento').required().date(),
-    field('hora_inicio').optional(),
-    field('hora_fin').optional(),
-    field('ubicacion').optional().maxLength(500),
-    field('num_invitados').optional().numeric().positive(),
-    field('descuento_porcentaje').optional().numeric().min(0).max(100),
-    field('iva_porcentaje').optional().numeric().min(0).max(100),
-    field('fecha_vencimiento').required().date(),
-    field('observaciones').optional().maxLength(1000),
-    field('terminos_condiciones').optional().maxLength(2000),
+    field('agency_id').required().numeric().positive(),
+    field('cliente_id').optional().numeric().positive(),
+    field('dj_id').optional().numeric().positive(),
+    field('title').required().minLength(3).maxLength(255),
+    field('description').optional().maxLength(1000),
+    field('event_date').optional().date(),
+    field('event_location').optional().maxLength(255),
+    field('event_duration_hours').optional().numeric().positive(),
+    field('event_type').optional().maxLength(100),
+    field('status').optional().isIn(['draft', 'sent', 'viewed', 'accepted', 'rejected', 'expired', 'converted']),
+    field('discount_type').optional().isIn(['none', 'percentage', 'fixed']),
+    field('discount_value').optional().numeric().min(0),
+    field('tax_percentage').optional().numeric().min(0).max(100),
+    field('valid_until').optional().date(),
+    field('contact_name').optional().maxLength(255),
+    field('contact_email').optional().email(),
+    field('contact_phone').optional().maxLength(50),
+    field('notes').optional().maxLength(2000),
+    field('terms_and_conditions').optional().maxLength(5000),
+    field('payment_terms').optional().maxLength(2000),
     field('items').optional().custom((value) => {
       if (!Array.isArray(value)) {
         throw new Error('items debe ser un array');
       }
       for (const item of value) {
-        if (!item.concepto || typeof item.concepto !== 'string') {
-          throw new Error('Cada item debe tener un concepto');
+        if (!item.name || typeof item.name !== 'string') {
+          throw new Error('Cada item debe tener un nombre');
         }
-        if (!item.cantidad || item.cantidad <= 0) {
+        if (!item.quantity || item.quantity <= 0) {
           throw new Error('Cada item debe tener cantidad mayor a 0');
         }
-        if (item.precio_unitario === undefined || item.precio_unitario < 0) {
-          throw new Error('Cada item debe tener precio_unitario válido');
+        if (item.unit_price === undefined || item.unit_price < 0) {
+          throw new Error('Cada item debe tener unit_price válido');
         }
       }
       return true;
@@ -107,41 +155,57 @@ router.post('/',
 );
 
 /**
+ * POST /api/quotations/templates/:template_id
+ * Crear cotización desde template
+ */
+router.post('/templates/:template_id',
+  requirePermission('financial', 'update'),
+  createRateLimit,
+  validate([
+    field('agency_id').required().numeric().positive(),
+    field('cliente_id').optional().numeric().positive(),
+    field('dj_id').optional().numeric().positive(),
+    field('title').required().minLength(3).maxLength(255),
+    field('event_date').optional().date(),
+    field('valid_until').optional().date()
+  ]),
+  (req, res, next) => {
+    invalidateCache('GET:/api/quotations');
+    next();
+  },
+  createFromTemplate
+);
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RUTAS DE ACTUALIZACIÓN
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/**
  * PUT /api/quotations/:id
- * Actualizar cotización
+ * Actualizar cotización completa
  */
 router.put('/:id',
   requirePermission('financial', 'update'),
   validate([
-    field('cliente_nombre').optional().minLength(2).maxLength(100),
-    field('cliente_email').optional().email(),
-    field('cliente_telefono').optional().phone(),
-    field('cliente_empresa').optional().maxLength(100),
-    field('tipo_evento').optional().maxLength(100),
-    field('fecha_evento').optional().date(),
-    field('hora_inicio').optional(),
-    field('hora_fin').optional(),
-    field('ubicacion').optional().maxLength(500),
-    field('num_invitados').optional().numeric().positive(),
-    field('descuento_porcentaje').optional().numeric().min(0).max(100),
-    field('iva_porcentaje').optional().numeric().min(0).max(100),
-    field('fecha_vencimiento').optional().date(),
-    field('observaciones').optional().maxLength(1000),
-    field('terminos_condiciones').optional().maxLength(2000),
+    field('title').optional().minLength(3).maxLength(255),
+    field('description').optional().maxLength(1000),
+    field('event_date').optional().date(),
+    field('event_location').optional().maxLength(255),
+    field('event_duration_hours').optional().numeric().positive(),
+    field('event_type').optional().maxLength(100),
+    field('discount_type').optional().isIn(['none', 'percentage', 'fixed']),
+    field('discount_value').optional().numeric().min(0),
+    field('tax_percentage').optional().numeric().min(0).max(100),
+    field('valid_until').optional().date(),
+    field('contact_name').optional().maxLength(255),
+    field('contact_email').optional().email(),
+    field('contact_phone').optional().maxLength(50),
+    field('notes').optional().maxLength(2000),
+    field('terms_and_conditions').optional().maxLength(5000),
+    field('payment_terms').optional().maxLength(2000),
     field('items').optional().custom((value) => {
       if (!Array.isArray(value)) {
         throw new Error('items debe ser un array');
-      }
-      for (const item of value) {
-        if (!item.concepto || typeof item.concepto !== 'string') {
-          throw new Error('Cada item debe tener un concepto');
-        }
-        if (!item.cantidad || item.cantidad <= 0) {
-          throw new Error('Cada item debe tener cantidad mayor a 0');
-        }
-        if (item.precio_unitario === undefined || item.precio_unitario < 0) {
-          throw new Error('Cada item debe tener precio_unitario válido');
-        }
       }
       return true;
     })
@@ -154,52 +218,120 @@ router.put('/:id',
 );
 
 /**
- * POST /api/quotations/:id/state
+ * PATCH /api/quotations/:id/status
  * Cambiar estado de cotización
  */
-router.post('/:id/state',
+router.patch('/:id/status',
   requirePermission('financial', 'update'),
   validate([
-    field('estado').required().isIn(['borrador', 'enviada', 'aceptada', 'rechazada']),
-    field('motivo_rechazo').optional().maxLength(500)
+    field('status').required().isIn(['draft', 'sent', 'viewed', 'accepted', 'rejected', 'expired', 'converted']),
+    field('rejection_reason').optional().maxLength(1000),
+    field('evento_id').optional().numeric().positive()
   ]),
   (req, res, next) => {
     invalidateCache('GET:/api/quotations');
     next();
   },
-  changeQuotationState
+  updateQuotationStatus
+);
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ACCIONES ESPECÍFICAS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/**
+ * POST /api/quotations/:id/send
+ * Enviar cotización por email
+ */
+router.post('/:id/send',
+  requirePermission('financial', 'update'),
+  (req, res, next) => {
+    invalidateCache('GET:/api/quotations');
+    next();
+  },
+  sendQuotation
 );
 
 /**
- * POST /api/quotations/:id/convert
+ * POST /api/quotations/:id/accept
+ * Marcar cotización como aceptada
+ */
+router.post('/:id/accept',
+  requirePermission('financial', 'update'),
+  (req, res, next) => {
+    invalidateCache('GET:/api/quotations');
+    next();
+  },
+  acceptQuotation
+);
+
+/**
+ * POST /api/quotations/:id/reject
+ * Rechazar cotización
+ */
+router.post('/:id/reject',
+  requirePermission('financial', 'update'),
+  validate([
+    field('rejection_reason').optional().maxLength(1000)
+  ]),
+  (req, res, next) => {
+    invalidateCache('GET:/api/quotations');
+    next();
+  },
+  rejectQuotation
+);
+
+/**
+ * POST /api/quotations/:id/convert-to-evento
  * Convertir cotización aceptada a evento
  */
-router.post('/:id/convert',
+router.post('/:id/convert-to-evento',
   requirePermission('eventos', 'create'),
+  validate([
+    field('evento_id').required().numeric().positive()
+  ]),
   (req, res, next) => {
     invalidateCache('GET:/api/quotations');
     invalidateCache('GET:/api/eventos');
     next();
   },
-  convertToEvent
+  convertToEvento
 );
 
 /**
- * POST /api/quotations/mark-expired
- * Marcar cotizaciones expiradas (admin/cron only)
+ * POST /api/quotations/:id/duplicate
+ * Duplicar cotización
  */
-router.post('/mark-expired',
+router.post('/:id/duplicate',
+  requirePermission('financial', 'update'),
+  createRateLimit,
+  (req, res, next) => {
+    invalidateCache('GET:/api/quotations');
+    next();
+  },
+  duplicateQuotation
+);
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RUTAS ADMINISTRATIVAS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/**
+ * POST /api/quotations/expire-old
+ * Expirar cotizaciones antiguas (cron job)
+ */
+router.post('/expire-old',
   requireAdminOrManager,
   (req, res, next) => {
     invalidateCache('GET:/api/quotations');
     next();
   },
-  markExpiredQuotations
+  expireOldQuotations
 );
 
 /**
  * DELETE /api/quotations/:id
- * Eliminar cotización (soft delete)
+ * Eliminar cotización
  */
 router.delete('/:id',
   requireAdminOrManager,
@@ -208,19 +340,6 @@ router.delete('/:id',
     next();
   },
   deleteQuotation
-);
-
-/**
- * POST /api/quotations/:id/restore
- * Restaurar cotización eliminada
- */
-router.post('/:id/restore',
-  requireAdminOrManager,
-  (req, res, next) => {
-    invalidateCache('GET:/api/quotations');
-    next();
-  },
-  restoreQuotation
 );
 
 export default router;

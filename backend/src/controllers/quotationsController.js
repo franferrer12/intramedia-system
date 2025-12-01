@@ -1,542 +1,523 @@
+import Quotation from '../models/Quotation.js';
+import logger from '../utils/logger.js';
+
 /**
  * Quotations Controller
- * Controlador para el sistema de cotizaciones
+ * Gestión completa de cotizaciones/presupuestos
  */
 
-import pool from '../config/database.js';
-
-/**
- * Obtener todas las cotizaciones con paginación
- */
+// Obtener todas las cotizaciones con filtros
 export const getAllQuotations = async (req, res) => {
   try {
-    const { page = 1, limit = 10, estado, busqueda } = req.query;
-    const offset = (page - 1) * limit;
+    const {
+      page = 1,
+      limit = 20,
+      agency_id,
+      cliente_id,
+      dj_id,
+      status,
+      event_type,
+      from_date,
+      to_date,
+      search,
+      sort_by,
+      sort_order
+    } = req.query;
 
-    let whereClause = 'WHERE c.deleted_at IS NULL';
-    const queryParams = [];
-    let paramCount = 1;
-
-    if (estado) {
-      whereClause += ` AND c.estado = $${paramCount}`;
-      queryParams.push(estado);
-      paramCount++;
-    }
-
-    if (busqueda) {
-      whereClause += ` AND (
-        c.numero_cotizacion ILIKE $${paramCount} OR
-        c.cliente_nombre ILIKE $${paramCount} OR
-        c.cliente_email ILIKE $${paramCount}
-      )`;
-      queryParams.push(`%${busqueda}%`);
-      paramCount++;
-    }
-
-    // Count total
-    const countResult = await pool.query(
-      `SELECT COUNT(*) as total FROM cotizaciones c ${whereClause}`,
-      queryParams
-    );
-    const total = parseInt(countResult.rows[0].total);
-
-    // Get data
-    queryParams.push(limit, offset);
-    const result = await pool.query(
-      `SELECT * FROM vw_cotizaciones_completas
-       ${whereClause.replace('c.deleted_at', 'false')}
-       ORDER BY fecha_emision DESC, id DESC
-       LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
-      queryParams
-    );
+    const result = await Quotation.findAll({
+      agency_id,
+      cliente_id,
+      dj_id,
+      status,
+      event_type,
+      from_date,
+      to_date,
+      search,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      sort_by,
+      sort_order
+    });
 
     res.json({
       success: true,
-      data: result.rows,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
+      data: result.data,
+      pagination: result.pagination
     });
   } catch (error) {
-    console.error('Error obteniendo cotizaciones:', error);
+    logger.error('Error getting quotations:', error);
     res.status(500).json({
       success: false,
-      error: 'Error al obtener cotizaciones'
+      message: 'Error al obtener cotizaciones',
+      error: error.message
     });
   }
 };
 
-/**
- * Obtener una cotización por ID con sus items
- */
+// Obtener cotización por ID
 export const getQuotationById = async (req, res) => {
   try {
     const { id } = req.params;
+    const quotation = await Quotation.findById(id);
 
-    const quotationResult = await pool.query(
-      'SELECT * FROM cotizaciones WHERE id = $1 AND deleted_at IS NULL',
-      [id]
-    );
-
-    if (quotationResult.rows.length === 0) {
+    if (!quotation) {
       return res.status(404).json({
         success: false,
-        error: 'Cotización no encontrada'
+        message: 'Cotización no encontrada'
       });
     }
 
-    const itemsResult = await pool.query(
-      'SELECT * FROM cotizacion_items WHERE cotizacion_id = $1 ORDER BY orden, id',
-      [id]
-    );
-
     res.json({
       success: true,
-      data: {
-        ...quotationResult.rows[0],
-        items: itemsResult.rows
-      }
+      data: quotation
     });
   } catch (error) {
-    console.error('Error obteniendo cotización:', error);
+    logger.error('Error getting quotation:', error);
     res.status(500).json({
       success: false,
-      error: 'Error al obtener cotización'
+      message: 'Error al obtener cotización',
+      error: error.message
     });
   }
 };
 
-/**
- * Crear nueva cotización con items
- */
+// Crear nueva cotización
 export const createQuotation = async (req, res) => {
-  const client = await pool.connect();
-
   try {
-    await client.query('BEGIN');
+    const userId = req.user?.id;
+    const quotationData = {
+      ...req.body,
+      created_by: userId
+    };
 
-    const {
-      lead_id,
-      request_id,
-      cliente_nombre,
-      cliente_email,
-      cliente_telefono,
-      cliente_empresa,
-      tipo_evento,
-      fecha_evento,
-      hora_inicio,
-      hora_fin,
-      ubicacion,
-      num_invitados,
-      descuento_porcentaje = 0,
-      iva_porcentaje = 21,
-      fecha_vencimiento,
-      observaciones,
-      terminos_condiciones,
-      items = []
-    } = req.body;
+    const quotation = await Quotation.create(quotationData);
 
-    // Generar número de cotización
-    const numeroResult = await client.query('SELECT generate_quotation_number()');
-    const numero_cotizacion = numeroResult.rows[0].generate_quotation_number;
-
-    // Crear cotización
-    const quotationResult = await client.query(
-      `INSERT INTO cotizaciones (
-        numero_cotizacion, lead_id, request_id,
-        cliente_nombre, cliente_email, cliente_telefono, cliente_empresa,
-        tipo_evento, fecha_evento, hora_inicio, hora_fin, ubicacion, num_invitados,
-        descuento_porcentaje, iva_porcentaje, fecha_vencimiento,
-        observaciones, terminos_condiciones, created_by
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
-      RETURNING *`,
-      [
-        numero_cotizacion, lead_id, request_id,
-        cliente_nombre, cliente_email, cliente_telefono, cliente_empresa,
-        tipo_evento, fecha_evento, hora_inicio, hora_fin, ubicacion, num_invitados,
-        descuento_porcentaje, iva_porcentaje, fecha_vencimiento,
-        observaciones, terminos_condiciones, req.user?.id
-      ]
-    );
-
-    const cotizacion_id = quotationResult.rows[0].id;
-
-    // Crear items
-    const createdItems = [];
-    for (const item of items) {
-      const subtotal = item.cantidad * item.precio_unitario;
-      const itemResult = await client.query(
-        `INSERT INTO cotizacion_items (
-          cotizacion_id, concepto, descripcion, cantidad, precio_unitario, subtotal, orden
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING *`,
-        [
-          cotizacion_id,
-          item.concepto,
-          item.descripcion,
-          item.cantidad,
-          item.precio_unitario,
-          subtotal,
-          item.orden || 0
-        ]
-      );
-      createdItems.push(itemResult.rows[0]);
-    }
-
-    await client.query('COMMIT');
-
-    // Obtener cotización completa
-    const finalResult = await pool.query(
-      'SELECT * FROM cotizaciones WHERE id = $1',
-      [cotizacion_id]
-    );
+    logger.info('Quotation created:', { quotationId: quotation.id, userId });
 
     res.status(201).json({
       success: true,
-      data: {
-        ...finalResult.rows[0],
-        items: createdItems
-      }
+      message: 'Cotización creada exitosamente',
+      data: quotation
     });
   } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('Error creando cotización:', error);
+    logger.error('Error creating quotation:', error);
     res.status(500).json({
       success: false,
-      error: 'Error al crear cotización'
+      message: 'Error al crear cotización',
+      error: error.message
     });
-  } finally {
-    client.release();
   }
 };
 
-/**
- * Actualizar cotización
- */
+// Actualizar cotización
 export const updateQuotation = async (req, res) => {
-  const client = await pool.connect();
-
   try {
-    await client.query('BEGIN');
-
     const { id } = req.params;
-    const {
-      cliente_nombre,
-      cliente_email,
-      cliente_telefono,
-      cliente_empresa,
-      tipo_evento,
-      fecha_evento,
-      hora_inicio,
-      hora_fin,
-      ubicacion,
-      num_invitados,
-      descuento_porcentaje,
-      iva_porcentaje,
-      fecha_vencimiento,
-      observaciones,
-      terminos_condiciones,
-      items
-    } = req.body;
+    const quotationData = req.body;
 
-    // Verificar que existe y está en estado editable
-    const checkResult = await client.query(
-      'SELECT estado FROM cotizaciones WHERE id = $1 AND deleted_at IS NULL',
-      [id]
-    );
+    const quotation = await Quotation.update(id, quotationData);
 
-    if (checkResult.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({
-        success: false,
-        error: 'Cotización no encontrada'
-      });
-    }
-
-    const estado = checkResult.rows[0].estado;
-    if (!['borrador', 'enviada'].includes(estado)) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({
-        success: false,
-        error: 'No se puede editar una cotización en este estado'
-      });
-    }
-
-    // Actualizar cotización
-    const result = await client.query(
-      `UPDATE cotizaciones SET
-        cliente_nombre = COALESCE($1, cliente_nombre),
-        cliente_email = COALESCE($2, cliente_email),
-        cliente_telefono = COALESCE($3, cliente_telefono),
-        cliente_empresa = COALESCE($4, cliente_empresa),
-        tipo_evento = COALESCE($5, tipo_evento),
-        fecha_evento = COALESCE($6, fecha_evento),
-        hora_inicio = COALESCE($7, hora_inicio),
-        hora_fin = COALESCE($8, hora_fin),
-        ubicacion = COALESCE($9, ubicacion),
-        num_invitados = COALESCE($10, num_invitados),
-        descuento_porcentaje = COALESCE($11, descuento_porcentaje),
-        iva_porcentaje = COALESCE($12, iva_porcentaje),
-        fecha_vencimiento = COALESCE($13, fecha_vencimiento),
-        observaciones = COALESCE($14, observaciones),
-        terminos_condiciones = COALESCE($15, terminos_condiciones),
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = $16
-      RETURNING *`,
-      [
-        cliente_nombre, cliente_email, cliente_telefono, cliente_empresa,
-        tipo_evento, fecha_evento, hora_inicio, hora_fin, ubicacion, num_invitados,
-        descuento_porcentaje, iva_porcentaje, fecha_vencimiento,
-        observaciones, terminos_condiciones, id
-      ]
-    );
-
-    // Si se enviaron items, actualizarlos
-    let updatedItems = [];
-    if (items && Array.isArray(items)) {
-      // Eliminar items antiguos
-      await client.query('DELETE FROM cotizacion_items WHERE cotizacion_id = $1', [id]);
-
-      // Crear nuevos items
-      for (const item of items) {
-        const subtotal = item.cantidad * item.precio_unitario;
-        const itemResult = await client.query(
-          `INSERT INTO cotizacion_items (
-            cotizacion_id, concepto, descripcion, cantidad, precio_unitario, subtotal, orden
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-          RETURNING *`,
-          [id, item.concepto, item.descripcion, item.cantidad, item.precio_unitario, subtotal, item.orden || 0]
-        );
-        updatedItems.push(itemResult.rows[0]);
-      }
-    } else {
-      // Obtener items existentes
-      const itemsResult = await client.query(
-        'SELECT * FROM cotizacion_items WHERE cotizacion_id = $1 ORDER BY orden, id',
-        [id]
-      );
-      updatedItems = itemsResult.rows;
-    }
-
-    await client.query('COMMIT');
+    logger.info('Quotation updated:', { quotationId: id });
 
     res.json({
       success: true,
-      data: {
-        ...result.rows[0],
-        items: updatedItems
-      }
+      message: 'Cotización actualizada exitosamente',
+      data: quotation
     });
   } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('Error actualizando cotización:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error al actualizar cotización'
-    });
-  } finally {
-    client.release();
-  }
-};
+    logger.error('Error updating quotation:', error);
 
-/**
- * Cambiar estado de la cotización
- */
-export const changeQuotationState = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { estado, motivo_rechazo } = req.body;
-
-    const validStates = ['borrador', 'enviada', 'aceptada', 'rechazada'];
-    if (!validStates.includes(estado)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Estado no válido'
-      });
-    }
-
-    let query = `
-      UPDATE cotizaciones SET
-        estado = $1,
-        updated_at = CURRENT_TIMESTAMP
-    `;
-    const params = [estado];
-
-    if (estado === 'aceptada') {
-      query += ', fecha_aceptacion = CURRENT_TIMESTAMP';
-    } else if (estado === 'rechazada') {
-      query += ', fecha_rechazo = CURRENT_TIMESTAMP, motivo_rechazo = $2';
-      params.push(motivo_rechazo);
-    }
-
-    query += ` WHERE id = $${params.length + 1} AND deleted_at IS NULL RETURNING *`;
-    params.push(id);
-
-    const result = await pool.query(query, params);
-
-    if (result.rows.length === 0) {
+    if (error.message === 'Cotización no encontrada') {
       return res.status(404).json({
         success: false,
-        error: 'Cotización no encontrada'
+        message: error.message
       });
     }
 
-    res.json({
-      success: true,
-      data: result.rows[0]
-    });
-  } catch (error) {
-    console.error('Error cambiando estado:', error);
     res.status(500).json({
       success: false,
-      error: 'Error al cambiar estado de cotización'
+      message: 'Error al actualizar cotización',
+      error: error.message
     });
   }
 };
 
-/**
- * Convertir cotización a evento
- */
-export const convertToEvent = async (req, res) => {
+// Eliminar cotización
+export const deleteQuotation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const quotation = await Quotation.delete(id);
+
+    if (!quotation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Cotización no encontrada'
+      });
+    }
+
+    logger.info('Quotation deleted:', { quotationId: id });
+
+    res.json({
+      success: true,
+      message: 'Cotización eliminada exitosamente',
+      data: quotation
+    });
+  } catch (error) {
+    logger.error('Error deleting quotation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al eliminar cotización',
+      error: error.message
+    });
+  }
+};
+
+// Cambiar estado de cotización
+export const updateQuotationStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, ...additionalData } = req.body;
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: 'El campo status es requerido'
+      });
+    }
+
+    const validStatuses = ['draft', 'sent', 'viewed', 'accepted', 'rejected', 'expired', 'converted'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Estado inválido. Estados permitidos: ${validStatuses.join(', ')}`
+      });
+    }
+
+    const quotation = await Quotation.updateStatus(id, status, additionalData);
+
+    logger.info('Quotation status updated:', { quotationId: id, status });
+
+    res.json({
+      success: true,
+      message: `Cotización marcada como ${status}`,
+      data: quotation
+    });
+  } catch (error) {
+    logger.error('Error updating quotation status:', error);
+
+    if (error.message === 'Cotización no encontrada') {
+      return res.status(404).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Error al actualizar estado de cotización',
+      error: error.message
+    });
+  }
+};
+
+// Enviar cotización por email
+export const sendQuotation = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const result = await pool.query(
-      'SELECT convert_quotation_to_event($1) as event_id',
-      [id]
-    );
+    // Actualizar estado a 'sent'
+    const quotation = await Quotation.updateStatus(id, 'sent');
 
-    const eventId = result.rows[0].event_id;
+    // TODO: Implementar envío de email real
+    // await sendQuotationEmail(quotation);
+
+    logger.info('Quotation sent:', { quotationId: id });
+
+    res.json({
+      success: true,
+      message: 'Cotización enviada exitosamente',
+      data: quotation
+    });
+  } catch (error) {
+    logger.error('Error sending quotation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al enviar cotización',
+      error: error.message
+    });
+  }
+};
+
+// Aceptar cotización
+export const acceptQuotation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const quotation = await Quotation.updateStatus(id, 'accepted');
+
+    logger.info('Quotation accepted:', { quotationId: id });
+
+    res.json({
+      success: true,
+      message: 'Cotización aceptada exitosamente',
+      data: quotation
+    });
+  } catch (error) {
+    logger.error('Error accepting quotation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al aceptar cotización',
+      error: error.message
+    });
+  }
+};
+
+// Rechazar cotización
+export const rejectQuotation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rejection_reason } = req.body;
+
+    const quotation = await Quotation.updateStatus(id, 'rejected', { rejection_reason });
+
+    logger.info('Quotation rejected:', { quotationId: id, reason: rejection_reason });
+
+    res.json({
+      success: true,
+      message: 'Cotización rechazada',
+      data: quotation
+    });
+  } catch (error) {
+    logger.error('Error rejecting quotation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al rechazar cotización',
+      error: error.message
+    });
+  }
+};
+
+// Convertir cotización a evento
+export const convertToEvento = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { evento_id } = req.body;
+
+    if (!evento_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'El ID del evento es requerido'
+      });
+    }
+
+    const quotation = await Quotation.updateStatus(id, 'converted', { evento_id });
+
+    logger.info('Quotation converted to evento:', { quotationId: id, eventoId: evento_id });
 
     res.json({
       success: true,
       message: 'Cotización convertida a evento exitosamente',
+      data: quotation
+    });
+  } catch (error) {
+    logger.error('Error converting quotation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al convertir cotización',
+      error: error.message
+    });
+  }
+};
+
+// Duplicar cotización
+export const duplicateQuotation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const quotation = await Quotation.duplicate(id);
+
+    logger.info('Quotation duplicated:', { originalId: id, newId: quotation.id });
+
+    res.status(201).json({
+      success: true,
+      message: 'Cotización duplicada exitosamente',
+      data: quotation
+    });
+  } catch (error) {
+    logger.error('Error duplicating quotation:', error);
+
+    if (error.message === 'Cotización original no encontrada') {
+      return res.status(404).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Error al duplicar cotización',
+      error: error.message
+    });
+  }
+};
+
+// Obtener historial de una cotización
+export const getQuotationHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const history = await Quotation.getHistory(id);
+
+    res.json({
+      success: true,
+      data: history
+    });
+  } catch (error) {
+    logger.error('Error getting quotation history:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener historial',
+      error: error.message
+    });
+  }
+};
+
+// Obtener estadísticas de cotizaciones
+export const getQuotationStats = async (req, res) => {
+  try {
+    const { agency_id } = req.params;
+    const { from_date, to_date } = req.query;
+
+    const stats = await Quotation.getStatsByAgency(agency_id, {
+      from_date,
+      to_date
+    });
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    logger.error('Error getting quotation stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener estadísticas',
+      error: error.message
+    });
+  }
+};
+
+// Expirar cotizaciones antiguas (cron job endpoint)
+export const expireOldQuotations = async (req, res) => {
+  try {
+    const expired = await Quotation.expireOldQuotations();
+
+    logger.info('Quotations expired:', { count: expired.length });
+
+    res.json({
+      success: true,
+      message: `${expired.length} cotizaciones expiradas`,
+      data: expired
+    });
+  } catch (error) {
+    logger.error('Error expiring quotations:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al expirar cotizaciones',
+      error: error.message
+    });
+  }
+};
+
+// Crear cotización desde template
+export const createFromTemplate = async (req, res) => {
+  try {
+    const { template_id } = req.params;
+    const userId = req.user?.id;
+    const quotationData = {
+      ...req.body,
+      created_by: userId
+    };
+
+    const quotation = await Quotation.createFromTemplate(template_id, quotationData);
+
+    logger.info('Quotation created from template:', {
+      quotationId: quotation.id,
+      templateId: template_id
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Cotización creada desde template exitosamente',
+      data: quotation
+    });
+  } catch (error) {
+    logger.error('Error creating quotation from template:', error);
+
+    if (error.message === 'Template no encontrado o inactivo') {
+      return res.status(404).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Error al crear cotización desde template',
+      error: error.message
+    });
+  }
+};
+
+// Obtener cotizaciones próximas a expirar
+export const getExpiringSoon = async (req, res) => {
+  try {
+    const { days = 7 } = req.query;
+    const quotations = await Quotation.findExpiringSoon(parseInt(days));
+
+    res.json({
+      success: true,
+      data: quotations
+    });
+  } catch (error) {
+    logger.error('Error getting expiring quotations:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener cotizaciones próximas a expirar',
+      error: error.message
+    });
+  }
+};
+
+// Generar PDF de cotización
+export const generateQuotationPDF = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const quotation = await Quotation.findById(id);
+
+    if (!quotation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Cotización no encontrada'
+      });
+    }
+
+    // TODO: Implementar generación de PDF
+    // const pdfBuffer = await generatePDF(quotation);
+
+    logger.info('Quotation PDF generated:', { quotationId: id });
+
+    res.json({
+      success: true,
+      message: 'PDF generado exitosamente',
       data: {
-        event_id: eventId
+        quotation_id: id,
+        // pdf_url: pdfUrl
       }
     });
   } catch (error) {
-    console.error('Error convirtiendo a evento:', error);
-    res.status(400).json({
-      success: false,
-      error: error.message || 'Error al convertir cotización a evento'
-    });
-  }
-};
-
-/**
- * Obtener estadísticas de cotizaciones
- */
-export const getQuotationsStats = async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM vw_cotizaciones_stats');
-
-    res.json({
-      success: true,
-      data: result.rows[0]
-    });
-  } catch (error) {
-    console.error('Error obteniendo estadísticas:', error);
+    logger.error('Error generating PDF:', error);
     res.status(500).json({
       success: false,
-      error: 'Error al obtener estadísticas'
-    });
-  }
-};
-
-/**
- * Marcar cotizaciones expiradas (puede llamarse desde un cron job)
- */
-export const markExpiredQuotations = async (req, res) => {
-  try {
-    const result = await pool.query('SELECT mark_expired_quotations() as count');
-    const count = result.rows[0].count;
-
-    res.json({
-      success: true,
-      message: `${count} cotizaciones marcadas como expiradas`
-    });
-  } catch (error) {
-    console.error('Error marcando expiradas:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error al marcar cotizaciones expiradas'
-    });
-  }
-};
-
-/**
- * Soft delete
- */
-export const deleteQuotation = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const result = await pool.query(
-      `UPDATE cotizaciones SET
-        deleted_at = CURRENT_TIMESTAMP,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = $1 AND deleted_at IS NULL
-      RETURNING *`,
-      [id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Cotización no encontrada'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Cotización eliminada exitosamente'
-    });
-  } catch (error) {
-    console.error('Error eliminando cotización:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error al eliminar cotización'
-    });
-  }
-};
-
-/**
- * Restaurar cotización eliminada
- */
-export const restoreQuotation = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const result = await pool.query(
-      `UPDATE cotizaciones SET
-        deleted_at = NULL,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = $1 AND deleted_at IS NOT NULL
-      RETURNING *`,
-      [id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Cotización no encontrada o no estaba eliminada'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Cotización restaurada exitosamente',
-      data: result.rows[0]
-    });
-  } catch (error) {
-    console.error('Error restaurando cotización:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error al restaurar cotización'
+      message: 'Error al generar PDF',
+      error: error.message
     });
   }
 };
@@ -546,10 +527,17 @@ export default {
   getQuotationById,
   createQuotation,
   updateQuotation,
-  changeQuotationState,
-  convertToEvent,
-  getQuotationsStats,
-  markExpiredQuotations,
   deleteQuotation,
-  restoreQuotation
+  updateQuotationStatus,
+  sendQuotation,
+  acceptQuotation,
+  rejectQuotation,
+  convertToEvento,
+  duplicateQuotation,
+  getQuotationHistory,
+  getQuotationStats,
+  expireOldQuotations,
+  createFromTemplate,
+  getExpiringSoon,
+  generateQuotationPDF
 };
