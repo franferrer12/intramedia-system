@@ -225,8 +225,8 @@ export const sendQuotation = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Actualizar estado a 'sent'
-    const quotation = await Quotation.updateStatus(id, 'sent');
+    // Marcar como enviada usando método semántico
+    const quotation = await Quotation.send(id);
 
     // TODO: Implementar envío de email real
     // await sendQuotationEmail(quotation);
@@ -252,7 +252,7 @@ export const sendQuotation = async (req, res) => {
 export const acceptQuotation = async (req, res) => {
   try {
     const { id } = req.params;
-    const quotation = await Quotation.updateStatus(id, 'accepted');
+    const quotation = await Quotation.accept(id);
 
     logger.info('Quotation accepted:', { quotationId: id });
 
@@ -277,7 +277,7 @@ export const rejectQuotation = async (req, res) => {
     const { id } = req.params;
     const { rejection_reason } = req.body;
 
-    const quotation = await Quotation.updateStatus(id, 'rejected', { rejection_reason });
+    const quotation = await Quotation.reject(id, rejection_reason);
 
     logger.info('Quotation rejected:', { quotationId: id, reason: rejection_reason });
 
@@ -309,7 +309,7 @@ export const convertToEvento = async (req, res) => {
       });
     }
 
-    const quotation = await Quotation.updateStatus(id, 'converted', { evento_id });
+    const quotation = await Quotation.convertToEvento(id, evento_id);
 
     logger.info('Quotation converted to evento:', { quotationId: id, eventoId: evento_id });
 

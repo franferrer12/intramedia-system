@@ -606,6 +606,66 @@ class Quotation {
     const result = await pool.query(query, [days]);
     return result.rows;
   }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // MÉTODOS SEMÁNTICOS PARA ESTADOS (Añadidos para mejor UX)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  /**
+   * Marcar cotización como enviada
+   * @param {number} id - ID de la cotización
+   * @returns {Promise<Object>} Cotización actualizada
+   */
+  static async send(id) {
+    return await this.updateStatus(id, 'sent');
+  }
+
+  /**
+   * Aceptar cotización
+   * @param {number} id - ID de la cotización
+   * @returns {Promise<Object>} Cotización actualizada
+   */
+  static async accept(id) {
+    return await this.updateStatus(id, 'accepted');
+  }
+
+  /**
+   * Rechazar cotización
+   * @param {number} id - ID de la cotización
+   * @param {string} reason - Motivo del rechazo
+   * @returns {Promise<Object>} Cotización actualizada
+   */
+  static async reject(id, reason = null) {
+    return await this.updateStatus(id, 'rejected', { rejection_reason: reason });
+  }
+
+  /**
+   * Marcar cotización como vista por el cliente
+   * @param {number} id - ID de la cotización
+   * @returns {Promise<Object>} Cotización actualizada
+   */
+  static async markAsViewed(id) {
+    return await this.updateStatus(id, 'viewed');
+  }
+
+  /**
+   * Convertir cotización a evento
+   * @param {number} id - ID de la cotización
+   * @param {number} eventoId - ID del evento creado
+   * @returns {Promise<Object>} Cotización actualizada
+   */
+  static async convertToEvento(id, eventoId) {
+    return await this.updateStatus(id, 'converted', { evento_id: eventoId });
+  }
+
+  /**
+   * Expirar cotización manualmente
+   * @param {number} id - ID de la cotización
+   * @returns {Promise<Object>} Cotización actualizada
+   */
+  static async expire(id) {
+    return await this.updateStatus(id, 'expired');
+  }
 }
 
 export default Quotation;
