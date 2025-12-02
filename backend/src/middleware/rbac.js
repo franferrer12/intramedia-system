@@ -60,6 +60,29 @@ export const requireDJ = requireRole('dj');
 export const requireStaff = requireRole(['admin', 'staff']);
 
 /**
+ * Middleware to check if user belongs to an agency
+ * Checks if user has an agencyId assigned
+ */
+export const requireAgency = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'No autenticado'
+    });
+  }
+
+  if (!req.user.agencyId) {
+    return res.status(403).json({
+      success: false,
+      message: 'Debes pertenecer a una agencia para acceder a este recurso',
+      hint: 'Este recurso es exclusivo para usuarios de agencia'
+    });
+  }
+
+  next();
+};
+
+/**
  * Middleware to check if user owns the resource or is an admin
  * Checks if req.params.djId matches req.user.djId or user is admin
  *

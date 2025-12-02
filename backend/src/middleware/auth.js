@@ -23,7 +23,7 @@ export const authenticate = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Get user from database
+    // Get user from database with agency info
     const result = await pool.query(
       `SELECT
         u.id,
@@ -32,9 +32,12 @@ export const authenticate = async (req, res, next) => {
         u.dj_id,
         u.is_active,
         u.email_verified,
-        d.nombre as dj_nombre
+        d.nombre as dj_nombre,
+        a.id as agency_id,
+        a.agency_name
       FROM users u
       LEFT JOIN djs d ON u.dj_id = d.id
+      LEFT JOIN agencies a ON u.id = a.user_id
       WHERE u.id = $1`,
       [decoded.userId]
     );
@@ -63,7 +66,9 @@ export const authenticate = async (req, res, next) => {
       role: user.role,
       djId: user.dj_id,
       djName: user.dj_nombre || null,
-      emailVerified: user.email_verified
+      emailVerified: user.email_verified,
+      agencyId: user.agency_id || null,
+      agencyName: user.agency_name || null
     };
 
     next();
