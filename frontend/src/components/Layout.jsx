@@ -197,6 +197,7 @@ const Layout = () => {
       color: 'primary',
       adminOnly: true,
       submenu: [
+        { to: '/equipment', label: 'Equipos', icon: Database, agencyOnly: true },
         { to: '/settings', label: 'Configuración', icon: Settings },
         { to: '/audit-logs', label: 'Logs de Auditoría', icon: Shield },
       ]
