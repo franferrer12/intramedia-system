@@ -1,251 +1,179 @@
 import { useState } from 'react';
-import { Download, FileSpreadsheet, FileText, CheckCircle } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { quickExport } from '../utils/export';
 
-// Función para convertir JSON a CSV
-const convertirACSV = (datos, nombreArchivo) => {
-  if (!datos || datos.length === 0) {
-    toast.error('No hay datos para exportar');
-    return;
-  }
-
-  // Obtener headers
-  const headers = Object.keys(datos[0]);
-
-  // Crear CSV content
-  const csvContent = [
-    headers.join(','), // Header row
-    ...datos.map(row =>
-      headers.map(header => {
-        const valor = row[header];
-        // Escapar comas y comillas
-        if (typeof valor === 'string' && (valor.includes(',') || valor.includes('"'))) {
-          return `"${valor.replace(/"/g, '""')}"`;
-        }
-        return valor;
-      }).join(',')
-    )
-  ].join('\n');
-
-  // Descargar archivo
-  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `${nombreArchivo}.csv`;
-  link.click();
-
-  toast.success('Archivo CSV descargado');
-};
-
-// Función para convertir JSON a Excel (formato CSV mejorado)
-const convertirAExcel = (datos, nombreArchivo) => {
-  if (!datos || datos.length === 0) {
-    toast.error('No hay datos para exportar');
-    return;
-  }
-
-  // Excel puede leer CSV con formato especial
-  const headers = Object.keys(datos[0]);
-
-  // Crear contenido con separador de tabulación para mejor compatibilidad con Excel
-  const excelContent = [
-    headers.join('\t'),
-    ...datos.map(row =>
-      headers.map(header => {
-        const valor = row[header];
-        return valor !== null && valor !== undefined ? valor : '';
-      }).join('\t')
-    )
-  ].join('\n');
-
-  const blob = new Blob(['\ufeff' + excelContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `${nombreArchivo}.xls`;
-  link.click();
-
-  toast.success('Archivo Excel descargado');
-};
-
-// Función para exportar JSON
-const exportarJSON = (datos, nombreArchivo) => {
-  if (!datos || datos.length === 0) {
-    toast.error('No hay datos para exportar');
-    return;
-  }
-
-  const jsonContent = JSON.stringify(datos, null, 2);
-  const blob = new Blob([jsonContent], { type: 'application/json' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `${nombreArchivo}.json`;
-  link.click();
-
-  toast.success('Archivo JSON descargado');
-};
-
-const ExportButton = ({ datos, nombreArchivo = 'export', label = 'Exportar', className = '' }) => {
+/**
+ * Export Button Component
+ * Provides Excel/CSV export functionality with dropdown menu
+ */
+const ExportButton = ({
+  data,
+  entityType,
+  filename,
+  disabled = false,
+  className = '',
+  showLabel = true,
+}) => {
+  const [isExporting, setIsExporting] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [downloading, setDownloading] = useState(false);
 
-  const handleExport = async (tipo) => {
-    setDownloading(true);
+  const handleExport = async (format) => {
+    setIsExporting(true);
     setShowMenu(false);
 
-    // Pequeño delay para animación
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    switch (tipo) {
-      case 'csv':
-        convertirACSV(datos, nombreArchivo);
-        break;
-      case 'excel':
-        convertirAExcel(datos, nombreArchivo);
-        break;
-      case 'json':
-        exportarJSON(datos, nombreArchivo);
-        break;
-      default:
-        break;
+    try {
+      await quickExport(data, entityType, format);
+    } catch (error) {
+      console.error('Export failed:', error);
+    } finally {
+      setIsExporting(false);
     }
-
-    setDownloading(false);
   };
 
-  return (
-    <div className="relative">
+  if (disabled || !data || data.length === 0) {
+    return (
       <button
-        onClick={() => setShowMenu(!showMenu)}
-        className={`
-          btn btn-primary flex items-center gap-2
-          ${className}
-          ${downloading ? 'opacity-50 cursor-not-allowed' : ''}
-        `}
-        disabled={downloading}
+        type="button"
+        disabled
+        className={`inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 cursor-not-allowed ${className}`}
+        aria-label="No hay datos para exportar"
       >
-        {downloading ? (
-          <>
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-            <span>Descargando...</span>
-          </>
-        ) : (
-          <>
-            <Download className="w-4 h-4" />
-            <span>{label}</span>
-          </>
-        )}
+        <ArrowDownTrayIcon className="h-5 w-5 mr-2" aria-hidden="true" />
+        {showLabel && 'Exportar'}
+      </button>
+    );
+  }
+
+  return (
+    <div className="relative inline-block text-left">
+      <button
+        type="button"
+        onClick={() => setShowMenu(!showMenu)}
+        disabled={isExporting}
+        className={`inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 ${className}`}
+        aria-label="Exportar datos"
+        aria-haspopup="true"
+        aria-expanded={showMenu}
+      >
+        <ArrowDownTrayIcon
+          className={`h-5 w-5 ${showLabel ? 'mr-2' : ''} ${isExporting ? 'animate-bounce' : ''}`}
+          aria-hidden="true"
+        />
+        {showLabel && (isExporting ? 'Exportando...' : 'Exportar')}
+        <svg
+          className="-mr-1 ml-2 h-5 w-5"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
       </button>
 
-      {/* Menú desplegable */}
-      {showMenu && !downloading && (
-        <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-50 animate-slideDown">
-          <div className="p-2 space-y-1">
-            {/* CSV */}
-            <button
-              onClick={() => handleExport('csv')}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-lg transition-colors group"
-            >
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                <FileSpreadsheet className="w-5 h-5 text-green-600" />
-              </div>
-              <div className="text-left">
-                <div className="font-medium text-gray-900">CSV</div>
-                <div className="text-xs text-gray-500">Para Excel, Sheets</div>
-              </div>
-            </button>
+      {showMenu && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setShowMenu(false)}
+            aria-hidden="true"
+          />
 
-            {/* Excel */}
-            <button
-              onClick={() => handleExport('excel')}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-lg transition-colors group"
-            >
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                <FileSpreadsheet className="w-5 h-5 text-blue-600" />
-              </div>
-              <div className="text-left">
-                <div className="font-medium text-gray-900">Excel (.xls)</div>
-                <div className="text-xs text-gray-500">Microsoft Excel</div>
-              </div>
-            </button>
+          {/* Dropdown menu */}
+          <div
+            className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-20"
+            role="menu"
+            aria-orientation="vertical"
+          >
+            <div className="py-1">
+              <button
+                type="button"
+                onClick={() => handleExport('excel')}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700"
+                role="menuitem"
+              >
+                <div className="flex items-center">
+                  <span className="mr-3 text-green-600 dark:text-green-400">📊</span>
+                  <div>
+                    <div className="font-medium">Excel (.xlsx)</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Formato recomendado
+                    </div>
+                  </div>
+                </div>
+              </button>
 
-            {/* JSON */}
-            <button
-              onClick={() => handleExport('json')}
-              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-lg transition-colors group"
-            >
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-                <FileText className="w-5 h-5 text-purple-600" />
-              </div>
-              <div className="text-left">
-                <div className="font-medium text-gray-900">JSON</div>
-                <div className="text-xs text-gray-500">Formato de datos</div>
-              </div>
-            </button>
-          </div>
+              <button
+                type="button"
+                onClick={() => handleExport('csv')}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700"
+                role="menuitem"
+              >
+                <div className="flex items-center">
+                  <span className="mr-3 text-blue-600 dark:text-blue-400">📄</span>
+                  <div>
+                    <div className="font-medium">CSV (.csv)</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Texto separado por comas
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
 
-          <div className="border-t border-gray-200 p-2">
-            <div className="text-xs text-gray-500 px-4 py-2">
-              {datos?.length || 0} registros para exportar
+            <div className="border-t border-gray-200 dark:border-gray-700 py-1">
+              <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400">
+                Exportando {data.length} registro{data.length !== 1 ? 's' : ''}
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
-
-      {/* Overlay para cerrar el menú */}
-      {showMenu && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setShowMenu(false)}
-        ></div>
-      )}
-
-      {/* CSS para animación */}
-      <style>{`
-        @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-slideDown {
-          animation: slideDown 0.2s ease-out;
-        }
-      `}</style>
     </div>
   );
 };
 
-// Componente de botón de exportación rápida (sin menú)
-export const QuickExportCSV = ({ datos, nombreArchivo = 'export', className = '' }) => {
-  const [downloading, setDownloading] = useState(false);
+/**
+ * Simple export button (no dropdown, just Excel)
+ */
+export const SimpleExportButton = ({
+  data,
+  entityType,
+  format = 'excel',
+  disabled = false,
+  className = '',
+}) => {
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = async () => {
-    setDownloading(true);
-    await new Promise(resolve => setTimeout(resolve, 300));
-    convertirACSV(datos, nombreArchivo);
-    setDownloading(false);
+    setIsExporting(true);
+    try {
+      await quickExport(data, entityType, format);
+    } catch (error) {
+      console.error('Export failed:', error);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
     <button
+      type="button"
       onClick={handleExport}
-      disabled={downloading}
-      className={`
-        btn btn-secondary flex items-center gap-2
-        ${className}
-        ${downloading ? 'opacity-50 cursor-not-allowed' : ''}
-      `}
+      disabled={disabled || isExporting || !data || data.length === 0}
+      className={`inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 shadow-sm text-xs font-medium rounded text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      aria-label={`Exportar a ${format.toUpperCase()}`}
     >
-      {downloading ? (
-        <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-600 border-t-transparent"></div>
-      ) : (
-        <FileSpreadsheet className="w-4 h-4" />
-      )}
-      <span>CSV</span>
+      <ArrowDownTrayIcon
+        className={`h-4 w-4 mr-1.5 ${isExporting ? 'animate-bounce' : ''}`}
+        aria-hidden="true"
+      />
+      {isExporting ? 'Exportando...' : format.toUpperCase()}
     </button>
   );
 };
