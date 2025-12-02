@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Calendar,
@@ -35,18 +35,20 @@ import { useAuth } from '../contexts/AuthContext';
 import NotificationCenter from './NotificationCenter';
 import PresentationMode from './PresentationMode';
 import VirtualAssistant from './VirtualAssistant';
+import RecentItems from './RecentItems';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Layout = () => {
   const { isDark, toggleTheme } = useTheme();
   const { user, logout, getUserDisplayName, isAgency, isIndividualDJ, isAdmin } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isPresentationMode, setIsPresentationMode] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState({});
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const location = useLocation();
 
   // Responsive handler
   useEffect(() => {
@@ -479,7 +481,9 @@ const Layout = () => {
       </motion.aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto flex flex-col">
+      <main className="flex-1 overflow-auto flex flex-col md:flex-row">
+        {/* Main content area */}
+        <div className="flex-1 flex flex-col">
         {/* Header mejorado */}
         <header className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700/50 px-4 sm:px-8 py-4 shadow-sm">
           <div className="flex items-center justify-between gap-3">
@@ -533,6 +537,14 @@ const Layout = () => {
         >
           <Outlet />
         </motion.div>
+        </div>
+
+        {/* Recent Items Sidebar */}
+        {!isMobile && (
+          <aside className="w-80 bg-slate-50 dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700/50 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600">
+            <RecentItems />
+          </aside>
+        )}
       </main>
 
       {/* Presentation Mode */}

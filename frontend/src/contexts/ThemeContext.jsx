@@ -29,6 +29,13 @@ export const ThemeProvider = ({ children }) => {
 
   const toggleTheme = () => setIsDark(!isDark);
 
+  // Listen for keyboard shortcut event
+  useEffect(() => {
+    const handleToggle = () => setIsDark(prev => !prev);
+    window.addEventListener('toggle-dark-mode', handleToggle);
+    return () => window.removeEventListener('toggle-dark-mode', handleToggle);
+  }, []);
+
   return (
     <ThemeContext.Provider value={{ isDark, toggleTheme }}>
       {children}

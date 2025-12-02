@@ -10,6 +10,7 @@ import { announceToScreenReader } from '../utils/accessibility';
  * - Ctrl/Cmd + K: Open command palette
  * - Ctrl/Cmd + /: Show keyboard shortcuts help
  * - Ctrl/Cmd + S: Save (if in form)
+ * - Ctrl/Cmd + Shift + D: Toggle dark mode
  * - Escape: Close modals/dialogs
  * - Alt + H: Go to home/dashboard
  * - Alt + E: Go to eventos
@@ -101,6 +102,13 @@ export const useKeyboardShortcuts = (customShortcuts = {}) => {
         event.preventDefault();
         window.dispatchEvent(new CustomEvent('show-keyboard-shortcuts'));
         announceToScreenReader('Mostrando atajos de teclado', 'polite');
+      }
+
+      // Toggle dark mode (Ctrl/Cmd + Shift + D)
+      if (modifier && shiftKey && key.toLowerCase() === 'd') {
+        event.preventDefault();
+        window.dispatchEvent(new CustomEvent('toggle-dark-mode'));
+        announceToScreenReader('Cambiando tema', 'polite');
       }
 
       // Save shortcut (Ctrl/Cmd + S)
