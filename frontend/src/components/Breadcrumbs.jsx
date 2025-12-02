@@ -41,6 +41,7 @@ const routeNames = {
   'calendar-settings': 'Configuración de Calendario',
   'audit-logs': 'Logs de Auditoría',
   'equipment': 'Equipos',
+  'sms': 'SMS Notifications',
 };
 
 const Breadcrumbs = ({ className = '' }) => {
