@@ -6,7 +6,7 @@ import pool from './config/database.js';
 import swaggerSpec from './config/swagger.js';
 import logger from './utils/logger.js';
 import { compression } from './middleware/compression.js';
-import { securityHeaders } from './middleware/security.js';
+import { securityHeaders, additionalSecurityHeaders } from './middleware/security.js';
 import { performanceMiddleware, getPerformanceMetrics, resetMetrics } from './middleware/performanceMonitor.js';
 import { jobsUXMiddleware } from './middleware/jobsUX.js';
 import { auditLogger } from './middleware/auditLogger.js';
@@ -87,6 +87,7 @@ app.use(compression());
 // 5. Security headers (AFTER CORS and body parsers, BEFORE routes)
 // Helmet enabled with development-friendly settings
 app.use(securityHeaders());
+app.use(additionalSecurityHeaders);
 
 // 6. Jobs-Style UX Middleware (después de parsers, antes de rutas)
 app.use(jobsUXMiddleware);
