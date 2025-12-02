@@ -42,6 +42,7 @@ const routeNames = {
   'audit-logs': 'Logs de Auditoría',
   'equipment': 'Equipos',
   'sms': 'SMS Notifications',
+  'campaigns': 'Email Campaigns',
 };
 
 const Breadcrumbs = ({ className = '' }) => {

@@ -50,6 +50,7 @@ import CalendarSettings from './pages/CalendarSettings';
 import AuditLogs from './pages/AuditLogs';
 import Equipment from './pages/Equipment';
 import SMS from './pages/SMS';
+import Campaigns from './pages/Campaigns';
 
 function App() {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
@@ -137,6 +138,7 @@ function App() {
             <Route path="audit-logs" element={<AuditLogs />} />
             <Route path="equipment" element={<Equipment />} />
             <Route path="sms" element={<SMS />} />
+            <Route path="campaigns" element={<Campaigns />} />
           </Route>
         </Routes>
       </AuthProvider>

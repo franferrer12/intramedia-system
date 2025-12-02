@@ -30,7 +30,8 @@ import {
   AlertTriangle,
   Activity,
   Shield,
-  Smartphone
+  Smartphone,
+  Mail
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -200,6 +201,7 @@ const Layout = () => {
       submenu: [
         { to: '/equipment', label: 'Equipos', icon: Database, agencyOnly: true },
         { to: '/sms', label: 'SMS Notifications', icon: Smartphone },
+        { to: '/campaigns', label: 'Email Campaigns', icon: Mail, agencyOnly: true },
         { to: '/settings', label: 'Configuración', icon: Settings },
         { to: '/audit-logs', label: 'Logs de Auditoría', icon: Shield },
       ]
