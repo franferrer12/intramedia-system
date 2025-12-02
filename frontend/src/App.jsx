@@ -42,6 +42,7 @@ import Documents from './pages/Documents';
 import Reservations from './pages/Reservations';
 import PublicBookingForm from './pages/PublicBookingForm';
 import Payments from './pages/Payments';
+import CalendarSettings from './pages/CalendarSettings';
 
 function App() {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
@@ -110,6 +111,7 @@ function App() {
             <Route path="documents" element={<Documents />} />
             <Route path="reservations" element={<Reservations />} />
             <Route path="payments" element={<Payments />} />
+            <Route path="calendar-settings" element={<CalendarSettings />} />
           </Route>
         </Routes>
       </AuthProvider>

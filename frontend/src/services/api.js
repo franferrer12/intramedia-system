@@ -544,4 +544,60 @@ export const paymentsAPI = {
   createRefund: (id, refundData) => api.post(`/payments/${id}/refund`, refundData),
 };
 
+// === GOOGLE CALENDAR ===
+export const calendarAPI = {
+  // === OAUTH & CONNECTIONS ===
+
+  // Get OAuth authorization URL
+  getAuthUrl: () => api.get('/calendar/oauth/auth-url'),
+
+  // Get all connections
+  getConnections: () => api.get('/calendar/connections'),
+
+  // Get connection by ID
+  getConnectionById: (id) => api.get(`/calendar/connections/${id}`),
+
+  // Update connection settings
+  updateConnection: (id, settings) => api.put(`/calendar/connections/${id}`, settings),
+
+  // Delete connection
+  deleteConnection: (id) => api.delete(`/calendar/connections/${id}`),
+
+  // === SYNC OPERATIONS ===
+
+  // Trigger manual sync
+  triggerSync: (id, direction = 'bidirectional') => {
+    return api.post(`/calendar/connections/${id}/sync`, { direction });
+  },
+
+  // Get sync history
+  getSyncHistory: (id, limit = 50, offset = 0) => {
+    return api.get(`/calendar/connections/${id}/sync-history?limit=${limit}&offset=${offset}`);
+  },
+
+  // Get sync statistics
+  getSyncStats: () => api.get('/calendar/sync-stats'),
+
+  // === CONFLICTS ===
+
+  // Get pending conflicts
+  getConflicts: () => api.get('/calendar/conflicts'),
+
+  // Resolve conflict
+  resolveConflict: (id, resolution) => {
+    return api.post(`/calendar/conflicts/${id}/resolve`, resolution);
+  },
+
+  // Check for scheduling conflicts
+  checkEventConflicts: (data) => api.post('/calendar/check-conflicts', data),
+
+  // === EVENT MAPPINGS ===
+
+  // Get event mappings
+  getEventMappings: (filters = {}) => {
+    const params = new URLSearchParams(filters).toString();
+    return api.get(`/calendar/mappings${params ? `?${params}` : ''}`);
+  },
+};
+
 export default api;
