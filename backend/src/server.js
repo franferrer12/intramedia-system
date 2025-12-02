@@ -43,6 +43,7 @@ import documentsRoutes from './routes/documents.js';
 import paymentsRoutes from './routes/payments.js';
 import googleCalendarRoutes from './routes/googleCalendar.js';
 import auditLogRoutes from './routes/auditLogRoutes.js';
+import equipmentRoutes from './routes/equipmentRoutes.js';
 
 // Importar servicios
 import { startScheduledJobs, stopScheduledJobs } from './services/scheduledJobsService.js';
@@ -306,6 +307,7 @@ app.use('/api/documents', documentsRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/calendar', googleCalendarRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
+app.use('/api/equipment', equipmentRoutes);
 
 // 404 Handler
 app.use((req, res) => {
