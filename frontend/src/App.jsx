@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
+import ErrorBoundary from './components/ErrorBoundary';
+import { useKeyboardShortcuts, KeyboardShortcutsHelp } from './hooks/useKeyboardShortcuts';
+import SkipToMainContent from './components/SkipToMainContent';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Eventos from './pages/Eventos';
@@ -46,21 +49,35 @@ import CalendarSettings from './pages/CalendarSettings';
 
 function App() {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+
+  // Global keyboard shortcuts
+  useKeyboardShortcuts();
+
+  // Listen for show shortcuts event
+  useEffect(() => {
+    const handleShowShortcuts = () => setShowShortcuts(true);
+    window.addEventListener('show-keyboard-shortcuts', handleShowShortcuts);
+    return () => window.removeEventListener('show-keyboard-shortcuts', handleShowShortcuts);
+  }, []);
 
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            className: 'dark:bg-gray-800 dark:text-white',
-            style: {
-              background: 'var(--toast-bg)',
-              color: 'var(--toast-color)',
-            },
-          }}
-        />
-        <Routes>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <SkipToMainContent />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              className: 'dark:bg-gray-800 dark:text-white',
+              style: {
+                background: 'var(--toast-bg)',
+                color: 'var(--toast-color)',
+              },
+            }}
+          />
+          <KeyboardShortcutsHelp isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
+          <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/leads/public" element={<PublicLeadForm />} />
@@ -116,6 +133,7 @@ function App() {
         </Routes>
       </AuthProvider>
     </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

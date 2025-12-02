@@ -235,3 +235,117 @@
     @apply block text-sm font-medium text-gray-700 mb-1;
   }
 }
+
+/* ===== ACCESSIBILITY UTILITIES (WCAG 2.1) ===== */
+/* Screen reader only - visually hidden but accessible to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Make sr-only element visible when focused (skip links) */
+.sr-only:focus,
+.sr-only:active {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 1rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Not sr-only (revert) */
+.not-sr-only {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Focus visible styles for keyboard navigation */
+:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Reduced motion support for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Toast animations */
+@keyframes enter {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes leave {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.animate-enter {
+  animation: enter 0.3s ease-out;
+}
+
+.animate-leave {
+  animation: leave 0.3s ease-in;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  * {
+    border-color: currentColor !important;
+  }
+
+  .btn {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Skip to main content link */
+#skip-to-main:focus {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 9999;
+  padding: 1rem 2rem;
+  background: #3b82f6;
+  color: white;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
