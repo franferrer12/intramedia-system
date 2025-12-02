@@ -8,6 +8,7 @@ import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useKeyboardShortcuts, KeyboardShortcutsHelp } from './hooks/useKeyboardShortcuts';
 import SkipToMainContent from './components/SkipToMainContent';
+import GlobalSearch from './components/GlobalSearch';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Eventos from './pages/Eventos';
@@ -77,6 +78,7 @@ function App() {
             }}
           />
           <KeyboardShortcutsHelp isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
+          <GlobalSearch />
           <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />

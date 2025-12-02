@@ -1,117 +1,100 @@
-import { Link } from 'react-router-dom';
-import { ChevronRight, Home } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Link, useLocation } from 'react-router-dom';
+import { ChevronRightIcon, HomeIcon } from '@heroicons/react/24/solid';
 
 /**
- * Breadcrumbs Component - Navigation breadcrumbs
- *
- * Features:
- * - Link integration with React Router
- * - Home icon option
- * - Custom separators
- * - Responsive collapse on mobile
- * - Current page highlighting
- * - Animated appearance
+ * Breadcrumbs Component
+ * Displays navigation breadcrumb trail based on current route
  */
 
-const Breadcrumbs = ({
-  items = [],
-  showHome = true,
-  separator = <ChevronRight className="w-4 h-4" />,
-  maxItems,
-  className = '',
-}) => {
-  // Handle max items with ellipsis
-  const getDisplayItems = () => {
-    if (!maxItems || items.length <= maxItems) {
-      return items;
-    }
+const routeNames = {
+  '': 'Dashboard',
+  'eventos': 'Eventos',
+  'calendario': 'Calendario',
+  'calendario-avanzado': 'Calendario Avanzado',
+  'djs': 'DJs',
+  'djs-financial': 'DJs - Financial',
+  'dj-payments-pending': 'Pagos Pendientes',
+  'dj-metrics': 'Métricas',
+  'dj-growth': 'Análisis de Crecimiento',
+  'clientes': 'Clientes',
+  'clientes-financial': 'Clientes - Financial',
+  'clientes-payments-pending': 'Pagos Pendientes',
+  'clientes-loyalty': 'Programa de Lealtad',
+  'leads': 'Leads',
+  'solicitudes': 'Solicitudes',
+  'financial': 'Dashboard Financiero',
+  'nominas': 'Nóminas',
+  'socios': 'Socios',
+  'data-cleanup': 'Limpieza de Datos',
+  'dj-comparison': 'Comparación de DJs',
+  'agency-djs': 'Gestión de DJs',
+  'profit-distribution': 'Distribución de Beneficios',
+  'monthly-expenses': 'Gastos Mensuales',
+  'budget-comparison': 'Comparación de Presupuesto',
+  'financial-alerts': 'Alertas Financieras',
+  'executive-dashboard': 'Dashboard Ejecutivo',
+  'jobs-demo': 'Demo Jobs',
+  'settings': 'Configuración',
+  'documents': 'Documentos',
+  'reservations': 'Reservas',
+  'payments': 'Pagos',
+  'calendar-settings': 'Configuración de Calendario',
+};
 
-    const firstItem = items[0];
-    const lastItems = items.slice(-(maxItems - 1));
+const Breadcrumbs = ({ className = '' }) => {
+  const location = useLocation();
+  const pathnames = location.pathname.split('/').filter(x => x);
 
-    return [
-      firstItem,
-      { label: '...', path: null, isEllipsis: true },
-      ...lastItems,
-    ];
-  };
-
-  const displayItems = getDisplayItems();
+  if (pathnames.length === 0) {
+    return null; // Don't show breadcrumbs on home page
+  }
 
   return (
     <nav
-      aria-label="Breadcrumbs"
-      className={`flex items-center ${className}`}
+      className={`flex items-center space-x-2 text-sm ${className}`}
+      aria-label="Breadcrumb"
     >
-      <ol className="flex flex-wrap items-center gap-2">
-        {/* Home link */}
-        {showHome && (
-          <>
-            <motion.li
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Link
-                to="/"
-                className="flex items-center gap-1 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-              >
-                <Home className="w-4 h-4" />
-                <span className="text-sm font-medium">Inicio</span>
-              </Link>
-            </motion.li>
+      <ol className="flex items-center space-x-2">
+        {/* Home */}
+        <li>
+          <Link
+            to="/"
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+            aria-label="Ir a Dashboard"
+          >
+            <HomeIcon className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">Dashboard</span>
+          </Link>
+        </li>
 
-            {displayItems.length > 0 && (
-              <li className="flex items-center text-slate-400 dark:text-slate-600">
-                {separator}
-              </li>
-            )}
-          </>
-        )}
-
-        {/* Breadcrumb items */}
-        {displayItems.map((item, index) => {
-          const isLast = index === displayItems.length - 1;
-          const isEllipsis = item.isEllipsis;
+        {/* Path segments */}
+        {pathnames.map((segment, index) => {
+          const to = `/${pathnames.slice(0, index + 1).join('/')}`;
+          const isLast = index === pathnames.length - 1;
+          const name = routeNames[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
 
           return (
-            <motion.div
-              key={item.path || index}
-              className="flex items-center gap-2"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.2, delay: index * 0.05 }}
-            >
-              <li>
-                {isEllipsis ? (
-                  <span className="text-sm text-slate-400 dark:text-slate-600">
-                    {item.label}
-                  </span>
-                ) : isLast ? (
-                  <span className="text-sm font-medium text-slate-900 dark:text-white">
-                    {item.label}
-                  </span>
-                ) : item.path ? (
-                  <Link
-                    to={item.path}
-                    className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                  >
-                    {item.label}
-                  </Link>
-                ) : (
-                  <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                    {item.label}
-                  </span>
-                )}
-              </li>
-
-              {!isLast && (
-                <li className="flex items-center text-slate-400 dark:text-slate-600">
-                  {separator}
-                </li>
+            <li key={to} className="flex items-center">
+              <ChevronRightIcon
+                className="h-4 w-4 text-gray-400 dark:text-gray-600"
+                aria-hidden="true"
+              />
+              {isLast ? (
+                <span
+                  className="ml-2 text-gray-900 dark:text-white font-medium"
+                  aria-current="page"
+                >
+                  {name}
+                </span>
+              ) : (
+                <Link
+                  to={to}
+                  className="ml-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                >
+                  {name}
+                </Link>
               )}
-            </motion.div>
+            </li>
           );
         })}
       </ol>
@@ -120,36 +103,72 @@ const Breadcrumbs = ({
 };
 
 /**
- * BreadcrumbItem - Helper component for manual breadcrumb construction
+ * Custom Breadcrumbs Component
+ * For pages that need custom breadcrumb items
  */
-export const BreadcrumbItem = ({ children, href, active = false, className = '' }) => (
-  <li className={className}>
-    {active ? (
-      <span className="text-sm font-medium text-slate-900 dark:text-white">
-        {children}
-      </span>
-    ) : href ? (
-      <Link
-        to={href}
-        className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-      >
-        {children}
-      </Link>
-    ) : (
-      <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-        {children}
-      </span>
-    )}
-  </li>
-);
+export const CustomBreadcrumbs = ({ items = [], className = '' }) => {
+  return (
+    <nav
+      className={`flex items-center space-x-2 text-sm ${className}`}
+      aria-label="Breadcrumb"
+    >
+      <ol className="flex items-center space-x-2">
+        {/* Home */}
+        <li>
+          <Link
+            to="/"
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+            aria-label="Ir a Dashboard"
+          >
+            <HomeIcon className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">Dashboard</span>
+          </Link>
+        </li>
+
+        {/* Custom items */}
+        {items.map((item, index) => {
+          const isLast = index === items.length - 1;
+
+          return (
+            <li key={item.path || index} className="flex items-center">
+              <ChevronRightIcon
+                className="h-4 w-4 text-gray-400 dark:text-gray-600"
+                aria-hidden="true"
+              />
+              {isLast || !item.path ? (
+                <span
+                  className="ml-2 text-gray-900 dark:text-white font-medium"
+                  aria-current={isLast ? 'page' : undefined}
+                >
+                  {item.label}
+                </span>
+              ) : (
+                <Link
+                  to={item.path}
+                  className="ml-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                >
+                  {item.label}
+                </Link>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+};
 
 /**
- * BreadcrumbSeparator - Helper component for custom separators
+ * Breadcrumbs with Actions
+ * Breadcrumbs with action buttons on the right
  */
-export const BreadcrumbSeparator = ({ children, className = '' }) => (
-  <li className={`flex items-center text-slate-400 dark:text-slate-600 ${className}`}>
-    {children || <ChevronRight className="w-4 h-4" />}
-  </li>
-);
+export const BreadcrumbsWithActions = ({ actions, className = '' }) => {
+  return (
+    <div className={`flex items-center justify-between ${className}`}>
+      <Breadcrumbs />
+      {actions && <div className="flex items-center gap-2">{actions}</div>}
+    </div>
+  );
+};
 
 export default Breadcrumbs;
