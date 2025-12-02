@@ -40,6 +40,7 @@ import availabilityRoutes from './routes/availability.js';
 import reservationsRoutes from './routes/reservations.js';
 import documentsRoutes from './routes/documents.js';
 import paymentsRoutes from './routes/payments.js';
+import googleCalendarRoutes from './routes/googleCalendar.js';
 
 // Importar servicios
 import { startScheduledJobs, stopScheduledJobs } from './services/scheduledJobsService.js';
@@ -291,6 +292,7 @@ app.use('/api/availability', availabilityRoutes);
 app.use('/api/reservations', reservationsRoutes);
 app.use('/api/documents', documentsRoutes);
 app.use('/api/payments', paymentsRoutes);
+app.use('/api/calendar', googleCalendarRoutes);
 
 // 404 Handler
 app.use((req, res) => {
