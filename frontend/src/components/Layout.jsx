@@ -156,6 +156,7 @@ const Layout = () => {
         { to: '/clientes', label: 'Clientes', icon: Building2 },
         { to: '/financial', label: 'Finanzas', icon: DollarSign },
         { to: '/financial-alerts', label: 'Alertas Financieras', icon: AlertTriangle },
+        { to: '/reports', label: 'Reportes Avanzados', icon: FileText },
         { to: '/profit-distribution', label: 'Distribución de Beneficios', icon: PieChart },
         { to: '/monthly-expenses', label: 'Gastos Mensuales', icon: Receipt },
         { to: '/budget-comparison', label: 'Comparativa Presupuesto', icon: BarChart3 },

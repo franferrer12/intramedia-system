@@ -43,6 +43,7 @@ const routeNames = {
   'equipment': 'Equipos',
   'sms': 'SMS Notifications',
   'campaigns': 'Email Campaigns',
+  'reports': 'Reportes Avanzados',
 };
 
 const Breadcrumbs = ({ className = '' }) => {
