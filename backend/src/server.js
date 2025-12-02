@@ -9,6 +9,7 @@ import { compression } from './middleware/compression.js';
 import { securityHeaders } from './middleware/security.js';
 import { performanceMiddleware, getPerformanceMetrics, resetMetrics } from './middleware/performanceMonitor.js';
 import { jobsUXMiddleware } from './middleware/jobsUX.js';
+import { auditLogger } from './middleware/auditLogger.js';
 
 // Importar rutas
 import authRoutes from './routes/auth.js';
@@ -41,6 +42,7 @@ import reservationsRoutes from './routes/reservations.js';
 import documentsRoutes from './routes/documents.js';
 import paymentsRoutes from './routes/payments.js';
 import googleCalendarRoutes from './routes/googleCalendar.js';
+import auditLogRoutes from './routes/auditLogRoutes.js';
 
 // Importar servicios
 import { startScheduledJobs, stopScheduledJobs } from './services/scheduledJobsService.js';
@@ -84,6 +86,16 @@ app.use(securityHeaders());
 
 // 6. Jobs-Style UX Middleware (después de parsers, antes de rutas)
 app.use(jobsUXMiddleware);
+
+// 7. Audit Logger Middleware (logs all API requests)
+app.use(auditLogger({
+  excludePaths: ['/health', '/ping', '/metrics', '/api-docs'],
+  excludeMethods: [],
+  logBody: true,
+  logQuery: true,
+  logResponse: false,
+  sensitiveFields: ['password', 'token', 'secret', 'apiKey', 'creditCard']
+}));
 
 // Servir archivos estáticos (uploads)
 app.use('/uploads', express.static('uploads'));
@@ -293,6 +305,7 @@ app.use('/api/reservations', reservationsRoutes);
 app.use('/api/documents', documentsRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/calendar', googleCalendarRoutes);
+app.use('/api/audit-logs', auditLogRoutes);
 
 // 404 Handler
 app.use((req, res) => {
