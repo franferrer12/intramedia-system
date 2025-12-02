@@ -28,7 +28,8 @@ import {
   PieChart,
   Receipt,
   AlertTriangle,
-  Activity
+  Activity,
+  Shield
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -189,6 +190,17 @@ const Layout = () => {
       to: '/data-cleanup',
       color: 'accent'
     },
+    {
+      key: 'admin-group',
+      label: 'Administración',
+      icon: Settings,
+      color: 'primary',
+      adminOnly: true,
+      submenu: [
+        { to: '/settings', label: 'Configuración', icon: Settings },
+        { to: '/audit-logs', label: 'Logs de Auditoría', icon: Shield },
+      ]
+    },
   ];
 
   const getColorClasses = (color) => {
@@ -270,7 +282,13 @@ const Layout = () => {
           {/* Navigation */}
           <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600">
             {navigationStructure
-              .filter(item => !item.submenu || item.submenu.some(sub => !sub.agencyOnly || isAgency()))
+              .filter(item => {
+                // Filter out admin-only items for non-admins
+                if (item.adminOnly && !isAdmin()) return false;
+                // Filter out items with submenus that are all agency-only when not an agency
+                if (!item.submenu) return true;
+                return item.submenu.some(sub => (!sub.agencyOnly || isAgency()) && (!sub.adminOnly || isAdmin()));
+              })
               .map((item) => {
                 const Icon = item.icon;
                 const isExpanded = expandedMenus[item.key];
@@ -312,7 +330,11 @@ const Layout = () => {
                             className="ml-4 space-y-1 overflow-hidden"
                           >
                             {item.submenu
-                              .filter(sub => !sub.agencyOnly || isAgency())
+                              .filter(sub => {
+                                if (sub.agencyOnly && !isAgency()) return false;
+                                if (sub.adminOnly && !isAdmin()) return false;
+                                return true;
+                              })
                               .map((subItem) => {
                                 const SubIcon = subItem.icon;
                                 return (

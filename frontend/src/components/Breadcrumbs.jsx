@@ -39,6 +39,7 @@ const routeNames = {
   'reservations': 'Reservas',
   'payments': 'Pagos',
   'calendar-settings': 'Configuración de Calendario',
+  'audit-logs': 'Logs de Auditoría',
 };
 
 const Breadcrumbs = ({ className = '' }) => {

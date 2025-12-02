@@ -47,6 +47,7 @@ import Reservations from './pages/Reservations';
 import PublicBookingForm from './pages/PublicBookingForm';
 import Payments from './pages/Payments';
 import CalendarSettings from './pages/CalendarSettings';
+import AuditLogs from './pages/AuditLogs';
 
 function App() {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
@@ -131,6 +132,7 @@ function App() {
             <Route path="reservations" element={<Reservations />} />
             <Route path="payments" element={<Payments />} />
             <Route path="calendar-settings" element={<CalendarSettings />} />
+            <Route path="audit-logs" element={<AuditLogs />} />
           </Route>
         </Routes>
       </AuthProvider>
