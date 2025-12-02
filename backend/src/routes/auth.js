@@ -11,6 +11,8 @@ import {
 import { authenticate } from '../middleware/authMiddleware.js';
 import { strictRateLimit, rateLimit } from '../middleware/rateLimit.js';
 import { shortCache } from '../middleware/cache.js';
+import { validateRequest } from '../middleware/zodValidation.js';
+import { loginSchema, registerSchema, changePasswordSchema } from '../schemas/index.js';
 
 const router = express.Router();
 
@@ -24,7 +26,7 @@ const router = express.Router();
  * @desc    Register a new user (Agency or Individual DJ)
  * @access  Public
  */
-router.post('/register', strictRateLimit, register);
+router.post('/register', strictRateLimit, validateRequest(registerSchema), register);
 
 /**
  * @route   POST /api/auth/login
@@ -32,7 +34,7 @@ router.post('/register', strictRateLimit, register);
  * @access  Public
  */
 // Temporarily disabled rate limit for testing
-router.post('/login', login);
+router.post('/login', validateRequest(loginSchema), login);
 
 /**
  * @route   GET /api/auth/me
@@ -53,7 +55,7 @@ router.post('/logout', authenticate, logout);
  * @desc    Change user password
  * @access  Private (requires JWT token)
  */
-router.post('/change-password', authenticate, strictRateLimit, changePassword);
+router.post('/change-password', authenticate, strictRateLimit, validateRequest(changePasswordSchema), changePassword);
 
 /**
  * @route   GET /api/auth/validate
