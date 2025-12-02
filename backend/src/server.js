@@ -46,6 +46,7 @@ import auditLogRoutes from './routes/auditLogRoutes.js';
 import equipmentRoutes from './routes/equipmentRoutes.js';
 import smsRoutes from './routes/smsRoutes.js';
 import emailCampaignRoutes from './routes/emailCampaignRoutes.js';
+import advancedReportsRoutes from './routes/advancedReportsRoutes.js';
 
 // Importar servicios
 import { startScheduledJobs, stopScheduledJobs } from './services/scheduledJobsService.js';
@@ -160,7 +161,11 @@ app.get('/', (req, res) => {
       notifications: '/api/notifications',
       roles: '/api/roles',
       availability: '/api/availability',
-      reservations: '/api/reservations'
+      reservations: '/api/reservations',
+      equipment: '/api/equipment',
+      sms: '/api/sms',
+      campaigns: '/api/campaigns',
+      reports: '/api/reports'
     }
   });
 });
@@ -312,6 +317,7 @@ app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/equipment', equipmentRoutes);
 app.use('/api/sms', smsRoutes);
 app.use('/api/campaigns', emailCampaignRoutes);
+app.use('/api/reports', advancedReportsRoutes);
 
 // 404 Handler
 app.use((req, res) => {
