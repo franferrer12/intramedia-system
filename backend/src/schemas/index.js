@@ -22,7 +22,10 @@ export const {
 export const {
   createEventoSchema,
   updateEventoSchema,
-  dateRangeQuerySchema
+  dateRangeQuerySchema,
+  eventoIdSchema,
+  listEventosQuerySchema,
+  updatePagoSchema
 } = eventoSchemas;
 
 export const {
@@ -49,6 +52,9 @@ export default {
   createEventoSchema,
   updateEventoSchema,
   dateRangeQuerySchema,
+  eventoIdSchema,
+  listEventosQuerySchema,
+  updatePagoSchema,
   
   // DJs
   createDJSchema,

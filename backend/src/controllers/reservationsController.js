@@ -1,6 +1,6 @@
 import Reservation from '../models/Reservation.js';
 import Availability from '../models/Availability.js';
-import { sendEmail } from '../services/emailService.js';
+import emailService from '../services/emailService.js';
 import logger from '../utils/logger.js';
 
 /**
@@ -741,7 +741,7 @@ async function sendReservationCreatedEmail(reservation) {
     <p>Por favor, revisa la reserva en el panel de administración.</p>
   `;
 
-  await sendEmail({
+  await emailService.sendEmail({
     to: reservation.client_email,
     subject,
     html
@@ -765,7 +765,7 @@ async function sendReservationHoldEmail(reservation) {
     <p>Por favor, completa tu reserva antes de que expire.</p>
   `;
 
-  await sendEmail({
+  await emailService.sendEmail({
     to: reservation.client_email,
     subject,
     html
@@ -787,7 +787,7 @@ async function sendReservationConfirmedEmail(reservation) {
     <p>Nos pondremos en contacto contigo pronto para finalizar los detalles.</p>
   `;
 
-  await sendEmail({
+  await emailService.sendEmail({
     to: reservation.client_email,
     subject,
     html
@@ -810,7 +810,7 @@ async function sendReservationApprovedEmail(reservation) {
     <p>¡Todo listo! Estamos emocionados de ser parte de tu evento.</p>
   `;
 
-  await sendEmail({
+  await emailService.sendEmail({
     to: reservation.client_email,
     subject,
     html
@@ -832,7 +832,7 @@ async function sendReservationCancelledEmail(reservation) {
     <p>Si tienes preguntas, no dudes en contactarnos.</p>
   `;
 
-  await sendEmail({
+  await emailService.sendEmail({
     to: reservation.client_email,
     subject,
     html
@@ -853,7 +853,7 @@ async function sendReservationRejectedEmail(reservation) {
     <p>Por favor, contáctanos para explorar fechas alternativas.</p>
   `;
 
-  await sendEmail({
+  await emailService.sendEmail({
     to: reservation.client_email,
     subject,
     html

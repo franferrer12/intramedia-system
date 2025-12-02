@@ -81,8 +81,34 @@ export const dateRangeQuerySchema = z.object({
   })
 });
 
+// ID param validation schema
+export const eventoIdSchema = z.object({
+  id: z.string().regex(/^\d+$/, 'ID debe ser un número')
+});
+
+// List eventos query schema (for filtering and pagination)
+export const listEventosQuerySchema = z.object({
+  dj_id: z.string().regex(/^\d+$/).optional(),
+  cliente_id: z.string().regex(/^\d+$/).optional(),
+  estado: z.enum(['pendiente', 'confirmado', 'cancelado', 'completado']).optional(),
+  mes: z.string().regex(/^\d{4}-\d{2}$/).optional(),
+  fechaInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  fechaFin: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  page: z.string().regex(/^\d+$/).optional(),
+  limit: z.string().regex(/^\d+$/).optional()
+});
+
+// Update pago schema (for payment status updates)
+export const updatePagoSchema = z.object({
+  pagado_dj: z.boolean().optional(),
+  cobrado_cliente: z.boolean().optional()
+});
+
 export default {
   createEventoSchema,
   updateEventoSchema,
-  dateRangeQuerySchema
+  dateRangeQuerySchema,
+  eventoIdSchema,
+  listEventosQuerySchema,
+  updatePagoSchema
 };
