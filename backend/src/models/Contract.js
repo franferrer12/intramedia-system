@@ -312,12 +312,12 @@ class Contract {
       await client.query('BEGIN');
 
       const query = `
-        UPDATE contracts 
-        SET 
-          status = $1,
+        UPDATE contracts
+        SET
+          status = $1::text,
           updated_by = $2,
-          cancelled_by = CASE WHEN $1 = 'cancelled' THEN $2 ELSE cancelled_by END,
-          cancellation_reason = CASE WHEN $1 = 'cancelled' THEN $3 ELSE cancellation_reason END,
+          cancelled_by = CASE WHEN $1::text = 'cancelled' THEN $2 ELSE cancelled_by END,
+          cancellation_reason = CASE WHEN $1::text = 'cancelled' THEN $3 ELSE cancellation_reason END,
           updated_at = CURRENT_TIMESTAMP
         WHERE id = $4 AND deleted_at IS NULL
         RETURNING *
@@ -365,8 +365,9 @@ class Contract {
    */
   static async getHistory(contractId) {
     const query = `
-      SELECT 
+      SELECT
         h.*,
+        h.created_at as changed_at,
         u.email as changed_by_email
       FROM contract_history h
       LEFT JOIN users u ON u.id = h.changed_by
