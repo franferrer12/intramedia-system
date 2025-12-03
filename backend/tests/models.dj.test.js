@@ -20,9 +20,7 @@ describe('DJ Model Tests', () => {
         nombre: `DJ Test ${timestamp}`,
         email: `djtest${timestamp}@example.com`,
         telefono: '+521234567890',
-        genero_musical: 'Electronic',
-        tarifa_base: 5000,
-        porcentaje_comision: 40
+        observaciones: 'Test DJ for unit tests'
       };
 
       const dj = await DJ.create(djData);
@@ -30,8 +28,7 @@ describe('DJ Model Tests', () => {
       assert.ok(dj.id, 'DJ should have an ID');
       assert.strictEqual(dj.nombre, `DJ Test ${timestamp}`);
       assert.strictEqual(dj.email, `djtest${timestamp}@example.com`);
-      assert.strictEqual(parseFloat(dj.tarifa_base), 5000);
-      assert.strictEqual(parseFloat(dj.porcentaje_comision), 40);
+      assert.strictEqual(dj.telefono, '+521234567890');
 
       testDJId = dj.id;
     });

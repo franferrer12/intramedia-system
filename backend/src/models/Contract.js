@@ -134,10 +134,20 @@ class Contract {
     const countResult = await pool.query(countQuery, values);
     const totalItems = parseInt(countResult.rows[0].count);
 
-    // Query para obtener datos
+    // Query para obtener datos - explicitly select contract columns to avoid ambiguity
     const dataQuery = `
       SELECT
-        c.*,
+        c.id, c.contract_number, c.contract_type, c.template_id,
+        c.cliente_id, c.dj_id, c.evento_id,
+        c.party_a_name, c.party_a_id, c.party_a_address,
+        c.party_b_name, c.party_b_id, c.party_b_address, c.party_b_email, c.party_b_phone,
+        c.title, c.description, c.content, c.variables,
+        c.total_amount, c.currency, c.payment_terms,
+        c.start_date, c.end_date, c.expiration_date, c.auto_renew, c.renewal_period,
+        c.status, c.signed_by_party_a, c.signed_by_party_b, c.signature_date,
+        c.signature_party_a_data, c.signature_party_b_data,
+        c.cancelled_by, c.cancellation_reason, c.notes, c.internal_notes,
+        c.created_at, c.updated_at, c.deleted_at, c.created_by, c.updated_by,
         cl.nombre as cliente_nombre,
         d.nombre as dj_nombre
       FROM contracts c
@@ -314,10 +324,10 @@ class Contract {
       const query = `
         UPDATE contracts
         SET
-          status = $1::text,
+          status = $1::contract_status,
           updated_by = $2,
-          cancelled_by = CASE WHEN $1::text = 'cancelled' THEN $2 ELSE cancelled_by END,
-          cancellation_reason = CASE WHEN $1::text = 'cancelled' THEN $3 ELSE cancellation_reason END,
+          cancelled_by = CASE WHEN $1 = 'cancelled' THEN $2 ELSE cancelled_by END,
+          cancellation_reason = CASE WHEN $1 = 'cancelled' THEN $3 ELSE cancellation_reason END,
           updated_at = CURRENT_TIMESTAMP
         WHERE id = $4 AND deleted_at IS NULL
         RETURNING *
