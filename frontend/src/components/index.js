@@ -44,7 +44,7 @@ export { default as Tooltip, TooltipButton, TooltipIcon } from './Tooltip';
 // ========================================
 
 export { default as Alert, AlertTitle, AlertDescription, AlertActions } from './Alert';
-export { default as Breadcrumbs, BreadcrumbItem, BreadcrumbSeparator } from './Breadcrumbs';
+export { default as Breadcrumbs, CustomBreadcrumbs, BreadcrumbsWithActions } from './Breadcrumbs';
 export { default as Progress, CircularProgress, ProgressSteps } from './Progress';
 export { default as Accordion, AccordionItem } from './Accordion';
 export { default as Dropdown, DropdownItem, DropdownDivider } from './Dropdown';
