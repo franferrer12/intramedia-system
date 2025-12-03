@@ -57,15 +57,27 @@ class AuditLog {
     `;
 
     const values = [
-      eventType, entityType, entityId,
-      userId, userEmail, userRole, impersonatedBy,
-      action, method, endpoint,
-      ipAddress, userAgent,
+      eventType,
+      entityType,
+      (entityId && !isNaN(entityId)) ? entityId : null,
+      (userId && !isNaN(userId)) ? userId : null,
+      userEmail,
+      userRole,
+      (impersonatedBy && !isNaN(impersonatedBy)) ? impersonatedBy : null,
+      action,
+      method,
+      endpoint,
+      ipAddress,
+      userAgent,
       oldValues ? JSON.stringify(oldValues) : null,
       newValues ? JSON.stringify(newValues) : null,
       changedFields,
-      status, errorMessage, durationMs, metadata ? JSON.stringify(metadata) : null,
-      sessionId, requestId
+      status,
+      errorMessage,
+      (durationMs && !isNaN(durationMs)) ? durationMs : null,
+      metadata ? JSON.stringify(metadata) : null,
+      sessionId,
+      requestId
     ];
 
     try {
