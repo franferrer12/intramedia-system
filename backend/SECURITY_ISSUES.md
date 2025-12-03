@@ -5,7 +5,7 @@
 This document tracks known security vulnerabilities that cannot be immediately resolved due to lack of upstream fixes or required major refactoring.
 
 **Last Updated:** 2025-12-03
-**Sprint:** 2.1 - Backend Dependencies
+**Sprints:** 2.1 (Backend) & 2.2 (Frontend) - Dependency Updates
 
 ---
 
@@ -28,8 +28,9 @@ The xlsx library has two high-severity vulnerabilities:
 
 **Impact Assessment:**
 - **Risk Level:** Medium
-- **Exposure:** Backend only (not exposed to untrusted user input in current implementation)
+- **Exposure:** Backend & Frontend (not exposed to untrusted user input in current implementation)
 - **Usage:** Excel file import/export functionality
+- **Affected Packages:** Both `backend/package.json` and `frontend/package.json`
 
 **Mitigation Strategies:**
 
@@ -111,6 +112,31 @@ worksheet.eachRow((row, rowNumber) => {
    - Resolution: Updated via artillery update
 
 6. ✅ **Various dev dependencies**
+   - Resolution: npm audit fix
+
+---
+
+## Resolved Vulnerabilities (Sprint 2.2 - Frontend)
+
+### Summary
+
+**Initial State:** 5 vulnerabilities (3 MODERATE, 2 HIGH)
+**Final State:** 1 vulnerability (1 HIGH - xlsx only)
+**Resolution Rate:** 80% (4 of 5 resolved)
+
+### Resolved Issues:
+
+1. ✅ **esbuild (MODERATE)** - Development server vuln
+   - Resolution: Updated Vite 5→7 (transitive update)
+
+2. ✅ **vite (transitive from esbuild)**
+   - Resolution: Updated to v7.2.6
+
+3. ✅ **glob (HIGH)** - Command injection
+   - Via: Dev dependency (sucrase)
+   - Resolution: npm audit fix
+
+4. ✅ **js-yaml (MODERATE)** - Prototype pollution
    - Resolution: npm audit fix
 
 ---
