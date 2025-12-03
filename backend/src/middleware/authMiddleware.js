@@ -195,7 +195,7 @@ export const canAccessEvent = async (req, res, next) => {
 
     // Get event DJs
     const eventResult = await pool.query(
-      `SELECT dj_id FROM eventos WHERE id = $1`,
+      `SELECT dj_id FROM events WHERE id = $1`,
       [eventId]
     );
 

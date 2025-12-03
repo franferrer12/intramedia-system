@@ -209,7 +209,7 @@ class GoogleCalendarSyncService {
 
     // Insert evento
     const eventoResult = await pool.query(
-      `INSERT INTO eventos (
+      `INSERT INTO events (
         agency_id, evento, fecha, ubicacion, descripcion,
         duracion_minutos, tipo_evento, estado, asistentes
       )
@@ -260,7 +260,7 @@ class GoogleCalendarSyncService {
   async checkAndUpdateEvent(connection, mapping, googleEvent) {
     // Get local event
     const eventoResult = await pool.query(
-      'SELECT * FROM eventos WHERE id = $1 AND deleted_at IS NULL',
+      'SELECT * FROM events WHERE id = $1 AND deleted_at IS NULL',
       [mapping.evento_id]
     );
 
@@ -302,7 +302,7 @@ class GoogleCalendarSyncService {
     );
 
     await pool.query(
-      `UPDATE eventos
+      `UPDATE events
        SET evento = $2,
            fecha = $3,
            ubicacion = $4,
@@ -348,7 +348,7 @@ class GoogleCalendarSyncService {
 
       const eventosResult = await pool.query(
         `SELECT e.*
-         FROM eventos e
+         FROM events e
          WHERE e.agency_id = $1
            AND e.deleted_at IS NULL
            AND e.fecha >= $2
@@ -378,7 +378,7 @@ class GoogleCalendarSyncService {
       const mappingsResult = await pool.query(
         `SELECT m.*, e.*
          FROM event_calendar_mappings m
-         INNER JOIN eventos e ON m.evento_id = e.id
+         INNER JOIN events e ON m.evento_id = e.id
          WHERE m.connection_id = $1
            AND m.deleted_at IS NULL
            AND e.deleted_at IS NULL

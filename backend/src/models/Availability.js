@@ -63,7 +63,7 @@ class Availability {
         e.nombre as evento_nombre,
         e.ubicacion as evento_ubicacion
       FROM dj_availability a
-      LEFT JOIN eventos e ON a.evento_id = e.id
+      LEFT JOIN events e ON a.evento_id = e.id
       WHERE a.dj_id = $1
         AND EXTRACT(YEAR FROM a.fecha) = $2
         AND EXTRACT(MONTH FROM a.fecha) = $3
@@ -84,7 +84,7 @@ class Availability {
         e.nombre as evento_nombre,
         e.ubicacion as evento_ubicacion
       FROM dj_availability a
-      LEFT JOIN eventos e ON a.evento_id = e.id
+      LEFT JOIN events e ON a.evento_id = e.id
       WHERE a.dj_id = $1
         AND a.fecha >= $2
         AND a.fecha <= $3
@@ -107,7 +107,7 @@ class Availability {
       FROM dj_availability a
       INNER JOIN agency_djs ad ON a.dj_id = ad.dj_id
       INNER JOIN usuarios d ON a.dj_id = d.id
-      LEFT JOIN eventos e ON a.evento_id = e.id
+      LEFT JOIN events e ON a.evento_id = e.id
       WHERE ad.agency_id = $1
         AND EXTRACT(YEAR FROM a.fecha) = $2
         AND EXTRACT(MONTH FROM a.fecha) = $3
@@ -361,7 +361,7 @@ class Availability {
           e.evento as evento_nombre,
           e.ubicacion as evento_ubicacion
         FROM dj_availability da
-        LEFT JOIN eventos e ON da.evento_id = e.id
+        LEFT JOIN events e ON da.evento_id = e.id
         WHERE da.dj_id = $1
           AND da.fecha = $2
           AND (
@@ -431,7 +431,7 @@ class Availability {
           e.ubicacion as evento_ubicacion
         FROM dj_availability da
         INNER JOIN djs d ON da.dj_id = d.id
-        LEFT JOIN eventos e ON da.evento_id = e.id
+        LEFT JOIN events e ON da.evento_id = e.id
         WHERE 1=1
       `;
 
@@ -554,7 +554,7 @@ class Availability {
           e.ubicacion as evento_ubicacion
         FROM dj_availability da
         INNER JOIN djs d ON da.dj_id = d.id
-        LEFT JOIN eventos e ON da.evento_id = e.id
+        LEFT JOIN events e ON da.evento_id = e.id
         WHERE da.id = $1
       `;
 
@@ -704,7 +704,7 @@ class Availability {
             '1 day'::interval
           ) AS fecha
           LEFT JOIN dj_availability da ON da.fecha = fecha::date AND da.dj_id = $1
-          LEFT JOIN eventos e ON da.evento_id = e.id
+          LEFT JOIN events e ON da.evento_id = e.id
           GROUP BY fecha
           ORDER BY fecha
         `
@@ -730,7 +730,7 @@ class Availability {
           ) AS fecha
           LEFT JOIN dj_availability da ON da.fecha = fecha::date
           LEFT JOIN djs d ON da.dj_id = d.id AND d.agency_id = $1
-          LEFT JOIN eventos e ON da.evento_id = e.id
+          LEFT JOIN events e ON da.evento_id = e.id
           GROUP BY fecha
           ORDER BY fecha
         `;

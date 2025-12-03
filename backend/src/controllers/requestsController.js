@@ -16,7 +16,7 @@ export const getRequests = async (req, res) => {
         e.fecha as evento_fecha
       FROM requests r
       LEFT JOIN djs d ON r.dj_id = d.id
-      LEFT JOIN eventos e ON r.evento_id = e.id
+      LEFT JOIN events e ON r.evento_id = e.id
       WHERE 1=1
     `;
     const params = [];
@@ -76,8 +76,8 @@ export const getRequest = async (req, res) => {
         c.nombre as cliente_nombre
       FROM requests r
       LEFT JOIN djs d ON r.dj_id = d.id
-      LEFT JOIN eventos e ON r.evento_id = e.id
-      LEFT JOIN clientes c ON e.cliente_id = c.id
+      LEFT JOIN events e ON r.evento_id = e.id
+      LEFT JOIN clients c ON e.cliente_id = c.id
       WHERE r.id = $1
     `;
 

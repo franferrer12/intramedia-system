@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import pool from '../config/database.js';
 import DJ from '../models/DJ.js';
-import Cliente from '../models/Cliente.js';
+import Cliente from '../models/Client.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -214,7 +214,7 @@ async function migrateFromExcel() {
 
         // Insertar evento
         const sql = `
-          INSERT INTO eventos (
+          INSERT INTO events (
             fecha, mes, dj_id, cliente_id, evento, ciudad_lugar, categoria_id,
             horas, cache_total, parte_dj, parte_agencia, reserva,
             cobrado_cliente, pagado_dj, observaciones

@@ -40,7 +40,7 @@ router.get('/', paginationMiddleware, shortCache, async (req, res) => {
     const whereClause = whereConditions.join(' AND ');
 
     // Get total count
-    const countSql = `SELECT COUNT(*) FROM socios WHERE ${whereClause}`;
+    const countSql = `SELECT COUNT(*) FROM partners WHERE ${whereClause}`;
     const countResult = await query(countSql, values);
     const total = parseInt(countResult.rows[0].count);
 
@@ -48,7 +48,7 @@ router.get('/', paginationMiddleware, shortCache, async (req, res) => {
     const sortBy = filters.sortBy || 'nombre';
     const sortOrder = filters.sortOrder || 'ASC';
     const dataSql = `
-      SELECT * FROM socios
+      SELECT * FROM partners
       WHERE ${whereClause}
       ORDER BY ${sortBy} ${sortOrder}
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}

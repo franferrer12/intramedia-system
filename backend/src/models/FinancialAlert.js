@@ -24,9 +24,9 @@ class FinancialAlert {
         e.evento as evento_nombre,
         e.fecha as evento_fecha
       FROM financial_alerts fa
-      LEFT JOIN clientes c ON fa.cliente_id = c.id
+      LEFT JOIN clients c ON fa.cliente_id = c.id
       LEFT JOIN djs d ON fa.dj_id = d.id
-      LEFT JOIN eventos e ON fa.evento_id = e.id
+      LEFT JOIN events e ON fa.evento_id = e.id
       WHERE 1=1
     `;
 
@@ -97,9 +97,9 @@ class FinancialAlert {
         e.evento as evento_nombre,
         e.fecha as evento_fecha
       FROM financial_alerts fa
-      LEFT JOIN clientes c ON fa.cliente_id = c.id
+      LEFT JOIN clients c ON fa.cliente_id = c.id
       LEFT JOIN djs d ON fa.dj_id = d.id
-      LEFT JOIN eventos e ON fa.evento_id = e.id
+      LEFT JOIN events e ON fa.evento_id = e.id
       WHERE fa.is_read = false AND fa.is_resolved = false
       ORDER BY
         CASE fa.severity
@@ -136,9 +136,9 @@ class FinancialAlert {
         e.evento as evento_nombre,
         e.fecha as evento_fecha
       FROM financial_alerts fa
-      LEFT JOIN clientes c ON fa.cliente_id = c.id
+      LEFT JOIN clients c ON fa.cliente_id = c.id
       LEFT JOIN djs d ON fa.dj_id = d.id
-      LEFT JOIN eventos e ON fa.evento_id = e.id
+      LEFT JOIN events e ON fa.evento_id = e.id
       WHERE fa.id = $1
     `;
     const result = await pool.query(query, [id]);

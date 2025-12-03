@@ -508,7 +508,7 @@ async function applyConflictResolution(conflict, strategy) {
       );
 
       await pool.query(
-        `UPDATE eventos
+        `UPDATE events
          SET evento = $2,
              fecha = $3,
              ubicacion = $4,
@@ -544,7 +544,7 @@ export const getEventMappings = async (req, res) => {
     let query = `
       SELECT m.*, e.evento, e.fecha, e.ubicacion
       FROM event_calendar_mappings m
-      INNER JOIN eventos e ON m.evento_id = e.id
+      INNER JOIN events e ON m.evento_id = e.id
       WHERE m.agency_id = $1 AND m.deleted_at IS NULL
     `;
     const params = [agencyId];

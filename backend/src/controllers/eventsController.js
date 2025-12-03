@@ -1,4 +1,4 @@
-import Evento from '../models/Evento.js';
+import Evento from '../models/Event.js';
 import { formatPaginatedResponse, parseFilters } from '../middleware/pagination.js';
 import { query } from '../config/database.js';
 
@@ -70,7 +70,7 @@ export const getEventos = async (req, res) => {
     const whereClause = whereConditions.join(' AND ');
 
     // Get total count
-    const countSql = `SELECT COUNT(*) FROM eventos WHERE ${whereClause}`;
+    const countSql = `SELECT COUNT(*) FROM events WHERE ${whereClause}`;
     const countResult = await query(countSql, values);
     const total = parseInt(countResult.rows[0].count);
 
@@ -78,7 +78,7 @@ export const getEventos = async (req, res) => {
     const sortBy = filters.sortBy || 'fecha';
     const sortOrder = filters.sortOrder || 'DESC';
     const dataSql = `
-      SELECT * FROM eventos
+      SELECT * FROM events
       WHERE ${whereClause}
       ORDER BY ${sortBy} ${sortOrder}
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}

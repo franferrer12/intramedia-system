@@ -65,7 +65,7 @@ class DJ {
         SUM(parte_dj) as total_a_pagar,
         AVG(parte_dj) as media_por_evento,
         SUM(CASE WHEN pagado_dj = true THEN 1 ELSE 0 END) as eventos_pagados
-      FROM eventos
+      FROM events
       WHERE dj_id = $1 AND UPPER(mes) = UPPER($2)
     `;
 
@@ -80,9 +80,9 @@ class DJ {
         e.*,
         c.nombre as cliente_nombre,
         cat.nombre as categoria_nombre
-      FROM eventos e
-      LEFT JOIN clientes c ON e.cliente_id = c.id
-      LEFT JOIN categorias_evento cat ON e.categoria_id = cat.id
+      FROM events e
+      LEFT JOIN clients c ON e.cliente_id = c.id
+      LEFT JOIN event_categories cat ON e.categoria_id = cat.id
       WHERE e.dj_id = $1
     `;
 
@@ -250,7 +250,7 @@ class DJ {
   // Marcar evento como pagado a DJ
   static async marcarEventoPagado(eventoId) {
     const sql = `
-      UPDATE eventos
+      UPDATE events
       SET pagado_dj = true
       WHERE id = $1
       RETURNING *
@@ -262,7 +262,7 @@ class DJ {
   // Marcar múltiples eventos como pagados
   static async marcarEventosPagados(eventoIds) {
     const sql = `
-      UPDATE eventos
+      UPDATE events
       SET pagado_dj = true
       WHERE id = ANY($1)
       RETURNING id, evento, parte_dj

@@ -225,7 +225,7 @@ class Equipment {
         eq.marca as equipo_marca,
         eq.modelo as equipo_modelo
       FROM equipment_rentals r
-      LEFT JOIN eventos e ON r.evento_id = e.id
+      LEFT JOIN events e ON r.evento_id = e.id
       LEFT JOIN usuarios d ON r.dj_id = d.id
       LEFT JOIN agency_equipment eq ON r.equipment_id = eq.id
       WHERE r.equipment_id = $1

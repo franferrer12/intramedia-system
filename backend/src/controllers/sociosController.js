@@ -3,7 +3,7 @@ import { query } from '../config/database.js';
 // Obtener todos los socios
 export const getSocios = async (req, res) => {
   try {
-    const socios = await query('SELECT * FROM socios ORDER BY nombre');
+    const socios = await query('SELECT * FROM partners ORDER BY nombre');
 
     res.json({
       success: true,
@@ -98,8 +98,8 @@ export const getDashboardSocios = async (req, res) => {
         SUM(e.parte_agencia) as comision_total_año,
         SUM(e.parte_agencia) * (s.porcentaje_participacion / 100) as ingreso_total_año,
         COUNT(e.id) as eventos_año
-      FROM socios s
-      CROSS JOIN eventos e
+      FROM partners s
+      CROSS JOIN events e
       WHERE s.activo = true AND EXTRACT(YEAR FROM e.fecha) = $1
       GROUP BY s.id, s.nombre, s.porcentaje_participacion
       ORDER BY s.nombre
@@ -111,8 +111,8 @@ export const getDashboardSocios = async (req, res) => {
         s.id,
         s.nombre,
         SUM(e.parte_agencia) * (s.porcentaje_participacion / 100) as ingreso_mes
-      FROM socios s
-      CROSS JOIN eventos e
+      FROM partners s
+      CROSS JOIN events e
       WHERE s.activo = true
         AND EXTRACT(YEAR FROM e.fecha) = $1
         AND EXTRACT(MONTH FROM e.fecha) = $2
@@ -125,7 +125,7 @@ export const getDashboardSocios = async (req, res) => {
         TO_CHAR(e.fecha, 'YYYY-MM') as mes,
         COUNT(e.id) as eventos,
         SUM(e.parte_agencia) as comision_total
-      FROM eventos e
+      FROM events e
       WHERE EXTRACT(YEAR FROM e.fecha) = $1
       GROUP BY TO_CHAR(e.fecha, 'YYYY-MM')
       ORDER BY mes

@@ -113,7 +113,7 @@ class ProfitDistribution {
         SUM(monto_fran) as total_fran,
         SUM(monto_roberto) as total_roberto,
         SUM(monto_pablo) as total_pablo
-      FROM eventos
+      FROM events
       WHERE beneficio_bruto > 0
     `;
 

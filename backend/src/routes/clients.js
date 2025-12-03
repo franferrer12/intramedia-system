@@ -1,5 +1,5 @@
 import express from 'express';
-import Cliente from '../models/Cliente.js';
+import Cliente from '../models/Client.js';
 import { paginationMiddleware, formatPaginatedResponse, parseFilters } from '../middleware/pagination.js';
 import { field, validate } from '../middleware/validation.js';
 import { softDeleteController, restoreController } from '../middleware/softDelete.js';
@@ -37,7 +37,7 @@ router.get('/', paginationMiddleware, shortCache, async (req, res) => {
     const whereClause = whereConditions.join(' AND ');
 
     // Get total count
-    const countSql = `SELECT COUNT(*) FROM clientes WHERE ${whereClause}`;
+    const countSql = `SELECT COUNT(*) FROM clients WHERE ${whereClause}`;
     const countResult = await query(countSql, values);
     const total = parseInt(countResult.rows[0].count);
 
@@ -45,7 +45,7 @@ router.get('/', paginationMiddleware, shortCache, async (req, res) => {
     const sortBy = filters.sortBy || 'nombre';
     const sortOrder = filters.sortOrder || 'ASC';
     const dataSql = `
-      SELECT * FROM clientes
+      SELECT * FROM clients
       WHERE ${whereClause}
       ORDER BY ${sortBy} ${sortOrder}
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}

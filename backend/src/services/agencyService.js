@@ -160,7 +160,7 @@ class AgencyService {
           COALESCE(SUM(e.cache_total), 0) as total_revenue
         FROM djs d
         INNER JOIN agency_dj_relations r ON d.id = r.dj_id
-        LEFT JOIN eventos e ON d.id = e.dj_id
+        LEFT JOIN events e ON d.id = e.dj_id
         WHERE r.agency_id = $1
       `;
 
@@ -433,7 +433,7 @@ class AgencyService {
           COUNT(DISTINCT CASE WHEN e.pagado_dj = false THEN e.id END) as pending_dj_payment,
           COALESCE(SUM(e.cache_total), 0) as total_revenue,
           COALESCE(SUM(e.parte_agencia), 0) as total_commission
-         FROM eventos e
+         FROM events e
          INNER JOIN djs d ON e.dj_id = d.id
          INNER JOIN agency_dj_relations r ON d.id = r.dj_id AND r.agency_id = $1
          WHERE r.active = true`,
@@ -450,7 +450,7 @@ class AgencyService {
           COALESCE(AVG(e.cache_total), 0) as avg_event_price
          FROM djs d
          INNER JOIN agency_dj_relations r ON d.id = r.dj_id
-         LEFT JOIN eventos e ON d.id = e.dj_id
+         LEFT JOIN events e ON d.id = e.dj_id
          WHERE r.agency_id = $1 AND r.active = true
          GROUP BY d.id, d.nombre
          ORDER BY total_events DESC
@@ -464,9 +464,9 @@ class AgencyService {
           e.*,
           d.nombre as dj_nombre,
           c.nombre as cliente_nombre
-         FROM eventos e
+         FROM events e
          INNER JOIN djs d ON e.dj_id = d.id
-         LEFT JOIN clientes c ON e.cliente_id = c.id
+         LEFT JOIN clients c ON e.cliente_id = c.id
          INNER JOIN agency_dj_relations r ON d.id = r.dj_id
          WHERE r.agency_id = $1 AND r.active = true
          ORDER BY e.fecha DESC
@@ -506,7 +506,7 @@ class AgencyService {
           d.instagram_username,
           COUNT(DISTINCT e.id) as total_events
          FROM djs d
-         LEFT JOIN eventos e ON d.id = e.dj_id
+         LEFT JOIN events e ON d.id = e.dj_id
          WHERE d.managed_by = 'self'
            AND d.agency_id IS NULL
            AND d.active = true

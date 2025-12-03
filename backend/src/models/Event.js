@@ -11,7 +11,7 @@ class Evento {
     } = eventoData;
 
     const sql = `
-      INSERT INTO eventos (
+      INSERT INTO events (
         fecha, mes, dj_id, cliente_id, evento, ciudad_lugar, categoria_id,
         horas, cache_total, parte_dj, parte_agencia, reserva,
         cobrado_cliente, pagado_dj, observaciones,
@@ -40,10 +40,10 @@ class Evento {
         c.nombre as cliente_nombre,
         cat.nombre as categoria_nombre,
         cat.color as categoria_color
-      FROM eventos e
+      FROM events e
       LEFT JOIN djs d ON e.dj_id = d.id
-      LEFT JOIN clientes c ON e.cliente_id = c.id
-      LEFT JOIN categorias_evento cat ON e.categoria_id = cat.id
+      LEFT JOIN clients c ON e.cliente_id = c.id
+      LEFT JOIN event_categories cat ON e.categoria_id = cat.id
       WHERE 1=1
     `;
 
@@ -91,10 +91,10 @@ class Evento {
         c.nombre as cliente_nombre,
         c.email as cliente_email,
         cat.nombre as categoria_nombre
-      FROM eventos e
+      FROM events e
       LEFT JOIN djs d ON e.dj_id = d.id
-      LEFT JOIN clientes c ON e.cliente_id = c.id
-      LEFT JOIN categorias_evento cat ON e.categoria_id = cat.id
+      LEFT JOIN clients c ON e.cliente_id = c.id
+      LEFT JOIN event_categories cat ON e.categoria_id = cat.id
       WHERE e.id = $1
     `;
 
@@ -123,7 +123,7 @@ class Evento {
 
     values.push(id);
     const sql = `
-      UPDATE eventos
+      UPDATE events
       SET ${fields.join(', ')}
       WHERE id = $${paramIndex}
       RETURNING *
@@ -135,7 +135,7 @@ class Evento {
 
   // Eliminar evento
   static async delete(id) {
-    const sql = 'DELETE FROM eventos WHERE id = $1 RETURNING *';
+    const sql = 'DELETE FROM events WHERE id = $1 RETURNING *';
     const result = await query(sql, [id]);
     return result.rows[0];
   }
@@ -152,7 +152,7 @@ class Evento {
         SUM(CASE WHEN NOT pagado_dj THEN parte_dj ELSE 0 END) as pendiente_pago_djs,
         AVG(parte_agencia) as rentabilidad_media_evento,
         AVG(euro_hora_dj) as rentabilidad_media_hora_dj
-      FROM eventos
+      FROM events
       WHERE UPPER(mes) = UPPER($1)
     `;
 
@@ -168,9 +168,9 @@ class Evento {
         d.nombre as dj_nombre,
         d.email as dj_email,
         c.nombre as cliente_nombre
-      FROM eventos e
+      FROM events e
       LEFT JOIN djs d ON e.dj_id = d.id
-      LEFT JOIN clientes c ON e.cliente_id = c.id
+      LEFT JOIN clients c ON e.cliente_id = c.id
       WHERE e.fecha BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '1 day' * $1
       ORDER BY e.fecha ASC
     `;

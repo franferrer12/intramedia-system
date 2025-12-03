@@ -87,7 +87,7 @@ class ComparativeAnalysis {
               2
             ) as profit_margin
 
-          FROM eventos e
+          FROM events e
           WHERE 1=1
             ${startDate ? `AND e.fecha >= '${startDate}'` : ''}
             ${endDate ? `AND e.fecha <= '${endDate}'` : ''}
@@ -181,8 +181,8 @@ class ComparativeAnalysis {
             MIN(e.fecha) as first_event_date,
             MAX(e.fecha) as last_event_date,
             0 as days_active
-          FROM clientes c
-          LEFT JOIN eventos e ON e.cliente_id = c.id
+          FROM clients c
+          LEFT JOIN events e ON e.cliente_id = c.id
           GROUP BY c.id, c.nombre
         ),
         market_averages AS (
@@ -289,7 +289,7 @@ class ComparativeAnalysis {
             COUNT(DISTINCT e.cliente_id) as unique_clients,
             0 as days_active
           FROM djs d
-          LEFT JOIN eventos e ON e.dj_id = d.id
+          LEFT JOIN events e ON e.dj_id = d.id
           GROUP BY d.id, d.nombre
         ),
         market_averages AS (
@@ -395,7 +395,7 @@ class ComparativeAnalysis {
             COALESCE(SUM(e.cache_total), 0) as total_revenue,
             COALESCE(AVG(e.cache_total), 0) as avg_revenue_per_event,
             COALESCE(SUM(e.cache_total - e.parte_dj), 0) as total_profit
-          FROM eventos e
+          FROM events e
           WHERE 1=1
             AND e.fecha >= CURRENT_DATE - INTERVAL '3 years'
           GROUP BY month_number, month_name, year
@@ -490,7 +490,7 @@ class ComparativeAnalysis {
             COALESCE(SUM(e.cache_total), 0) as revenue,
             COUNT(e.id) as eventos,
             COALESCE(SUM(e.cache_total - e.parte_dj), 0) as profit
-          FROM eventos e
+          FROM events e
           WHERE 1=1
             AND e.fecha >= CURRENT_DATE - INTERVAL '18 months'
           GROUP BY period, period_key, period_label
@@ -579,7 +579,7 @@ class ComparativeAnalysis {
           MAX(e.fecha) as last_event,
           0 as days_active,
           0 as eventos_per_day
-        FROM eventos e
+        FROM events e
         INNER JOIN ${entityTable} ${isClient ? 'c' : 'd'} ON ${isClient ? 'c' : 'd'}.id = e.${entityIdField}
         WHERE 1=1
         GROUP BY e.${entityIdField}, entity_name

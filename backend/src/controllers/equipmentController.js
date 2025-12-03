@@ -403,7 +403,7 @@ export const getAllRentals = async (req, res) => {
         eq.modelo as equipo_modelo,
         eq.foto_url as equipo_foto
       FROM equipment_rentals r
-      LEFT JOIN eventos e ON r.evento_id = e.id
+      LEFT JOIN events e ON r.evento_id = e.id
       LEFT JOIN djs d ON r.dj_id = d.id
       LEFT JOIN users u ON d.user_id = u.id
       LEFT JOIN agency_equipment eq ON r.equipment_id = eq.id

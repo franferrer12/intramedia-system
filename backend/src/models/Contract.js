@@ -127,7 +127,7 @@ class Contract {
     const countQuery = `
       SELECT COUNT(*)
       FROM contracts c
-      LEFT JOIN clientes cl ON cl.id = c.cliente_id
+      LEFT JOIN clients cl ON cl.id = c.cliente_id
       LEFT JOIN djs d ON d.id = c.dj_id
       ${whereClause}
     `;
@@ -151,7 +151,7 @@ class Contract {
         cl.nombre as cliente_nombre,
         d.nombre as dj_nombre
       FROM contracts c
-      LEFT JOIN clientes cl ON cl.id = c.cliente_id
+      LEFT JOIN clients cl ON cl.id = c.cliente_id
       LEFT JOIN djs d ON d.id = c.dj_id
       ${whereClause}
       ORDER BY c.created_at DESC
@@ -186,9 +186,9 @@ class Contract {
         e.evento as evento_nombre,
         e.fecha as evento_fecha
       FROM contracts c
-      LEFT JOIN clientes cl ON cl.id = c.cliente_id
+      LEFT JOIN clients cl ON cl.id = c.cliente_id
       LEFT JOIN djs d ON d.id = c.dj_id
-      LEFT JOIN eventos e ON e.id = c.evento_id
+      LEFT JOIN events e ON e.id = c.evento_id
       WHERE c.id = $1 AND c.deleted_at IS NULL
     `;
 
@@ -399,7 +399,7 @@ class Contract {
         cl.nombre as cliente_nombre,
         d.nombre as dj_nombre
       FROM contracts c
-      LEFT JOIN clientes cl ON cl.id = c.cliente_id
+      LEFT JOIN clients cl ON cl.id = c.cliente_id
       LEFT JOIN djs d ON d.id = c.dj_id
       WHERE 
         c.status = 'active'

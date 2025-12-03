@@ -146,11 +146,11 @@ export const getRevenueByCategory = async (fechaInicio, fechaFin) => {
       ROUND(
         (SUM(e.cache_total) / (
           SELECT SUM(cache_total)
-          FROM eventos
+          FROM events
           WHERE fecha >= $1 AND fecha <= $2 AND deleted_at IS NULL
         ) * 100), 2
       ) as porcentaje_total
-    FROM eventos e
+    FROM events e
     WHERE e.fecha >= $1
       AND e.fecha <= $2
       AND e.deleted_at IS NULL
@@ -178,7 +178,7 @@ export const getTopDJsByRevenue = async (fechaInicio, fechaFin, limit = 10) => {
       SUM(e.cache_total) as ingresos_generados,
       SUM(e.parte_dj) as costo_total_dj,
       SUM(e.cache_total - e.parte_dj) as margen_generado
-    FROM eventos e
+    FROM events e
     JOIN djs d ON e.dj_id = d.id
     WHERE e.fecha >= $1
       AND e.fecha <= $2

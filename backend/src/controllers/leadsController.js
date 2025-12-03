@@ -1,5 +1,5 @@
 import Lead from '../models/Lead.js';
-import Cliente from '../models/Cliente.js';
+import Cliente from '../models/Client.js';
 import { sendInternalNotification } from '../services/notificationService.js';
 
 /**

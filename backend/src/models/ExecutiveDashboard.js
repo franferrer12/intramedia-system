@@ -113,7 +113,7 @@ class ExecutiveDashboard {
           2
         ) as margen_beneficio_porcentaje
 
-      FROM eventos e
+      FROM events e
       WHERE 1=1
     `;
 
@@ -130,7 +130,7 @@ class ExecutiveDashboard {
         COUNT(DISTINCT c.id) as total_clientes,
         COUNT(DISTINCT CASE WHEN c.activo THEN c.id END) as clientes_activos,
         COUNT(DISTINCT CASE WHEN EXISTS(
-          SELECT 1 FROM eventos e
+          SELECT 1 FROM events e
           WHERE e.cliente_id = c.id
           AND e.fecha >= CURRENT_DATE - INTERVAL '90 days'
         ) THEN c.id END) as clientes_activos_trimestre,
@@ -138,7 +138,7 @@ class ExecutiveDashboard {
         -- VIP Classification
         COUNT(DISTINCT CASE
           WHEN (
-            SELECT COUNT(*) FROM eventos e
+            SELECT COUNT(*) FROM events e
             WHERE e.cliente_id = c.id
           ) >= 10
           THEN c.id
@@ -152,16 +152,16 @@ class ExecutiveDashboard {
 
         -- Average metrics per client
         ROUND(AVG((
-          SELECT COUNT(*) FROM eventos e
+          SELECT COUNT(*) FROM events e
           WHERE e.cliente_id = c.id
         )), 2) as promedio_eventos_por_cliente,
 
         COALESCE(AVG((
-          SELECT SUM(e.cache_total) FROM eventos e
+          SELECT SUM(e.cache_total) FROM events e
           WHERE e.cliente_id = c.id
         )), 0) as facturacion_promedio_por_cliente
 
-      FROM clientes c
+      FROM clients c
     `;
 
     const result = await client.query(query);
@@ -177,26 +177,26 @@ class ExecutiveDashboard {
         COUNT(DISTINCT d.id) as total_djs,
         COUNT(DISTINCT CASE WHEN d.activo THEN d.id END) as djs_activos,
         COUNT(DISTINCT CASE WHEN EXISTS(
-          SELECT 1 FROM eventos e
+          SELECT 1 FROM events e
           WHERE e.dj_id = d.id
           AND e.fecha >= CURRENT_DATE - INTERVAL '90 days'
         ) THEN d.id END) as djs_activos_trimestre,
 
         -- Average metrics per DJ
         ROUND(AVG((
-          SELECT COUNT(*) FROM eventos e
+          SELECT COUNT(*) FROM events e
           WHERE e.dj_id = d.id
         )), 2) as promedio_eventos_por_dj,
 
         COALESCE(AVG((
-          SELECT SUM(e.parte_dj) FROM eventos e
+          SELECT SUM(e.parte_dj) FROM events e
           WHERE e.dj_id = d.id
         )), 0) as pago_promedio_por_dj,
 
         -- Top performers
         (
           SELECT d2.nombre FROM djs d2
-          JOIN eventos e ON e.dj_id = d2.id
+          JOIN events e ON e.dj_id = d2.id
           WHERE 1=1
           GROUP BY d2.id, d2.nombre
           ORDER BY COUNT(e.id) DESC
@@ -251,7 +251,7 @@ class ExecutiveDashboard {
         COALESCE(SUM(e.cache_total - e.parte_dj), 0) as beneficio_bruto,
         COALESCE(SUM(CASE WHEN e.cobrado_cliente THEN e.cache_total ELSE 0 END), 0) as cobrado,
         COALESCE(SUM(CASE WHEN e.pagado_dj THEN e.parte_dj ELSE 0 END), 0) as pagado_dj
-      FROM eventos e
+      FROM events e
       WHERE
         e.fecha >= CURRENT_DATE - INTERVAL '12 months'
         AND e.fecha <= CURRENT_DATE
@@ -284,8 +284,8 @@ class ExecutiveDashboard {
           NULLIF(COUNT(e.id), 0),
           1
         ) as tasa_cobro
-      FROM clientes c
-      LEFT JOIN eventos e ON e.cliente_id = c.id
+      FROM clients c
+      LEFT JOIN events e ON e.cliente_id = c.id
       WHERE c.activo = true
       GROUP BY c.id, c.nombre, c.email, c.ciudad
       HAVING COUNT(e.id) > 0
@@ -317,7 +317,7 @@ class ExecutiveDashboard {
           1
         ) as tasa_pago
       FROM djs d
-      LEFT JOIN eventos e ON e.dj_id = d.id
+      LEFT JOIN events e ON e.dj_id = d.id
       WHERE d.activo = true
       GROUP BY d.id, d.nombre, d.email
       HAVING COUNT(e.id) > 0
@@ -337,21 +337,21 @@ class ExecutiveDashboard {
       SELECT
         -- Client collections
         (
-          SELECT COUNT(*) FROM eventos
+          SELECT COUNT(*) FROM events
           WHERE NOT cobrado_cliente
         ) as eventos_pendiente_cobro_count,
         (
-          SELECT COALESCE(SUM(cache_total), 0) FROM eventos
+          SELECT COALESCE(SUM(cache_total), 0) FROM events
           WHERE NOT cobrado_cliente
         ) as eventos_pendiente_cobro_total,
         (
-          SELECT COUNT(*) FROM eventos
+          SELECT COUNT(*) FROM events
           WHERE NOT cobrado_cliente
           AND fecha < CURRENT_DATE - INTERVAL '30 days'
          
         ) as eventos_vencidos_cobro_count,
         (
-          SELECT COALESCE(SUM(cache_total), 0) FROM eventos
+          SELECT COALESCE(SUM(cache_total), 0) FROM events
           WHERE NOT cobrado_cliente
           AND fecha < CURRENT_DATE - INTERVAL '30 days'
          
@@ -359,21 +359,21 @@ class ExecutiveDashboard {
 
         -- DJ payments
         (
-          SELECT COUNT(*) FROM eventos
+          SELECT COUNT(*) FROM events
           WHERE NOT pagado_dj
         ) as eventos_pendiente_pago_dj_count,
         (
-          SELECT COALESCE(SUM(parte_dj), 0) FROM eventos
+          SELECT COALESCE(SUM(parte_dj), 0) FROM events
           WHERE NOT pagado_dj
         ) as eventos_pendiente_pago_dj_total,
         (
-          SELECT COUNT(*) FROM eventos
+          SELECT COUNT(*) FROM events
           WHERE NOT pagado_dj
           AND fecha < CURRENT_DATE - INTERVAL '14 days'
          
         ) as eventos_vencidos_pago_dj_count,
         (
-          SELECT COALESCE(SUM(parte_dj), 0) FROM eventos
+          SELECT COALESCE(SUM(parte_dj), 0) FROM events
           WHERE NOT pagado_dj
           AND fecha < CURRENT_DATE - INTERVAL '14 days'
          
@@ -424,7 +424,7 @@ class ExecutiveDashboard {
           THEN 1
         END) as eventos_completados
 
-      FROM eventos e
+      FROM events e
       WHERE 1=1
     `;
 

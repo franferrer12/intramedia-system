@@ -499,7 +499,7 @@ export const getPotentialRecipientsCount = async (agencyId, tipoDestinatarios, f
       query = `SELECT COUNT(*) as count FROM leads WHERE deleted_at IS NULL`;
       break;
     case 'clientes':
-      query = `SELECT COUNT(*) as count FROM clientes WHERE deleted_at IS NULL`;
+      query = `SELECT COUNT(*) as count FROM clients WHERE deleted_at IS NULL`;
       break;
     case 'djs':
       query = `SELECT COUNT(*) as count FROM djs WHERE deleted_at IS NULL`;
@@ -508,7 +508,7 @@ export const getPotentialRecipientsCount = async (agencyId, tipoDestinatarios, f
       query = `
         SELECT (
           (SELECT COUNT(*) FROM leads WHERE deleted_at IS NULL) +
-          (SELECT COUNT(*) FROM clientes WHERE deleted_at IS NULL) +
+          (SELECT COUNT(*) FROM clients WHERE deleted_at IS NULL) +
           (SELECT COUNT(*) FROM djs WHERE deleted_at IS NULL)
         ) as count
       `;

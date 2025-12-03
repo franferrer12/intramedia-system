@@ -5,7 +5,7 @@ class Cliente {
     const { nombre, ciudad, contacto, email, telefono, observaciones } = clienteData;
 
     const sql = `
-      INSERT INTO clientes (nombre, ciudad, contacto, email, telefono, observaciones)
+      INSERT INTO clients (nombre, ciudad, contacto, email, telefono, observaciones)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
@@ -15,13 +15,13 @@ class Cliente {
   }
 
   static async findAll() {
-    const sql = 'SELECT * FROM clientes WHERE activo = true ORDER BY nombre ASC';
+    const sql = 'SELECT * FROM clients WHERE activo = true ORDER BY nombre ASC';
     const result = await query(sql);
     return result.rows;
   }
 
   static async findById(id) {
-    const sql = 'SELECT * FROM clientes WHERE id = $1';
+    const sql = 'SELECT * FROM clients WHERE id = $1';
     const result = await query(sql, [id]);
     return result.rows[0];
   }
@@ -41,7 +41,7 @@ class Cliente {
 
     values.push(id);
     const sql = `
-      UPDATE clientes
+      UPDATE clients
       SET ${fields.join(', ')}
       WHERE id = $${paramIndex}
       RETURNING *
@@ -54,7 +54,7 @@ class Cliente {
   // Buscar o crear cliente por nombre (útil para migración)
   static async findOrCreate(nombre, ciudad = null) {
     // Buscar primero
-    let sql = 'SELECT * FROM clientes WHERE LOWER(nombre) = LOWER($1)';
+    let sql = 'SELECT * FROM clients WHERE LOWER(nombre) = LOWER($1)';
     let result = await query(sql, [nombre]);
 
     if (result.rows.length > 0) {
@@ -63,7 +63,7 @@ class Cliente {
 
     // Si no existe, crear
     sql = `
-      INSERT INTO clientes (nombre, ciudad)
+      INSERT INTO clients (nombre, ciudad)
       VALUES ($1, $2)
       RETURNING *
     `;
@@ -163,7 +163,7 @@ class Cliente {
   // Marcar evento como cobrado
   static async marcarEventoCobrado(eventoId) {
     const sql = `
-      UPDATE eventos
+      UPDATE events
       SET cobrado_cliente = true
       WHERE id = $1
       RETURNING *
@@ -176,7 +176,7 @@ class Cliente {
   static async marcarEventosCobrados(eventoIds) {
     const placeholders = eventoIds.map((_, i) => `$${i + 1}`).join(',');
     const sql = `
-      UPDATE eventos
+      UPDATE events
       SET cobrado_cliente = true
       WHERE id IN (${placeholders})
       RETURNING *

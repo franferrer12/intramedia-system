@@ -15,9 +15,9 @@ import { auditLogger } from './middleware/auditLogger.js';
 import authRoutes from './routes/auth.js';
 import oauthRoutes from './routes/oauth.js';
 import agenciesRoutes from './routes/agencies.js';
-import eventosRoutes from './routes/eventos.js';
+import eventosRoutes from './routes/events.js';
 import djsRoutes from './routes/djs.js';
-import clientesRoutes from './routes/clientes.js';
+import clientesRoutes from './routes/clients.js';
 import estadisticasRoutes from './routes/estadisticas.js';
 import sociosRoutes from './routes/socios.js';
 import uploadRoutes from './routes/upload.routes.js';
@@ -218,7 +218,7 @@ app.get('/health', async (req, res) => {
 app.get('/api/stats', async (req, res) => {
   try {
     const today = await pool.query(`
-      SELECT COUNT(*) as count FROM eventos
+      SELECT COUNT(*) as count FROM events
       WHERE DATE(fecha) = CURRENT_DATE AND deleted_at IS NULL
     `);
 
@@ -226,7 +226,7 @@ app.get('/api/stats', async (req, res) => {
       SELECT
         COUNT(*) as eventos,
         COALESCE(SUM(cache_total), 0) as ingresos
-      FROM eventos
+      FROM events
       WHERE DATE_TRUNC('month', fecha) = DATE_TRUNC('month', CURRENT_DATE)
         AND deleted_at IS NULL
     `);
@@ -254,7 +254,7 @@ app.get('/api/search', async (req, res) => {
     // Buscar en múltiples tablas simultáneamente
     const [eventos, djs, clientes] = await Promise.all([
       pool.query(
-        `SELECT 'evento' as type, id, evento as name FROM eventos
+        `SELECT 'evento' as type, id, evento as name FROM events
          WHERE evento ILIKE $1 AND deleted_at IS NULL LIMIT 5`,
         [`%${q}%`]
       ),
@@ -264,7 +264,7 @@ app.get('/api/search', async (req, res) => {
         [`%${q}%`]
       ),
       pool.query(
-        `SELECT 'cliente' as type, id, nombre as name FROM clientes
+        `SELECT 'cliente' as type, id, nombre as name FROM clients
          WHERE nombre ILIKE $1 AND deleted_at IS NULL LIMIT 5`,
         [`%${q}%`]
       )

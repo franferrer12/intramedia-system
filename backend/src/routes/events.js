@@ -10,7 +10,7 @@ import {
   getFinancialBreakdown,
   getMonthlyFinancialSummary,
   getPartnerSummary
-} from '../controllers/eventosController.js';
+} from '../controllers/eventsController.js';
 import { paginationMiddleware } from '../middleware/pagination.js';
 import { validate, validateId, sanitizeBody } from '../middleware/validate.js';
 import {
@@ -91,7 +91,7 @@ router.post('/:id/paid',
   async (req, res) => {
     try {
       await pool.query(
-        'UPDATE eventos SET pagado_dj = true, updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL',
+        'UPDATE events SET pagado_dj = true, updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL',
         [req.params.id]
       );
       res.ok(); // Solo código 200, sin body (Jobs-style)
@@ -107,7 +107,7 @@ router.post('/:id/cobrado',
   async (req, res) => {
     try {
       await pool.query(
-        'UPDATE eventos SET cobrado_cliente = true, updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL',
+        'UPDATE events SET cobrado_cliente = true, updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL',
         [req.params.id]
       );
       res.ok();
@@ -123,7 +123,7 @@ router.post('/:id/duplicate',
   async (req, res) => {
   try {
     const result = await pool.query(
-      `INSERT INTO eventos (
+      `INSERT INTO events (
         evento, dj_id, cliente_id, fecha, mes,
         horas, cache_total, parte_dj, parte_agencia,
         cobrado_cliente, pagado_dj, created_at
@@ -132,7 +132,7 @@ router.post('/:id/duplicate',
         evento || ' (Copia)', dj_id, cliente_id, fecha, mes,
         horas, cache_total, parte_dj, parte_agencia,
         false, false, NOW()
-      FROM eventos
+      FROM events
       WHERE id = $1 AND deleted_at IS NULL
       RETURNING id`,
       [req.params.id]

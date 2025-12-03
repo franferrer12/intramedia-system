@@ -69,7 +69,7 @@ class Transaction {
         e.fecha as fecha_evento
       FROM agency_transactions t
       LEFT JOIN usuarios d ON t.dj_id = d.id
-      LEFT JOIN eventos e ON t.evento_id = e.id
+      LEFT JOIN events e ON t.evento_id = e.id
       WHERE t.agency_id = $1
     `;
 
@@ -127,7 +127,7 @@ class Transaction {
         e.evento as evento_nombre
       FROM agency_transactions t
       LEFT JOIN usuarios d ON t.dj_id = d.id
-      LEFT JOIN eventos e ON t.evento_id = e.id
+      LEFT JOIN events e ON t.evento_id = e.id
       WHERE t.id = $1
     `;
 

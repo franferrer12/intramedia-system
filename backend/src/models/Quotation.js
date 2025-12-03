@@ -228,7 +228,7 @@ class Quotation {
              COUNT(qi.id) AS items_count
       FROM quotations q
       LEFT JOIN agencies a ON q.agency_id = a.id
-      LEFT JOIN clientes c ON q.cliente_id = c.id
+      LEFT JOIN clients c ON q.cliente_id = c.id
       LEFT JOIN djs d ON q.dj_id = d.id
       LEFT JOIN users u ON q.created_by = u.id
       LEFT JOIN quotation_items qi ON q.id = qi.quotation_id
@@ -598,7 +598,7 @@ class Quotation {
              c.nombre AS cliente_nombre,
              c.email AS cliente_email
       FROM quotations q
-      LEFT JOIN clientes c ON q.cliente_id = c.id
+      LEFT JOIN clients c ON q.cliente_id = c.id
       WHERE q.status IN ('sent', 'viewed')
       AND q.valid_until BETWEEN CURRENT_DATE AND CURRENT_DATE + $1
       ORDER BY q.valid_until ASC
