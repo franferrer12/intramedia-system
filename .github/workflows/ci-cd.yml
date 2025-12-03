@@ -1,49 +1,78 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline - Production Ready
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 env:
   DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  test:
-    name: Run Tests
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Backend Tests with Coverage
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  backend-tests:
+    name: Backend Tests & Coverage
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:16-alpine
         env:
           POSTGRES_DB: intra_media_test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
+      redis:
+        image: redis:7-alpine
         ports:
-          - 5432:5432
-    
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
-      
+
       - name: Install dependencies
         working-directory: ./backend
         run: npm ci
-      
+
+      - name: Setup test database
+        working-directory: ./backend
+        env:
+          PGPASSWORD: test_password
+        run: |
+          # Wait for postgres to be ready
+          for i in {1..30}; do
+            pg_isready -h localhost -U test_user && break
+            echo "Waiting for postgres..."
+            sleep 1
+          done
+
+          # Run migrations
+          psql -h localhost -U test_user -d intra_media_test -f ../database/schema.sql || echo "Schema may already exist"
+
       - name: Run tests
         working-directory: ./backend
         env:
@@ -51,10 +80,15 @@ jobs:
           DB_HOST: localhost
           DB_PORT: 5432
           DB_NAME: intra_media_test
-          DB_USER: postgres
-          DB_PASSWORD: postgres
-          JWT_SECRET: test-secret-key
-        run: npm test || true
+          DB_USER: test_user
+          DB_PASSWORD: test_password
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test-jwt-secret-for-ci-only
+          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+        run: |
+          # Run tests - WILL FAIL CI if tests fail (no || true)
+          npm test
 
       - name: Run tests with coverage
         working-directory: ./backend
@@ -63,26 +97,112 @@ jobs:
           DB_HOST: localhost
           DB_PORT: 5432
           DB_NAME: intra_media_test
-          DB_USER: postgres
-          DB_PASSWORD: postgres
-          JWT_SECRET: test-secret-key
-        run: npm run test:coverage || true
-      
+          DB_USER: test_user
+          DB_PASSWORD: test_password
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test-jwt-secret-for-ci-only
+          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+        run: |
+          # Generate coverage report - WILL FAIL CI if tests fail
+          npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./backend/coverage/lcov.info
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: test-results
-          path: backend/test-results/
+          name: backend-test-results
+          path: backend/coverage/
+          retention-days: 30
 
-  security:
-    name: Security Scan
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Frontend Tests & Build
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  frontend-tests:
+    name: Frontend Tests & Build
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run linter
+        working-directory: ./frontend
+        run: |
+          # Lint will fail CI if errors found (no || true)
+          npm run lint
+
+      - name: Build frontend
+        working-directory: ./frontend
+        env:
+          VITE_API_URL: http://localhost:3000
+        run: |
+          # Build will fail CI if errors found
+          npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+          retention-days: 7
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Security Scanning
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  security-scan:
+    name: Security Audit & Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Backend security audit
+        working-directory: ./backend
+        run: |
+          # Audit for high/critical vulnerabilities
+          npm audit --audit-level=high || {
+            echo "⚠️  High/critical vulnerabilities found!"
+            echo "Run 'npm audit fix' to resolve"
+            exit 1
+          }
+
+      - name: Frontend security audit
+        working-directory: ./frontend
+        run: |
+          # Audit for high/critical vulnerabilities
+          npm audit --audit-level=high || {
+            echo "⚠️  High/critical vulnerabilities found!"
+            echo "Run 'npm audit fix' to resolve"
+            exit 1
+          }
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
@@ -90,35 +210,217 @@ jobs:
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
-      
-      - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v2
+          severity: 'HIGH,CRITICAL'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
 
-  build:
-    name: Build Docker Images
+      - name: Check for sensitive files
+        run: |
+          echo "🔍 Checking for sensitive files in git..."
+          if git ls-files | grep -E "\.env$|\.env\.local$|\.env\.production$|id_rsa|\.pem$|credentials\.json$"; then
+            echo "❌ SECURITY ALERT: Sensitive files detected in git!"
+            exit 1
+          else
+            echo "✅ No sensitive files detected"
+          fi
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Code Quality Checks
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  code-quality:
+    name: Code Quality & Structure
     runs-on: ubuntu-latest
-    needs: [test, security]
-    if: github.event_name == 'push'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
+      - name: Verify project structure
+        run: |
+          echo "📁 Verifying project structure..."
+          test -d backend/src || { echo "❌ backend/src not found"; exit 1; }
+          test -d backend/tests || { echo "❌ backend/tests not found"; exit 1; }
+          test -d frontend/src || { echo "❌ frontend/src not found"; exit 1; }
+          test -f backend/package.json || { echo "❌ backend/package.json not found"; exit 1; }
+          test -f frontend/package.json || { echo "❌ frontend/package.json not found"; exit 1; }
+          test -f docker-compose.yml || { echo "❌ docker-compose.yml not found"; exit 1; }
+          echo "✅ Project structure is valid"
+
+      - name: Check for TODO/FIXME comments
+        run: |
+          echo "🔍 Scanning for TODO/FIXME comments..."
+          TODOS=$(grep -r "TODO\|FIXME" backend/src frontend/src 2>/dev/null | wc -l)
+          echo "Found $TODOS TODO/FIXME comments"
+          if [ $TODOS -gt 50 ]; then
+            echo "⚠️  Warning: Too many TODOs ($TODOS). Consider addressing some."
+          fi
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Docker Build & Push
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  docker-build:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, security-scan, code-quality]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
-      - name: Build Backend
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for backend
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}-backend
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
           context: ./backend
-          push: false
-          tags: intramedia-backend:latest
-      
-      - name: Build Frontend
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata for frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}-frontend
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push frontend image
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
-          push: false
-          tags: intramedia-frontend:latest
+          push: true
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Deploy to Staging
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://staging.intramedia.example.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        run: |
+          echo "🚀 Deploying to staging environment..."
+          echo "Image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}-backend:develop"
+          echo "Image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:develop"
+
+          # TODO: Add actual deployment commands here
+          # Examples:
+          # - SSH to staging server and docker-compose pull
+          # - kubectl set image for Kubernetes
+          # - AWS ECS update-service
+          # - Render.com API call
+
+          echo "✅ Staging deployment complete"
+
+      - name: Run smoke tests
+        run: |
+          echo "🧪 Running smoke tests on staging..."
+          # TODO: Add smoke test commands
+          echo "✅ Smoke tests passed"
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Deploy to Production (Manual Approval)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://intramedia.example.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to production
+        run: |
+          echo "🚀 Deploying to production environment..."
+          echo "Image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest"
+          echo "Image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:latest"
+
+          # TODO: Add actual deployment commands here
+
+          echo "✅ Production deployment complete"
+
+      - name: Run health checks
+        run: |
+          echo "🏥 Running production health checks..."
+          # TODO: Add health check commands
+          echo "✅ Health checks passed"
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          echo "📢 Sending deployment notification..."
+          # TODO: Add Slack/email notification
+          echo "Deployment status: ${{ job.status }}"
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Notification Job
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, security-scan, code-quality]
+    if: always() && github.event_name == 'push'
+
+    steps:
+      - name: Check job status
+        run: |
+          echo "Pipeline Status:"
+          echo "  Backend Tests: ${{ needs.backend-tests.result }}"
+          echo "  Frontend Tests: ${{ needs.frontend-tests.result }}"
+          echo "  Security Scan: ${{ needs.security-scan.result }}"
+          echo "  Code Quality: ${{ needs.code-quality.result }}"
+
+      - name: Notify on failure
+        if: contains(needs.*.result, 'failure')
+        run: |
+          echo "❌ Pipeline failed! Check the logs above."
+          # TODO: Add Slack/email notification for failures

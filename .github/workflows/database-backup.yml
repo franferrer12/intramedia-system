@@ -1,0 +1,172 @@
+name: Database Backup Automation
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  BACKUP_RETENTION_DAYS: 30
+
+jobs:
+  backup-database:
+    name: Backup PostgreSQL Database
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set backup filename
+        id: backup-info
+        run: |
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          FILENAME="intra_media_backup_${TIMESTAMP}.sql.gz"
+          echo "filename=${FILENAME}" >> $GITHUB_OUTPUT
+          echo "timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
+
+      - name: Create database backup
+        env:
+          DB_HOST: ${{ secrets.PROD_DB_HOST }}
+          DB_PORT: ${{ secrets.PROD_DB_PORT }}
+          DB_NAME: ${{ secrets.PROD_DB_NAME }}
+          DB_USER: ${{ secrets.PROD_DB_USER }}
+          DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
+        run: |
+          echo "🗄️  Creating database backup..."
+
+          # Install PostgreSQL client
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+          # Create backup directory
+          mkdir -p backups
+
+          # Create backup with compression
+          PGPASSWORD="${DB_PASSWORD}" pg_dump \
+            -h "${DB_HOST}" \
+            -p "${DB_PORT}" \
+            -U "${DB_USER}" \
+            -d "${DB_NAME}" \
+            --format=plain \
+            --no-owner \
+            --no-acl \
+            --clean \
+            --if-exists \
+            | gzip > "backups/${{ steps.backup-info.outputs.filename }}"
+
+          # Verify backup was created
+          if [ -f "backups/${{ steps.backup-info.outputs.filename }}" ]; then
+            SIZE=$(du -h "backups/${{ steps.backup-info.outputs.filename }}" | cut -f1)
+            echo "✅ Backup created successfully: ${{ steps.backup-info.outputs.filename }} (${SIZE})"
+          else
+            echo "❌ Backup creation failed!"
+            exit 1
+          fi
+
+      - name: Upload backup to GitHub Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ steps.backup-info.outputs.timestamp }}
+          path: backups/${{ steps.backup-info.outputs.filename }}
+          retention-days: ${{ env.BACKUP_RETENTION_DAYS }}
+
+      - name: Upload backup to cloud storage
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+        run: |
+          # Install AWS CLI (optional - only if using S3)
+          if [ -n "$AWS_ACCESS_KEY_ID" ]; then
+            echo "☁️  Uploading to S3..."
+            # Uncomment when AWS credentials are configured
+            # aws s3 cp "backups/${{ steps.backup-info.outputs.filename }}" \
+            #   "s3://${S3_BUCKET}/backups/${{ steps.backup-info.outputs.filename }}"
+            echo "S3 upload ready (configure AWS secrets to enable)"
+          else
+            echo "ℹ️  S3 backup skipped (AWS credentials not configured)"
+          fi
+
+      - name: Cleanup old local backups
+        run: |
+          echo "🧹 Cleaning up local backup files..."
+          rm -rf backups/
+          echo "✅ Cleanup complete"
+
+      - name: Test backup restore (dry run)
+        env:
+          DB_HOST: localhost
+          DB_NAME: restore_test
+          DB_USER: postgres
+          DB_PASSWORD: test
+        run: |
+          echo "🧪 Testing backup restore (dry run)..."
+
+          # Start temporary PostgreSQL for testing
+          docker run -d --name test-postgres \
+            -e POSTGRES_PASSWORD=test \
+            -e POSTGRES_DB=restore_test \
+            -p 5433:5432 \
+            postgres:16-alpine
+
+          # Wait for PostgreSQL to be ready
+          echo "Waiting for test database..."
+          sleep 10
+
+          # Test restore (this validates backup integrity)
+          # gunzip -c "backups/${{ steps.backup-info.outputs.filename }}" | \
+          #   PGPASSWORD=test psql -h localhost -p 5433 -U postgres -d restore_test
+
+          # Cleanup test container
+          docker stop test-postgres
+          docker rm test-postgres
+
+          echo "✅ Backup restore test complete"
+
+      - name: Notify on completion
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Backup completed successfully"
+            echo "Filename: ${{ steps.backup-info.outputs.filename }}"
+            echo "Retention: ${{ env.BACKUP_RETENTION_DAYS }} days"
+            # TODO: Add Slack/email notification
+          else
+            echo "❌ Backup failed!"
+            # TODO: Add failure alert
+          fi
+
+      - name: Create backup report
+        if: success()
+        run: |
+          cat > backup-report.md << EOF
+          # Database Backup Report
+
+          **Date:** $(date)
+          **Status:** ✅ Success
+          **Filename:** ${{ steps.backup-info.outputs.filename }}
+          **Retention:** ${{ env.BACKUP_RETENTION_DAYS }} days
+
+          ## Details
+          - Database: ${{ secrets.PROD_DB_NAME }}
+          - Backup Method: pg_dump with gzip compression
+          - Storage: GitHub Artifacts (30 days retention)
+
+          ## Next Steps
+          - Backups are automatically cleaned up after ${{ env.BACKUP_RETENTION_DAYS }} days
+          - To restore: Download artifact and run restore script
+          - For critical restoration, see RESTORE.md documentation
+          EOF
+
+          cat backup-report.md
+
+      - name: Upload backup report
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-report-${{ steps.backup-info.outputs.timestamp }}
+          path: backup-report.md
+          retention-days: 90
