@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Export</title>
+</head>
+<body>
+    <h1>Test Excel Export</h1>
+    <button onclick="testExport()">Test Export Transacciones</button>
+    <div id="result"></div>
+    
+    <script>
+    async function testExport() {
+        const authStorage = localStorage.getItem('auth-storage');
+        const result = document.getElementById('result');
+        
+        if (!authStorage) {
+            result.innerHTML = '<p style="color:red">No hay token en localStorage</p>';
+            return;
+        }
+        
+        const { state } = JSON.parse(authStorage);
+        result.innerHTML = '<p>Token encontrado: ' + (state.token ? 'SI' : 'NO') + '</p>';
+        result.innerHTML += '<p>Usuario: ' + state.usuario?.username + '</p>';
+        result.innerHTML += '<p>Rol: ' + state.usuario?.rol + '</p>';
+        
+        try {
+            const response = await fetch('http://localhost:8080/api/reportes/transacciones/excel?fechaInicio=2025-09-06&fechaFin=2025-10-06', {
+                headers: {
+                    'Authorization': 'Bearer ' + state.token
+                }
+            });
+            
+            result.innerHTML += '<p>Status: ' + response.status + '</p>';
+            result.innerHTML += '<p>Headers: ' + JSON.stringify([...response.headers.entries()]) + '</p>';
+            
+            if (response.ok) {
+                const blob = await response.blob();
+                result.innerHTML += '<p style="color:green">SUCCESS! Size: ' + blob.size + ' bytes</p>';
+            } else {
+                const text = await response.text();
+                result.innerHTML += '<p style="color:red">ERROR: ' + text + '</p>';
+            }
+        } catch (error) {
+            result.innerHTML += '<p style="color:red">Exception: ' + error.message + '</p>';
+        }
+    }
+    </script>
+</body>
+</html>

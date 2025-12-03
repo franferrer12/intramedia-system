@@ -1,0 +1,46 @@
+# Render Blueprint - Configuración para ALPHA (Staging)
+# Este archivo configura el entorno de pruebas antes de producción
+# Docs: https://render.com/docs/blueprint-spec
+# Auto-sync enabled - Last updated: 2025-10-18
+
+services:
+  # Backend Alpha (Spring Boot)
+  - type: web
+    name: club-management-backend-alpha
+    env: docker
+    region: oregon
+    plan: free
+    branch: develop  # ← Solo deploya desde rama develop
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: alpha
+      # DATABASE_URL debe configurarse manualmente desde Render Dashboard
+      # porque el plan gratuito solo permite 1 BD y ya existe club-management-db
+      # Copia el valor de DATABASE_URL desde el servicio de producción
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION
+        value: "86400000"
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://club-management-frontend-alpha.onrender.com,http://localhost:3000,http://localhost:5173
+      - key: SPRING_DATASOURCE_HIKARI_AUTO_COMMIT
+        value: "false"
+
+  # Frontend Alpha (React + Vite + Nginx)
+  - type: web
+    name: club-management-frontend-alpha
+    env: docker
+    region: oregon
+    plan: free
+    branch: develop  # ← Solo deploya desde rama develop
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+      - key: VITE_API_URL
+        value: https://club-management-backend-alpha.onrender.com/api
+
+# Nota: La base de datos es compartida entre Alpha y Producción
+# para ahorrar costos en el plan gratuito.
+# Si necesitas datos separados, crea una segunda base de datos ($7/mes)

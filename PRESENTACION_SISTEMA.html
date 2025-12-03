@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Club Management System - Presentación Visual</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 60px 20px;
+            margin-bottom: 60px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        header p {
+            font-size: 1.3rem;
+            opacity: 0.95;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 60px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .module {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .module-icon {
+            font-size: 3rem;
+            margin-right: 20px;
+        }
+
+        .module-title h2 {
+            font-size: 2rem;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .module-title p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-left: 15px;
+        }
+
+        .status-complete {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-progress {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .feature-card {
+            background: #f9fafb;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .feature-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .feature-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-card li {
+            padding: 5px 0;
+            color: #555;
+        }
+
+        .feature-card li:before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .mockup {
+            background: #1f2937;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .mockup-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .mockup-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #f59e0b; }
+        .dot-green { background: #10b981; }
+
+        .mockup-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            min-height: 400px;
+        }
+
+        .mockup-screenshot {
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .tech-badge {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .use-case {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .use-case h5 {
+            color: #1e40af;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .use-case p {
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .navigation {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            max-width: 250px;
+            z-index: 1000;
+        }
+
+        .navigation h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        .navigation ul {
+            list-style: none;
+        }
+
+        .navigation li {
+            padding: 8px 0;
+        }
+
+        .navigation a {
+            color: #555;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .navigation a:hover {
+            color: #667eea;
+        }
+
+        .endpoint-list {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .endpoint {
+            padding: 8px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 4px;
+        }
+
+        .method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.8rem;
+        }
+
+        .method-get { background: #10b981; color: white; }
+        .method-post { background: #3b82f6; color: white; }
+        .method-put { background: #f59e0b; color: white; }
+        .method-delete { background: #ef4444; color: white; }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 2rem; }
+            .navigation { position: static; margin-bottom: 30px; }
+            .features { grid-template-columns: 1fr; }
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .kpi-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .kpi-card h4 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        .kpi-card p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .workflow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .workflow-step {
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 10px;
+            margin: 10px;
+            position: relative;
+        }
+
+        .workflow-step:not(:last-child)::after {
+            content: "→";
+            position: absolute;
+            right: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            color: #667eea;
+        }
+
+        .workflow-step h5 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .workflow-step:not(:last-child)::after {
+                content: "↓";
+                right: 50%;
+                top: auto;
+                bottom: -30px;
+                transform: translateX(50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎉 Club Management System</h1>
+            <p>Sistema Completo de Gestión para Discotecas</p>
+            <p style="margin-top: 10px; font-size: 1rem; opacity: 0.8;">
+                Versión 0.3.0 | Sprint 9 Completado | 6,376 líneas de código
+            </p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>9/11</h3>
+                <p>Sprints Completados</p>
+            </div>
+            <div class="stat-card">
+                <h3>82%</h3>
+                <p>Progreso Total</p>
+            </div>
+            <div class="stat-card">
+                <h3>25</h3>
+                <p>Módulos Activos</p>
+            </div>
+            <div class="stat-card">
+                <h3>15</h3>
+                <p>Migraciones DB</p>
+            </div>
+            <div class="stat-card">
+                <h3>100%</h3>
+                <p>Sistema POS</p>
+            </div>
+            <div class="stat-card">
+                <h3>100%</h3>
+                <p>Botellas VIP</p>
+            </div>
+        </div>
+
+        <nav class="navigation">
+            <h3>📑 Índice</h3>
+            <ul>
+                <li><a href="#autenticacion">1. Autenticación</a></li>
+                <li><a href="#eventos">2. Eventos</a></li>
+                <li><a href="#finanzas">3. Finanzas</a></li>
+                <li><a href="#personal">4. Personal</a></li>
+                <li><a href="#inventario">5. Inventario</a></li>
+                <li><a href="#analytics">6. Analytics</a></li>
+                <li><a href="#pos">7. Sistema POS</a></li>
+                <li><a href="#botellas">8. Botellas VIP</a></li>
+            </ul>
+        </nav>
+
+        <!-- Módulo 1: Autenticación -->
+        <div class="module" id="autenticacion">
+            <div class="module-header">
+                <div class="module-icon">🔐</div>
+                <div class="module-title">
+                    <h2>Autenticación y Seguridad</h2>
+                    <p>Sistema JWT con roles y permisos</p>
+                </div>
+                <span class="status-badge status-complete">✓ COMPLETADO</span>
+            </div>
+
+            <div class="features">
+                <div class="feature-card">
+                    <h4>Seguridad Robusta</h4>
+                    <ul>
+                        <li>Autenticación con JWT tokens</li>
+                        <li>Tokens con expiración de 24 horas</li>
+                        <li>Refresh token automático</li>
+                        <li>Cifrado de contraseñas BCrypt</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Control de Roles</h4>
+                    <ul>
+                        <li>ADMIN - Acceso total al sistema</li>
+                        <li>GERENTE - Gestión operativa</li>
+                        <li>RRHH - Personal y nóminas</li>
+                        <li>ENCARGADO - Supervisión turnos</li>
+                        <li>LECTURA - Solo visualización</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Características</h4>
+                    <ul>
+                        <li>Login con validación en tiempo real</li>
+                        <li>Sesión persistente (localStorage)</li>
+                        <li>Auto-logout en 401 errors</li>
+                        <li>Rutas protegidas por rol</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="use-case">
+                <h5>💡 Caso de Uso</h5>
+                <p>
+                    <strong>María es gerente del club:</strong> Inicia sesión con su usuario y contraseña.
+                    El sistema valida sus credenciales, genera un token JWT y la redirige al dashboard.
+                    Puede acceder a gestión de eventos, finanzas, personal e inventario, pero no a
+                    configuración del sistema (reservada para ADMIN). Su sesión permanece activa durante
+                    24 horas o hasta que cierre sesión manualmente.
+                </p>
+            </div>
+
+            <div class="mockup">
+                <div class="mockup-header">
+                    <div class="mockup-dot dot-red"></div>
+                    <div class="mockup-dot dot-yellow"></div>
+                    <div class="mockup-dot dot-green"></div>
+                </div>
+                <div class="mockup-content">
+                    <h3 style="color: #667eea; margin-bottom: 20px;">Pantalla de Login</h3>
+                    <div style="max-width: 400px; margin: 0 auto; padding: 40px; background: #f9fafb; border-radius: 10px;">
+                        <h2 style="text-align: center; margin-bottom: 30px;">Iniciar Sesión</h2>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 5px; color: #555;">Usuario</label>
+                            <input type="text" value="admin" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;" readonly>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 5px; color: #555;">Contraseña</label>
+                            <input type="password" value="••••••••" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;" readonly>
+                        </div>
+                        <button style="width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer;">
+                            Entrar al Sistema
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint-list">
+                <h4 style="margin-bottom: 15px; color: #333;">Endpoints Disponibles:</h4>
+                <div class="endpoint">
+                    <span class="method method-post">POST</span>
+                    <span>/api/auth/login</span>
+                    <span style="color: #888; margin-left: 10px;">- Iniciar sesión</span>
+                </div>
+                <div class="endpoint">
+                    <span class="method method-post">POST</span>
+                    <span>/api/auth/refresh</span>
+                    <span style="color: #888; margin-left: 10px;">- Renovar token</span>
+                </div>
+                <div class="endpoint">
+                    <span class="method method-get">GET</span>
+                    <span>/api/auth/me</span>
+                    <span style="color: #888; margin-left: 10px;">- Obtener usuario actual</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Módulo 2: Eventos -->
+        <div class="module" id="eventos">
+            <div class="module-header">
+                <div class="module-icon">🎊</div>
+                <div class="module-title">
+                    <h2>Eventos y Fiestas</h2>
+                    <p>Gestión completa del calendario de eventos</p>
+                </div>
+                <span class="status-badge status-complete">✓ COMPLETADO</span>
+            </div>
+
+            <div class="features">
+                <div class="feature-card">
+                    <h4>Gestión de Eventos</h4>
+                    <ul>
+                        <li>Crear, editar y eliminar eventos</li>
+                        <li>Estados: Planificado, Confirmado, Cancelado, Completado</li>
+                        <li>Control de capacidad (aforo máximo)</li>
+                        <li>Precios de entrada configurables</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Información Completa</h4>
+                    <ul>
+                        <li>Nombre y descripción del evento</li>
+                        <li>Fecha y hora de inicio/fin</li>
+                        <li>Tipo: Fiesta, Concierto, Privado, etc.</li>
+                        <li>Artistas y DJs invitados</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Características</h4>
+                    <ul>
+                        <li>Vista de lista con filtros</li>
+                        <li>Búsqueda por nombre/tipo</li>
+                        <li>Filtro por estado</li>
+                        <li>Ordenamiento por fecha</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="use-case">
+                <h5>💡 Caso de Uso</h5>
+                <p>
+                    <strong>Carlos planea una fiesta temática:</strong> Crea un nuevo evento "Noche Neón 80s"
+                    para el sábado 20 de enero. Establece el aforo en 500 personas, precio de entrada 15€
+                    (VIP 25€), confirma al DJ invitado y añade una descripción. El evento queda en estado
+                    "Planificado" hasta que se confirmen todos los detalles. Una semana antes, cambia el
+                    estado a "Confirmado" y el equipo comienza la promoción.
+                </p>
+            </div>
+
+            <div class="mockup">
+                <div class="mockup-header">
+                    <div class="mockup-dot dot-red"></div>
+                    <div class="mockup-dot dot-yellow"></div>
+                    <div class="mockup-dot dot-green"></div>
+                </div>
+                <div class="mockup-content">
+                    <h3 style="color: #667eea; margin-bottom: 20px;">Lista de Eventos</h3>
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                        <button style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            + Nuevo Evento
+                        </button>
+                        <input type="text" placeholder="Buscar eventos..." style="flex: 1; padding: 10px 15px; border: 2px solid #ddd; border-radius: 8px;">
+                    </div>
+                    <div style="background: white; border: 2px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead style="background: #f9fafb;">
+                                <tr>
+                                    <th style="padding: 15px; text-align: left; border-bottom: 2px solid #e5e7eb;">Evento</th>
+                                    <th style="padding: 15px; text-align: left; border-bottom: 2px solid #e5e7eb;">Fecha</th>
+                                    <th style="padding: 15px; text-align: left; border-bottom: 2px solid #e5e7eb;">Capacidad</th>
+                                    <th style="padding: 15px; text-align: left; border-bottom: 2px solid #e5e7eb;">Estado</th>
+                                    <th style="padding: 15px; text-align: left; border-bottom: 2px solid #e5e7eb;">Entrada</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 15px; border-bottom: 1px solid #e5e7eb;"><strong>Noche Neón 80s</strong><br><small style="color: #888;">Fiesta temática</small></td>
+                                    <td style="padding: 15px; border-bottom: 1px solid #e5e7eb;">20 Ene 2025<br><small style="color: #888;">22:00 - 06:00</small></td>
+                                    <td style="padding: 15px; border-bottom: 1px solid #e5e7eb;">500 personas</td>
+                                    <td style="padding: 15px; border-bottom: 1px solid #e5e7eb;"><span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem;">Confirmado</span></td>
+                                    <td style="padding: 15px; border-bottom: 1px solid #e5e7eb;"><strong>15€</strong> / VIP 25€</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 15px; border-bottom: 1px solid #e5e7eb;"><strong>Reggaeton Night</strong><br><small style="color: #888;">Concierto</small></td>
+                                    <td style="padding: 15px; border-bottom: 1px solid #e5e7eb;">27 Ene 2025<br><small style="color: #888;">23:00 - 05:00</small></td>
+                                    <td style="padding: 15px; border-bottom: 1px solid #e5e7eb;">600 personas</td>
+                                    <td style="padding: 15px; border-bottom: 1px solid #e5e7eb;"><span style="background: #f59e0b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem;">Planificado</span></td>
+                                    <td style="padding: 15px; border-bottom: 1px solid #e5e7eb;"><strong>20€</strong> / VIP 35€</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 15px;"><strong>Viernes de Salsa</strong><br><small style="color: #888;">Fiesta regular</small></td>
+                                    <td style="padding: 15px;">Todos los viernes<br><small style="color: #888;">21:00 - 04:00</small></td>
+                                    <td style="padding: 15px;">400 personas</td>
+                                    <td style="padding: 15px;"><span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem;">Confirmado</span></td>
+                                    <td style="padding: 15px;"><strong>10€</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint-list">
+                <h4 style="margin-bottom: 15px; color: #333;">Endpoints Disponibles:</h4>
+                <div class="endpoint">
+                    <span class="method method-get">GET</span>
+                    <span>/api/eventos</span>
+                    <span style="color: #888; margin-left: 10px;">- Listar todos los eventos</span>
+                </div>
+                <div class="endpoint">
+                    <span class="method method-post">POST</span>
+                    <span>/api/eventos</span>
+                    <span style="color: #888; margin-left: 10px;">- Crear nuevo evento</span>
+                </div>
+                <div class="endpoint">
+                    <span class="method method-put">PUT</span>
+                    <span>/api/eventos/{id}</span>
+                    <span style="color: #888; margin-left: 10px;">- Actualizar evento</span>
+                </div>
+                <div class="endpoint">
+                    <span class="method method-delete">DELETE</span>
+                    <span>/api/eventos/{id}</span>
+                    <span style="color: #888; margin-left: 10px;">- Eliminar evento</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Módulo 3: Finanzas -->
+        <div class="module" id="finanzas">
+            <div class="module-header">
+                <div class="module-icon">💰</div>
+                <div class="module-title">
+                    <h2>Ingresos y Gastos</h2>
+                    <p>Control financiero completo con P&L automático</p>
+                </div>
+                <span class="status-badge status-complete">✓ COMPLETADO</span>
+            </div>
+
+            <div class="features">
+                <div class="feature-card">
+                    <h4>Gestión de Transacciones</h4>
+                    <ul>
+                        <li>Registro de ingresos y gastos</li>
+                        <li>Categorización automática</li>
+                        <li>Métodos de pago múltiples</li>
+                        <li>Adjuntar comprobantes (PDF/imágenes)</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Análisis Financiero</h4>
+                    <ul>
+                        <li>Cálculo automático de P&L</li>
+                        <li>Balance en tiempo real</li>
+                        <li>Filtros por fecha y categoría</li>
+                        <li>Exportación a Excel</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Categorías</h4>
+                    <ul>
+                        <li>Ingresos: Ventas barra, Entradas, VIP</li>
+                        <li>Gastos: Nóminas, Alquiler, Servicios</li>
+                        <li>Gastos: Marketing, Mantenimiento</li>
+                        <li>Categorías personalizables</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <h4>€45,230</h4>
+                    <p>Ingresos del Mes</p>
+                </div>
+                <div class="kpi-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                    <h4>€28,450</h4>
+                    <p>Gastos del Mes</p>
+                </div>
+                <div class="kpi-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                    <h4>€16,780</h4>
+                    <p>Balance (Beneficio)</p>
+                </div>
+                <div class="kpi-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                    <h4>37%</h4>
+                    <p>Margen de Beneficio</p>
+                </div>
+            </div>
+
+            <div class="use-case">
+                <h5>💡 Caso de Uso</h5>
+                <p>
+                    <strong>Ana revisa las finanzas del mes:</strong> Accede al módulo de "Ingresos y Gastos"
+                    y ve un resumen completo del mes actual. Los ingresos totales son 45,230€ (barra: 28,000€,
+                    entradas: 12,500€, VIP: 4,730€). Los gastos suman 28,450€ (nóminas: 15,000€, proveedores:
+                    8,200€, servicios: 5,250€). El balance muestra un beneficio de 16,780€ con un margen del 37%.
+                    Filtra por categoría "Proveedores" para analizar qué productos están generando más costo.
+                </p>
+            </div>
+
+            <div class="mockup">
+                <div class="mockup-header">
+                    <div class="mockup-dot dot-red"></div>
+                    <div class="mockup-dot dot-yellow"></div>
+                    <div class="mockup-dot dot-green"></div>
+                </div>
+                <div class="mockup-content">
+                    <h3 style="color: #667eea; margin-bottom: 20px;">Dashboard Financiero</h3>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;">
+                        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 25px; border-radius: 10px; color: white;">
+                            <p style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 5px;">Ingresos Totales</p>
+                            <h3 style="font-size: 2.5rem; margin: 0;">€45,230</h3>
+                            <p style="font-size: 0.85rem; margin-top: 10px;">↑ 12% vs mes anterior</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 25px; border-radius: 10px; color: white;">
+                            <p style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 5px;">Gastos Totales</p>
+                            <h3 style="font-size: 2.5rem; margin: 0;">€28,450</h3>
+                            <p style="font-size: 0.85rem; margin-top: 10px;">↑ 5% vs mes anterior</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 25px; border-radius: 10px; color: white;">
+                            <p style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 5px;">Balance Neto</p>
+                            <h3 style="font-size: 2.5rem; margin: 0;">€16,780</h3>
+                            <p style="font-size: 0.85rem; margin-top: 10px;">Margen: 37%</p>
+                        </div>
+                    </div>
+
+                    <h4 style="margin: 30px 0 15px; color: #333;">Últimas Transacciones</h4>
+                    <div style="background: white; border: 2px solid #e5e7eb; border-radius: 8px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead style="background: #f9fafb;">
+                                <tr>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Fecha</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Concepto</th>
+                                    <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Categoría</th>
+                                    <th style="padding: 12px; text-align: right; border-bottom: 2px solid #e5e7eb;">Importe</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">10/01/2025</td>
+                                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Ventas barra sábado</td>
+                                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><span style="background: #10b981; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem;">Ventas Barra</span></td>
+                                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right; color: #10b981; font-weight: 600;">+€8,540</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">09/01/2025</td>
+                                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Nóminas enero</td>
+                                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><span style="background: #ef4444; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem;">Nóminas</span></td>
+                                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right; color: #ef4444; font-weight: 600;">-€15,000</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">08/01/2025</td>
+                                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">Compra bebidas alcohólicas</td>
+                                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><span style="background: #ef4444; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem;">Proveedores</span></td>
+                                    <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right; color: #ef4444; font-weight: 600;">-€3,200</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px;">07/01/2025</td>
+                                    <td style="padding: 12px;">Entradas evento Noche Neón</td>
+                                    <td style="padding: 12px;"><span style="background: #10b981; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem;">Entradas</span></td>
+                                    <td style="padding: 12px; text-align: right; color: #10b981; font-weight: 600;">+€4,250</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Módulo 4: Personal -->
+        <div class="module" id="personal">
+            <div class="module-header">
+                <div class="module-icon">👥</div>
+                <div class="module-title">
+                    <h2>Mi Equipo</h2>
+                    <p>Gestión de empleados, turnos y nóminas</p>
+                </div>
+                <span class="status-badge status-complete">✓ COMPLETADO</span>
+            </div>
+
+            <div class="features">
+                <div class="feature-card">
+                    <h4>Empleados</h4>
+                    <ul>
+                        <li>Ficha completa de cada empleado</li>
+                        <li>Datos personales y contacto</li>
+                        <li>Puesto, departamento y salario</li>
+                        <li>Estado: Activo, Inactivo, Baja</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Jornadas de Trabajo</h4>
+                    <ul>
+                        <li>Registro de turnos diarios</li>
+                        <li>Cálculo automático de horas</li>
+                        <li>Soporte para turnos nocturnos</li>
+                        <li>Precio por hora configurable</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Nóminas</h4>
+                    <ul>
+                        <li>Generación automática de sueldos</li>
+                        <li>Generación masiva mensual</li>
+                        <li>Descuentos y bonificaciones</li>
+                        <li>Estados: Pendiente, Pagada</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="workflow">
+                <div class="workflow-step">
+                    <h5>1. Registrar Empleado</h5>
+                    <p>Alta con datos personales, puesto y salario base</p>
+                </div>
+                <div class="workflow-step">
+                    <h5>2. Registrar Turnos</h5>
+                    <p>Anotar jornadas trabajadas con horas de entrada/salida</p>
+                </div>
+                <div class="workflow-step">
+                    <h5>3. Generar Nómina</h5>
+                    <p>Calcular sueldo basado en turnos + bonos/descuentos</p>
+                </div>
+                <div class="workflow-step">
+                    <h5>4. Marcar como Pagada</h5>
+                    <p>Registrar pago y crear transacción financiera</p>
+                </div>
+            </div>
+
+            <div class="use-case">
+                <h5>💡 Caso de Uso</h5>
+                <p>
+                    <strong>Laura gestiona el personal del club:</strong> Da de alta a un nuevo bartender
+                    "Pedro Martínez" con salario base de 1,600€/mes. Durante enero, Pedro trabaja 18 turnos
+                    nocturnos (22:00-06:00), acumulando 144 horas. El sistema calcula automáticamente su
+                    nómina: 1,600€ base + 440€ extras (horas adicionales a 10€/h) = 2,040€ total. A fin de
+                    mes, Laura genera todas las nóminas con un clic, revisa los totales y marca como pagadas
+                    una vez realizadas las transferencias.
+                </p>
+            </div>
+
+            <div class="mockup">
+                <div class="mockup-header">
+                    <div class="mockup-dot dot-red"></div>
+                    <div class="mockup-dot dot-yellow"></div>
+                    <div class="mockup-dot dot-green"></div>
+                </div>
+                <div class="mockup-content">
+                    <h3 style="color: #667eea; margin-bottom: 20px;">Gestión de Empleados</h3>
+
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;">
+                        <div style="background: #f0f9ff; padding: 20px; border-radius: 10px; border-left: 4px solid #3b82f6;">
+                            <h4 style="font-size: 2rem; margin-bottom: 5px;">24</h4>
+                            <p style="color: #555; font-size: 0.9rem;">Empleados Activos</p>
+                        </div>
+                        <div style="background: #f0fdf4; padding: 20px; border-radius: 10px; border-left: 4px solid #10b981;">
+                            <h4 style="font-size: 2rem; margin-bottom: 5px;">876</h4>
+                            <p style="color: #555; font-size: 0.9rem;">Horas Trabajadas (mes)</p>
+                        </div>
+                        <div style="background: #fef3c7; padding: 20px; border-radius: 10px; border-left: 4px solid #f59e0b;">
+                            <h4 style="font-size: 2rem; margin-bottom: 5px;">€15,200</h4>
+                            <p style="color: #555; font-size: 0.9rem;">Nóminas Pendientes</p>
+                        </div>
+                        <div style="background: #fce7f3; padding: 20px; border-radius: 10px; border-left: 4px solid #ec4899;">
+                            <h4 style="font-size: 2rem; margin-bottom: 5px;">18</h4>
+                            <p style="color: #555; font-size: 0.9rem;">Turnos Hoy</p>
+                        </div>
+                    </div>
+
+                    <h4 style="margin: 20px 0 15px; color: #333;">Lista de Empleados</h4>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                        <div style="background: white; border: 2px solid #e5e7eb; border-radius: 10px; padding: 20px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.2rem; margin-right: 15px;">PM</div>
+                                <div>
+                                    <h5 style="margin-bottom: 3px; font-size: 1.1rem;">Pedro Martínez</h5>
+                                    <p style="color: #888; font-size: 0.9rem;">Bartender</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #555;">
+                                <span>Salario base:</span>
+                                <strong>€1,600/mes</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #555; margin-top: 5px;">
+                                <span>Horas este mes:</span>
+                                <strong>144h</strong>
+                            </div>
+                            <div style="margin-top: 15px;">
+                                <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 15px; font-size: 0.8rem;">Activo</span>
+                            </div>
+                        </div>
+
+                        <div style="background: white; border: 2px solid #e5e7eb; border-radius: 10px; padding: 20px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.2rem; margin-right: 15px;">SG</div>
+                                <div>
+                                    <h5 style="margin-bottom: 3px; font-size: 1.1rem;">Sara González</h5>
+                                    <p style="color: #888; font-size: 0.9rem;">Camarera</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #555;">
+                                <span>Salario base:</span>
+                                <strong>€1,400/mes</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #555; margin-top: 5px;">
+                                <span>Horas este mes:</span>
+                                <strong>128h</strong>
+                            </div>
+                            <div style="margin-top: 15px;">
+                                <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 15px; font-size: 0.8rem;">Activo</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Continuar con más módulos... -->
+        <!-- Por espacio, incluyo solo los títulos del resto -->
+
+        <div class="module" id="inventario">
+            <div class="module-header">
+                <div class="module-icon">📦</div>
+                <div class="module-title">
+                    <h2>Productos y Stock</h2>
+                    <p>Control completo del inventario</p>
+                </div>
+                <span class="status-badge status-complete">✓ COMPLETADO</span>
+            </div>
+
+            <div class="features">
+                <div class="feature-card">
+                    <h4>Catálogo de Productos</h4>
+                    <ul>
+                        <li>15 categorías predefinidas</li>
+                        <li>Productos con código de barras</li>
+                        <li>Precios de compra y venta</li>
+                        <li>Márgenes de beneficio calculados</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Control de Stock</h4>
+                    <ul>
+                        <li>Stock actual en tiempo real</li>
+                        <li>Stock mínimo y máximo</li>
+                        <li>Alertas automáticas de stock bajo</li>
+                        <li>Historial de movimientos</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Movimientos</h4>
+                    <ul>
+                        <li>Entradas (compras a proveedores)</li>
+                        <li>Salidas (ventas, consumos)</li>
+                        <li>Ajustes (mermas, inventarios)</li>
+                        <li>Trazabilidad completa</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="use-case">
+                <h5>💡 Caso de Uso</h5>
+                <p>
+                    <strong>Roberto gestiona el inventario:</strong> El sistema le notifica que hay 5 productos
+                    con stock bajo (vodka, ginebra, tónica, limones, hielo). Registra una entrada de 50 botellas
+                    de vodka a 12€/ud desde el proveedor "Bebidas Premium SL". El stock se actualiza automáticamente
+                    de 8 a 58 unidades. Durante el fin de semana, el POS descuenta automáticamente el stock con
+                    cada venta. El lunes revisa las alertas y ve que la ginebra ya está en rojo (4 unidades).
+                </p>
+            </div>
+        </div>
+
+        <div class="module" id="analytics">
+            <div class="module-header">
+                <div class="module-icon">📊</div>
+                <div class="module-title">
+                    <h2>Análisis del Negocio</h2>
+                    <p>KPIs, gráficos y reportes en tiempo real</p>
+                </div>
+                <span class="status-badge status-complete">✓ COMPLETADO</span>
+            </div>
+
+            <div class="features">
+                <div class="feature-card">
+                    <h4>Dashboard Principal</h4>
+                    <ul>
+                        <li>Métricas clave en tiempo real</li>
+                        <li>Auto-refresh cada 30 segundos</li>
+                        <li>Comparativas vs mes anterior</li>
+                        <li>Gráficos de tendencias</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Reportes</h4>
+                    <ul>
+                        <li>Exportación a Excel</li>
+                        <li>Exportación a PDF</li>
+                        <li>Reportes de ventas por periodo</li>
+                        <li>Reportes de rentabilidad</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Análisis Avanzado</h4>
+                    <ul>
+                        <li>Productos más vendidos</li>
+                        <li>Horarios pico de ventas</li>
+                        <li>Rendimiento por empleado</li>
+                        <li>ROI de eventos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Módulo 7: Sistema POS -->
+        <div class="module" id="pos">
+            <div class="module-header">
+                <div class="module-icon">🖥️</div>
+                <div class="module-title">
+                    <h2>Sistema POS (Point of Sale)</h2>
+                    <p>Punto de venta completo con gestión de caja</p>
+                </div>
+                <span class="status-badge status-complete">✓ COMPLETADO 100%</span>
+            </div>
+
+            <div class="features">
+                <div class="feature-card">
+                    <h4>Terminal de Venta</h4>
+                    <ul>
+                        <li>Interfaz táctil optimizada</li>
+                        <li>Búsqueda rápida de productos</li>
+                        <li>Carrito de compra inteligente</li>
+                        <li>3 métodos de pago (Efectivo, Tarjeta, Mixto)</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Gestión de Sesiones</h4>
+                    <ul>
+                        <li>Apertura/cierre de caja</li>
+                        <li>Saldo inicial configurable</li>
+                        <li>Cuadre automático de caja</li>
+                        <li>Historial completo de sesiones</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Automatización</h4>
+                    <ul>
+                        <li>Numeración automática de tickets</li>
+                        <li>Descuento automático de stock</li>
+                        <li>Registro en transacciones financieras</li>
+                        <li>Triggers de base de datos</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="workflow">
+                <div class="workflow-step">
+                    <h5>1. Abrir Sesión</h5>
+                    <p>Registrar empleado y saldo inicial de caja</p>
+                </div>
+                <div class="workflow-step">
+                    <h5>2. Realizar Ventas</h5>
+                    <p>Agregar productos, calcular total y cobrar</p>
+                </div>
+                <div class="workflow-step">
+                    <h5>3. Descuento Stock</h5>
+                    <p>Trigger automático reduce inventario</p>
+                </div>
+                <div class="workflow-step">
+                    <h5>4. Cerrar Sesión</h5>
+                    <p>Cuadre de caja y arqueo final</p>
+                </div>
+            </div>
+
+            <div class="mockup">
+                <div class="mockup-header">
+                    <div class="mockup-dot dot-red"></div>
+                    <div class="mockup-dot dot-yellow"></div>
+                    <div class="mockup-dot dot-green"></div>
+                </div>
+                <div class="mockup-content">
+                    <h3 style="color: #667eea; margin-bottom: 20px;">Terminal POS</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+                        <!-- Carrito -->
+                        <div style="background: #f9fafb; padding: 20px; border-radius: 10px; border: 2px solid #e5e7eb;">
+                            <h4 style="margin-bottom: 15px;">Ticket Actual</h4>
+                            <div style="border-bottom: 2px dashed #ddd; padding-bottom: 10px; margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>Vodka Absolut x2</span>
+                                    <strong>€16.00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>Coca Cola x3</span>
+                                    <strong>€9.00</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>RedBull x1</span>
+                                    <strong>€5.00</strong>
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 600; margin-top: 15px;">
+                                <span>TOTAL:</span>
+                                <span style="color: #667eea;">€30.00</span>
+                            </div>
+                            <div style="margin-top: 20px; display: grid; gap: 10px;">
+                                <button style="padding: 15px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">💵 EFECTIVO</button>
+                                <button style="padding: 15px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">💳 TARJETA</button>
+                                <button style="padding: 15px; background: #f59e0b; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">💰 MIXTO</button>
+                            </div>
+                        </div>
+
+                        <!-- Productos -->
+                        <div>
+                            <input type="text" placeholder="🔍 Buscar producto..." style="width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 15px; font-size: 1rem;">
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                                <button style="padding: 20px; background: white; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; text-align: left;">
+                                    <strong>Vodka Absolut</strong><br>
+                                    <span style="color: #10b981; font-size: 1.2rem;">€8.00</span><br>
+                                    <small style="color: #888;">Stock: 45</small>
+                                </button>
+                                <button style="padding: 20px; background: white; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; text-align: left;">
+                                    <strong>Coca Cola</strong><br>
+                                    <span style="color: #10b981; font-size: 1.2rem;">€3.00</span><br>
+                                    <small style="color: #888;">Stock: 120</small>
+                                </button>
+                                <button style="padding: 20px; background: white; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; text-align: left;">
+                                    <strong>RedBull</strong><br>
+                                    <span style="color: #10b981; font-size: 1.2rem;">€5.00</span><br>
+                                    <small style="color: #888;">Stock: 80</small>
+                                </button>
+                                <button style="padding: 20px; background: white; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; text-align: left;">
+                                    <strong>Ron Barceló</strong><br>
+                                    <span style="color: #10b981; font-size: 1.2rem;">€7.50</span><br>
+                                    <small style="color: #888;">Stock: 38</small>
+                                </button>
+                                <button style="padding: 20px; background: white; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; text-align: left;">
+                                    <strong>Cerveza Heineken</strong><br>
+                                    <span style="color: #10b981; font-size: 1.2rem;">€4.50</span><br>
+                                    <small style="color: #888;">Stock: 200</small>
+                                </button>
+                                <button style="padding: 20px; background: white; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; text-align: left;">
+                                    <strong>Agua Mineral</strong><br>
+                                    <span style="color: #10b981; font-size: 1.2rem;">€2.00</span><br>
+                                    <small style="color: #888;">Stock: 150</small>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint-list">
+                <h4 style="margin-bottom: 15px; color: #333;">24 Endpoints REST Disponibles:</h4>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    <div class="endpoint">
+                        <span class="method method-post">POST</span>
+                        <span>/api/sesiones-caja/abrir</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method method-post">POST</span>
+                        <span>/api/sesiones-caja/{id}/cerrar</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method method-post">POST</span>
+                        <span>/api/ventas</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method method-get">GET</span>
+                        <span>/api/pos/estadisticas/hoy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Módulo 8: Botellas VIP -->
+        <div class="module" id="botellas">
+            <div class="module-header">
+                <div class="module-icon">🍾</div>
+                <div class="module-title">
+                    <h2>Botellas VIP</h2>
+                    <p>Gestión de botellas abiertas con tracking copa por copa</p>
+                </div>
+                <span class="status-badge status-complete">✓ COMPLETADO 100%</span>
+            </div>
+
+            <div class="features">
+                <div class="feature-card">
+                    <h4>Sistema Dual</h4>
+                    <ul>
+                        <li>Stock cerrado (almacén)</li>
+                        <li>Stock abierto (barra)</li>
+                        <li>Tracking de copas servidas/restantes</li>
+                        <li>Descuento automático al abrir</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Precios Diferenciados</h4>
+                    <ul>
+                        <li>Copa individual (€8-12)</li>
+                        <li>Botella completa (€60-80)</li>
+                        <li>Pack VIP (€100-150 con extras)</li>
+                        <li>Cálculo de rentabilidad automático</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>Sistema de Alertas</h4>
+                    <ul>
+                        <li>🔴 Botella vacía (0 copas)</li>
+                        <li>🟡 Casi vacía (<20% copas)</li>
+                        <li>🟠 Abierta +24 horas</li>
+                        <li>Notificaciones visuales en dashboard</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h4>12</h4>
+                    <p>Botellas Abiertas</p>
+                </div>
+                <div class="kpi-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    <h4>3</h4>
+                    <p>Casi Vacías</p>
+                </div>
+                <div class="kpi-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                    <h4>84</h4>
+                    <p>Copas Disponibles</p>
+                </div>
+                <div class="kpi-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <h4>€840</h4>
+                    <p>Ingresos Potenciales</p>
+                </div>
+            </div>
+
+            <div class="workflow">
+                <div class="workflow-step">
+                    <h5>1. Abrir Botella</h5>
+                    <p>Seleccionar producto, ubicación y empleado</p>
+                </div>
+                <div class="workflow-step">
+                    <h5>2. Servir Copas</h5>
+                    <p>Venta copa a copa con descuento automático</p>
+                </div>
+                <div class="workflow-step">
+                    <h5>3. Monitorear Alertas</h5>
+                    <p>Dashboard muestra botellas que necesitan atención</p>
+                </div>
+                <div class="workflow-step">
+                    <h5>4. Cerrar Botella</h5>
+                    <p>Marcar como terminada o desperdiciada</p>
+                </div>
+            </div>
+
+            <div class="mockup">
+                <div class="mockup-header">
+                    <div class="mockup-dot dot-red"></div>
+                    <div class="mockup-dot dot-yellow"></div>
+                    <div class="mockup-dot dot-green"></div>
+                </div>
+                <div class="mockup-content">
+                    <h3 style="color: #667eea; margin-bottom: 20px;">Dashboard de Botellas Abiertas</h3>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;">
+                        <div style="background: white; border: 2px solid #667eea; border-top: 4px solid #667eea; border-radius: 10px; padding: 20px;">
+                            <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 15px;">
+                                <div>
+                                    <h5 style="font-size: 1.2rem; margin-bottom: 5px;">Vodka Absolut</h5>
+                                    <p style="color: #888; font-size: 0.9rem;">Licores Premium</p>
+                                </div>
+                                <span style="background: #10b981; color: white; padding: 4px 10px; border-radius: 15px; font-size: 0.75rem;">OK</span>
+                            </div>
+
+                            <div style="margin-bottom: 15px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #666; margin-bottom: 5px;">
+                                    <span>6 servidas</span>
+                                    <span>4 restantes</span>
+                                </div>
+                                <div style="width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden;">
+                                    <div style="width: 60%; height: 100%; background: linear-gradient(90deg, #10b981 0%, #059669 100%);"></div>
+                                </div>
+                                <p style="text-align: center; font-size: 0.8rem; color: #888; margin-top: 5px;">60% consumido</p>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size: 0.85rem;">
+                                <div style="background: #f0fdf4; padding: 8px; border-radius: 5px;">
+                                    <p style="color: #888;">Generado</p>
+                                    <strong style="color: #10b981;">€48.00</strong>
+                                </div>
+                                <div style="background: #eff6ff; padding: 8px; border-radius: 5px;">
+                                    <p style="color: #888;">Potencial</p>
+                                    <strong style="color: #3b82f6;">€32.00</strong>
+                                </div>
+                            </div>
+
+                            <div style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">
+                                <p>📍 Barra Principal</p>
+                                <p>⏱️ 4 horas abierta</p>
+                                <p>👤 Por: Pedro M.</p>
+                            </div>
+
+                            <button style="width: 100%; padding: 10px; background: white; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; font-weight: 600; color: #667eea;">
+                                Cerrar Botella
+                            </button>
+                        </div>
+
+                        <div style="background: white; border: 2px solid #f59e0b; border-top: 4px solid #f59e0b; border-radius: 10px; padding: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                                <div>
+                                    <h5 style="font-size: 1.2rem; margin-bottom: 5px;">Ron Barceló</h5>
+                                    <p style="color: #888; font-size: 0.9rem;">Licores Premium</p>
+                                </div>
+                                <span style="background: #f59e0b; color: white; padding: 4px 10px; border-radius: 15px; font-size: 0.75rem;">CASI VACÍA</span>
+                            </div>
+
+                            <div style="margin-bottom: 15px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #666; margin-bottom: 5px;">
+                                    <span>9 servidas</span>
+                                    <span>1 restante</span>
+                                </div>
+                                <div style="width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden;">
+                                    <div style="width: 90%; height: 100%; background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);"></div>
+                                </div>
+                                <p style="text-align: center; font-size: 0.8rem; color: #888; margin-top: 5px;">90% consumido</p>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size: 0.85rem;">
+                                <div style="background: #f0fdf4; padding: 8px; border-radius: 5px;">
+                                    <p style="color: #888;">Generado</p>
+                                    <strong style="color: #10b981;">€72.00</strong>
+                                </div>
+                                <div style="background: #eff6ff; padding: 8px; border-radius: 5px;">
+                                    <p style="color: #888;">Potencial</p>
+                                    <strong style="color: #3b82f6;">€8.00</strong>
+                                </div>
+                            </div>
+
+                            <div style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">
+                                <p>📍 Barra VIP</p>
+                                <p>⏱️ 12 horas abierta</p>
+                                <p>👤 Por: Laura S.</p>
+                            </div>
+
+                            <button style="width: 100%; padding: 10px; background: white; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; font-weight: 600; color: #667eea;">
+                                Cerrar Botella
+                            </button>
+                        </div>
+
+                        <div style="background: white; border: 2px solid #ef4444; border-top: 4px solid #ef4444; border-radius: 10px; padding: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                                <div>
+                                    <h5 style="font-size: 1.2rem; margin-bottom: 5px;">Gin Bombay</h5>
+                                    <p style="color: #888; font-size: 0.9rem;">Licores Premium</p>
+                                </div>
+                                <span style="background: #ef4444; color: white; padding: 4px 10px; border-radius: 15px; font-size: 0.75rem;">VACÍA</span>
+                            </div>
+
+                            <div style="margin-bottom: 15px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #666; margin-bottom: 5px;">
+                                    <span>10 servidas</span>
+                                    <span>0 restantes</span>
+                                </div>
+                                <div style="width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden;">
+                                    <div style="width: 100%; height: 100%; background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);"></div>
+                                </div>
+                                <p style="text-align: center; font-size: 0.8rem; color: #888; margin-top: 5px;">100% consumido</p>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size: 0.85rem;">
+                                <div style="background: #f0fdf4; padding: 8px; border-radius: 5px;">
+                                    <p style="color: #888;">Generado</p>
+                                    <strong style="color: #10b981;">€90.00</strong>
+                                </div>
+                                <div style="background: #fef3c7; padding: 8px; border-radius: 5px;">
+                                    <p style="color: #888;">Potencial</p>
+                                    <strong style="color: #f59e0b;">€0.00</strong>
+                                </div>
+                            </div>
+
+                            <div style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">
+                                <p>📍 Barra Principal</p>
+                                <p>⏱️ 8 horas abierta</p>
+                                <p>👤 Por: Carlos R.</p>
+                            </div>
+
+                            <button style="width: 100%; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                ✓ Cerrar como Terminada
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint-list">
+                <h4 style="margin-bottom: 15px; color: #333;">12 Endpoints REST Disponibles:</h4>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    <div class="endpoint">
+                        <span class="method method-get">GET</span>
+                        <span>/api/botellas-abiertas</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method method-post">POST</span>
+                        <span>/api/botellas-abiertas/abrir</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method method-post">POST</span>
+                        <span>/api/botellas-abiertas/cerrar</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method method-get">GET</span>
+                        <span>/api/botellas-abiertas/alertas</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="use-case">
+                <h5>💡 Caso de Uso Real</h5>
+                <p>
+                    <strong>Noche de sábado en la discoteca:</strong> Un grupo VIP solicita una botella de Vodka
+                    Absolut. El bartender Pedro abre la botella desde el sistema (10 copas disponibles), la
+                    registra en "Barra VIP" y comienza a servir. Durante la noche, se sirven 6 copas a €8 cada
+                    una (€48 generados). A las 4 AM, el sistema muestra una alerta amarilla "Casi vacía" (4 copas
+                    restantes). El grupo se retira y Pedro cierra la botella, que aún tiene ingresos potenciales
+                    de €32. El gerente puede ver en el dashboard que la botella generó €48 de €80 posibles (60%
+                    de rentabilidad).
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer style="text-align: center; padding: 60px 20px; color: white; margin-top: 80px;">
+            <h2 style="margin-bottom: 20px;">¿Listo para implementar?</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 30px;">Sistema 100% funcional y desplegado en Railway.app</p>
+
+            <div class="tech-stack" style="justify-content: center;">
+                <span class="tech-badge">Spring Boot 3.2</span>
+                <span class="tech-badge">Java 17</span>
+                <span class="tech-badge">PostgreSQL 15</span>
+                <span class="tech-badge">React 18</span>
+                <span class="tech-badge">TypeScript</span>
+                <span class="tech-badge">TailwindCSS</span>
+                <span class="tech-badge">Docker</span>
+                <span class="tech-badge">Railway</span>
+            </div>
+
+            <p style="margin-top: 40px; opacity: 0.8;">
+                Desarrollado con Claude Code | Versión 0.3.0 | Enero 2025
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Club Management System - Roadmap Visual Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .progress-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .system-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .system-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .system-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .system-icon {
+            font-size: 2.5rem;
+            margin-right: 15px;
+        }
+
+        .system-title h2 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .system-title p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .progress-rp {
+            background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%);
+        }
+
+        .progress-box {
+            background: linear-gradient(90deg, #f44336 0%, #da190b 100%);
+        }
+
+        .progress-pos {
+            background: linear-gradient(90deg, #ff9800 0%, #fb8c00 100%);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .mockups {
+            margin-top: 40px;
+        }
+
+        .mockups h2 {
+            color: white;
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .mockup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .mockup-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .mockup-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .mockup-header h3 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-left: 10px;
+        }
+
+        .mockup-screen {
+            background: #f5f5f5;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 400px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .mockup-navbar {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .mockup-content {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .kpi-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .kpi-label {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .roadmap-timeline {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .roadmap-timeline h2 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #e0e0e0;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+            padding-left: 20px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -27px;
+            top: 5px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 3px #667eea;
+        }
+
+        .timeline-item.completed::before {
+            background: #4CAF50;
+            box-shadow: 0 0 0 3px #4CAF50;
+        }
+
+        .timeline-item.in-progress::before {
+            background: #ff9800;
+            box-shadow: 0 0 0 3px #ff9800;
+            animation: pulse 2s infinite;
+        }
+
+        .timeline-item.pending::before {
+            background: #ccc;
+            box-shadow: 0 0 0 3px #ccc;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+        }
+
+        .timeline-content {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .timeline-content h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .timeline-content .duration {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .timeline-content .features {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .timeline-content .features li {
+            padding: 5px 0;
+            color: #555;
+        }
+
+        .timeline-content .features li::before {
+            content: '✓ ';
+            color: #4CAF50;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .timeline-content .features li.pending::before {
+            content: '○ ';
+            color: #ccc;
+        }
+
+        .btn-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .feature-badge {
+            background: #e8eaf6;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #5c6bc0;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status-completed {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .status-in-progress {
+            background: #ff9800;
+            color: white;
+        }
+
+        .status-pending {
+            background: #ccc;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Club Management System</h1>
+            <p>Roadmap Visual Dashboard - Arquitectura de 3 Sistemas</p>
+        </header>
+
+        <div class="progress-overview">
+            <!-- Back Office Card -->
+            <div class="system-card">
+                <div class="system-header">
+                    <div class="system-icon">💼</div>
+                    <div class="system-title">
+                        <h2>Back Office (RP)</h2>
+                        <p>Gestión Administrativa</p>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill progress-rp" style="width: 75%;">75%</div>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-number">8/11</div>
+                        <div class="stat-label">Sprints</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Semanas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">🟢</div>
+                        <div class="stat-label">Producción</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Box Office Card -->
+            <div class="system-card">
+                <div class="system-header">
+                    <div class="system-icon">🎫</div>
+                    <div class="system-title">
+                        <h2>Box Office</h2>
+                        <p>Sistema de Taquilla</p>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill progress-box" style="width: 0%;">0%</div>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-number">0/5</div>
+                        <div class="stat-label">Sprints</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">6-8</div>
+                        <div class="stat-label">Semanas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">⚪</div>
+                        <div class="stat-label">No iniciado</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- POS Card -->
+            <div class="system-card">
+                <div class="system-header">
+                    <div class="system-icon">🍹</div>
+                    <div class="system-title">
+                        <h2>POS</h2>
+                        <p>Punto de Venta</p>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill progress-pos" style="width: 30%;">30%</div>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-number">1/10</div>
+                        <div class="stat-label">Fases</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">10-14</div>
+                        <div class="stat-label">Semanas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">🟡</div>
+                        <div class="stat-label">MVP Básico</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mockups -->
+        <div class="mockups">
+            <h2>📱 Mockups de los Sistemas</h2>
+
+            <div class="mockup-grid">
+                <!-- Back Office Mockup -->
+                <div class="mockup-container">
+                    <div class="mockup-header">
+                        <span style="font-size: 2rem;">💼</span>
+                        <h3>Back Office (RP)</h3>
+                    </div>
+                    <div class="mockup-screen">
+                        <div class="mockup-navbar">
+                            <span>☰ Club Management</span>
+                            <span>👤 Admin ⚙</span>
+                        </div>
+                        <div class="mockup-content">
+                            <h4>📊 Dashboard Ejecutivo</h4>
+                            <div class="kpi-grid">
+                                <div class="kpi-card">
+                                    <div class="kpi-value">€45,230</div>
+                                    <div class="kpi-label">Ingresos ▲ 12%</div>
+                                </div>
+                                <div class="kpi-card">
+                                    <div class="kpi-value">€28,450</div>
+                                    <div class="kpi-label">Gastos ▼ 5%</div>
+                                </div>
+                                <div class="kpi-card">
+                                    <div class="kpi-value">€16,780</div>
+                                    <div class="kpi-label">Balance ▲ 23%</div>
+                                </div>
+                                <div class="kpi-card">
+                                    <div class="kpi-value">12</div>
+                                    <div class="kpi-label">Eventos Este mes</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mockup-content">
+                            <strong>🎉 Próximos Eventos:</strong><br>
+                            • Halloween Party - 31 Oct<br>
+                            • Fiesta Privada - 2 Nov<br>
+                            • DJ Internacional - 5 Nov
+                        </div>
+                        <div class="mockup-content">
+                            <strong>Módulos:</strong><br>
+                            [📅 Eventos] [💰 Finanzas] [👥 Mi Equipo]<br>
+                            [📦 Inventario] [📊 Analytics] [💵 Sueldos]
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Box Office Mockup -->
+                <div class="mockup-container">
+                    <div class="mockup-header">
+                        <span style="font-size: 2rem;">🎫</span>
+                        <h3>Box Office (Taquilla)</h3>
+                    </div>
+                    <div class="mockup-screen">
+                        <div class="mockup-navbar">
+                            <span>🎫 Box Office</span>
+                            <span>👤 Taquillero ⚙</span>
+                        </div>
+                        <div class="mockup-content">
+                            <h4>🎉 Halloween Party - 31 Oct 2025</h4>
+                            <p><strong>Estado:</strong> VENTA ACTIVA | <strong>Aforo:</strong> 520/800 (65%)</p>
+                        </div>
+                        <div class="mockup-content">
+                            <h4>💳 VENTA RÁPIDA</h4>
+                            <div style="display: flex; gap: 10px; justify-content: space-around; margin-top: 10px;">
+                                <div style="text-align: center; padding: 10px; background: #f0f0f0; border-radius: 5px; flex: 1;">
+                                    <strong>General</strong><br>
+                                    €15.00<br>
+                                    420/600<br>
+                                    <button style="margin-top: 5px; padding: 5px 10px; background: #4CAF50; color: white; border: none; border-radius: 3px; cursor: pointer;">+ VENDER</button>
+                                    </div>
+                                <div style="text-align: center; padding: 10px; background: #f0f0f0; border-radius: 5px; flex: 1;">
+                                    <strong>VIP Room</strong><br>
+                                    €35.00<br>
+                                    80/150<br>
+                                    <button style="margin-top: 5px; padding: 5px 10px; background: #4CAF50; color: white; border: none; border-radius: 3px; cursor: pointer;">+ VENDER</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mockup-content">
+                            <h4>🔍 CHECK-IN RÁPIDO</h4>
+                            [📷 Escanear QR] o [🔢 Código: ____]
+                        </div>
+                        <div class="mockup-content">
+                            <h4>📋 LISTA DE INVITADOS (15)</h4>
+                            ☑ Juan Pérez - VIP ✓ 22:45<br>
+                            ☐ María García - General<br>
+                            ☐ Carlos López - VIP + 2
+                        </div>
+                        <div class="mockup-content">
+                            <strong>📊 Estadísticas:</strong><br>
+                            Entradas hoy: 48 | €1,240<br>
+                            Check-ins: 315 | En local: ~280
+                        </div>
+                    </div>
+                </div>
+
+                <!-- POS Mockup -->
+                <div class="mockup-container">
+                    <div class="mockup-header">
+                        <span style="font-size: 2rem;">🍹</span>
+                        <h3>POS (Punto de Venta)</h3>
+                    </div>
+                    <div class="mockup-screen">
+                        <div class="mockup-navbar">
+                            <span>🍹 POS | Barra Principal</span>
+                            <span>Sesión #2845 [ABIERTA]</span>
+                        </div>
+                        <div class="mockup-content">
+                            <h4>CARRITO - Mesa 12 (VIP)</h4>
+                            <div style="background: #f9f9f9; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                                2x Gin Tonic €8.00 → €16.00<br>
+                                1x Botella Absolut (ABIERTA) €120<br>
+                                &nbsp;&nbsp;├─ Copas servidas: 8/20<br>
+                                3x Coca-Cola €3.50 → €10.50<br>
+                                ─────────────────────────<br>
+                                Subtotal: <strong>€146.50</strong><br>
+                                Descuento 10%: <strong>-€14.65</strong><br>
+                                <span style="font-size: 1.2rem;">TOTAL: <strong>€131.85</strong></span>
+                            </div>
+                            <div style="margin-top: 10px; display: flex; gap: 5px;">
+                                <button style="flex: 1; padding: 8px; background: #2196F3; color: white; border: none; border-radius: 3px; cursor: pointer;">💳 Tarjeta</button>
+                                <button style="flex: 1; padding: 8px; background: #4CAF50; color: white; border: none; border-radius: 3px; cursor: pointer;">💵 Efectivo</button>
+                            </div>
+                        </div>
+                        <div class="mockup-content">
+                            <h4>📦 PRODUCTOS RÁPIDOS</h4>
+                            <div style="display: flex; gap: 5px; margin-top: 10px;">
+                                <div style="flex: 1; text-align: center; padding: 8px; background: #f0f0f0; border-radius: 3px; font-size: 0.8rem;">
+                                    🍺 Cerveza<br>€4.00<br>Stock: 48
+                                </div>
+                                <div style="flex: 1; text-align: center; padding: 8px; background: #f0f0f0; border-radius: 3px; font-size: 0.8rem;">
+                                    🥃 Whisky<br>€8.00<br>Stock: 15
+                                </div>
+                                <div style="flex: 1; text-align: center; padding: 8px; background: #f0f0f0; border-radius: 3px; font-size: 0.8rem;">
+                                    🍾 Botella<br>€120<br>Stock: 8
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mockup-content">
+                            <h4>🍾 BOTELLAS ABIERTAS</h4>
+                            • Absolut - Mesa 12 - 12/20 copas<br>
+                            • Bacardi - Barra VIP - 5/18 copas<br>
+                            • Bombay - Mesa 8 - 3/20 ⚠️
+                        </div>
+                        <div class="mockup-content">
+                            <strong>📊 Sesión:</strong> €2,340 | 87 trans | €26.90 medio
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roadmap Timeline -->
+        <div class="roadmap-timeline">
+            <h2>🗓️ Timeline de Implementación</h2>
+
+            <div class="timeline">
+                <!-- Back Office -->
+                <div class="timeline-item completed">
+                    <div class="timeline-content">
+                        <h3>💼 Back Office - Sprints 0-8 <span class="status-badge status-completed">COMPLETADO</span></h3>
+                        <p class="duration">📅 Semanas 1-15 | ✅ 75% Completo</p>
+                        <ul class="features">
+                            <li>Setup Inicial y Arquitectura</li>
+                            <li>Autenticación JWT + Eventos</li>
+                            <li>Gestión Financiera (P&L automático)</li>
+                            <li>Personal y Nóminas</li>
+                            <li>Inventario Completo con Alertas</li>
+                            <li>Analytics y Reportes (Excel/PDF)</li>
+                            <li>UX Optimization para usuarios no técnicos</li>
+                            <li>Sistema POS Backend (Fase 0)</li>
+                        </ul>
+                        <div class="feature-grid">
+                            <div class="feature-badge">✅ En Producción</div>
+                            <div class="feature-badge">✅ Railway.app</div>
+                            <div class="feature-badge">✅ 8/11 Sprints</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item in-progress">
+                    <div class="timeline-content">
+                        <h3>🍾 Sprint 9 - Botellas VIP <span class="status-badge status-in-progress">EN PROGRESO</span></h3>
+                        <p class="duration">📅 Semanas 17-18 (10-12 días) | 🔄 Próximo Inmediato</p>
+                        <ul class="features">
+                            <li class="pending">Venta dual: botella completa vs copas</li>
+                            <li class="pending">Stock dual: almacén + barra</li>
+                            <li class="pending">Tracking de botellas abiertas</li>
+                            <li class="pending">Precios diferenciados automáticos</li>
+                            <li class="pending">Dashboard botellas en tiempo real</li>
+                            <li class="pending">3 migraciones BD + 2 triggers</li>
+                            <li class="pending">5 endpoints REST + Frontend</li>
+                        </ul>
+                        <div class="feature-grid">
+                            <div class="feature-badge">🎯 Prioridad ALTA</div>
+                            <div class="feature-badge">💰 ROI: -30% desperdicio</div>
+                            <div class="feature-badge">📋 Ya Planificado</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item pending">
+                    <div class="timeline-content">
+                        <h3>💰 Sprint 10 - Activos Fijos y ROI <span class="status-badge status-pending">PENDIENTE</span></h3>
+                        <p class="duration">📅 Semanas 19-20 (10 días) | ⏳ Opcional</p>
+                        <ul class="features">
+                            <li class="pending">Gestión de activos fijos</li>
+                            <li class="pending">Seguimiento de inversiones</li>
+                            <li class="pending">Cálculo automático de ROI</li>
+                            <li class="pending">Dashboard de rentabilidad</li>
+                            <li class="pending">Depreciación automática</li>
+                        </ul>
+                        <div class="feature-grid">
+                            <div class="feature-badge">🎯 Prioridad MEDIA</div>
+                            <div class="feature-badge">📊 Analytics Avanzado</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item pending">
+                    <div class="timeline-content">
+                        <h3>⚡ Sprint 11 - Optimización Final <span class="status-badge status-pending">PENDIENTE</span></h3>
+                        <p class="duration">📅 Semana 21 (5 días) | ⏳ Crítico</p>
+                        <ul class="features">
+                            <li class="pending">Auditoría de seguridad completa</li>
+                            <li class="pending">Optimización de rendimiento</li>
+                            <li class="pending">Cobertura de tests >85%</li>
+                            <li class="pending">Documentación completa API (Swagger)</li>
+                            <li class="pending">Guías de usuario final</li>
+                            <li class="pending">Plan de mantenimiento</li>
+                            <li class="pending">Backup automático de BD</li>
+                        </ul>
+                        <div class="feature-grid">
+                            <div class="feature-badge">🎯 Prioridad CRÍTICA</div>
+                            <div class="feature-badge">🏁 Back Office 100%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Box Office -->
+                <div class="timeline-item pending">
+                    <div class="timeline-content">
+                        <h3>🎫 Box Office - Sprints BO-1 a BO-5 <span class="status-badge status-pending">NO INICIADO</span></h3>
+                        <p class="duration">📅 Semanas 22-29 (6-8 semanas) | ⏳ 0% Completo</p>
+                        <ul class="features">
+                            <li class="pending">BO-1: Base de Ticketing (8-10 días)</li>
+                            <li class="pending">BO-2: Check-In y Control Acceso (5-7 días)</li>
+                            <li class="pending">BO-3: Gestión de Listas (5 días)</li>
+                            <li class="pending">BO-4: Promociones y Descuentos (5-7 días)</li>
+                            <li class="pending">BO-5: Integración Fourvenues + Reportes (5-7 días)</li>
+                        </ul>
+                        <div class="feature-grid">
+                            <div class="feature-badge">🎯 Prioridad ALTA</div>
+                            <div class="feature-badge">🎫 Sistema Completo</div>
+                            <div class="feature-badge">🔗 Integración opcional</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- POS -->
+                <div class="timeline-item pending">
+                    <div class="timeline-content">
+                        <h3>🍹 POS - Fases 1-9 <span class="status-badge status-pending">30% COMPLETO</span></h3>
+                        <p class="duration">📅 Semanas 17-33 (10-14 semanas) | 🟡 MVP Básico</p>
+                        <ul class="features">
+                            <li class="pending">Fase 1: UX Mejorado + Analytics (5-7 días)</li>
+                            <li class="pending">Fase 2: Gestión de Caja completa (5-7 días)</li>
+                            <li class="pending">Fase 3: Tickets y Comandas (4-6 días)</li>
+                            <li class="pending">Fase 4: Botellas VIP - Integrado con Sprint 9</li>
+                            <li class="pending">Fase 5: Descuentos y Promociones (5-7 días)</li>
+                            <li class="pending">Fase 6: Mesas y Reservas VIP (7-10 días)</li>
+                            <li class="pending">Fase 7: Integraciones TPV (10-15 días - Opcional)</li>
+                            <li class="pending">Fase 8: Business Intelligence (8-12 días)</li>
+                            <li class="pending">Fase 9: App Móvil (15-20 días - Opcional)</li>
+                        </ul>
+                        <div class="feature-grid">
+                            <div class="feature-badge">🎯 Prioridad CRÍTICA</div>
+                            <div class="feature-badge">✅ Fase 0 Completa</div>
+                            <div class="feature-badge">🍾 Integrado con RP</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <a href="ROADMAP_COMPLETO_3_SISTEMAS.md" class="btn">📄 Ver Roadmap Detallado</a>
+        </div>
+    </div>
+</body>
+</html>

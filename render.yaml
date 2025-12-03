@@ -1,0 +1,51 @@
+# Render Blueprint - Configuración para PRODUCCIÓN
+# Este archivo configura el entorno de producción estable
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  # Backend Producción (Spring Boot)
+  - type: web
+    name: club-management-backend
+    env: docker
+    region: oregon
+    plan: free
+    branch: main  # ← Solo deploya desde rama main (producción)
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DATABASE_URL
+        fromDatabase:
+          name: club-management-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true # Genera un secreto aleatorio automáticamente
+      - key: JWT_EXPIRATION
+        value: "86400000" # 24 horas
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://club-management-frontend.onrender.com,https://club-management-frontend-tw9f.onrender.com,https://club-management-frontend-b893.onrender.com,http://localhost:3000,http://localhost:5173
+      - key: SPRING_DATASOURCE_HIKARI_AUTO_COMMIT
+        value: "false" # Fix para "Cannot commit when autoCommit is enabled"
+
+  # Frontend Producción (React + Vite + Nginx)
+  - type: web
+    name: club-management-frontend
+    env: docker
+    region: oregon
+    plan: free
+    branch: main  # ← Solo deploya desde rama main (producción)
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+      - key: VITE_API_URL
+        value: https://club-management-backend-tw9f.onrender.com/api
+
+databases:
+  # PostgreSQL Database
+  - name: club-management-db
+    databaseName: club_management
+    user: club_admin
+    region: oregon
+    plan: free # 1GB, expira en 90 días (puedes recrear), luego upgrade a $7/mes para permanente
+    ipAllowList: [] # Permite todas las IPs (necesario para que el backend se conecte)

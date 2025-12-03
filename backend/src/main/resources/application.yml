@@ -1,0 +1,281 @@
+# Club Management System - Backend Configuration
+# Force rebuild: 2025-10-12
+spring:
+  application:
+    name: club-management
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+---
+# Perfil de desarrollo
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/club_management}
+    username: ${DB_USER:club_admin}
+    password: ${DB_PASSWORD:club_password}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none  # Deshabilitado temporalmente - Flyway maneja el schema
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  devtools:
+    restart:
+      enabled: true
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:uDrvWrxtiKHNKrs69wcuWMQY/Yf7OYReIWAme+OCddoH+t0RHlRbcYpYY9pklCeBljNs7O7lbWXEqf7q698ZTA==}
+  expiration: 86400000 # 24 horas en milisegundos
+
+# Application Configuration
+app:
+  upload-dir: ./uploads
+  max-file-size: 10MB
+  version: 0.3.1
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:3001,http://localhost:5173
+
+# SpringDoc OpenAPI/Swagger Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+    filter: true
+    displayRequestDuration: true
+  show-actuator: false
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    com.club.management: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+---
+# Perfil de producción
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/club_management}
+    username: ${DB_USER:club_admin}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 600000
+      leak-detection-threshold: 60000
+
+  jpa:
+    hibernate:
+      ddl-auto: none  # Deshabilitado temporalmente - Flyway maneja el schema
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # Performance optimizations
+        jdbc:
+          batch_size: 25
+          fetch_size: 50
+          time_zone: UTC
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
+        # Query optimization
+        query:
+          plan_cache_max_size: 2048
+          plan_parameter_metadata_max_size: 128
+        # Statement caching
+        connection:
+          provider_disables_autocommit: true
+        # Lazy loading optimization
+        enable_lazy_load_no_trans: false
+        format_sql: false
+        use_sql_comments: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    validate-on-migrate: false  # Deshabilitar validación temporalmente por checksums nullos
+
+  # Caching configuration
+  cache:
+    cache-names: dashboardStats
+    caffeine:
+      spec: maximumSize=100,expireAfterWrite=120s  # Cache por 2 minutos
+
+# JWT Configuration (production)
+# CRÍTICO: JWT_SECRET debe estar configurado como variable de entorno
+# Para generar un secret seguro: openssl rand -base64 64
+jwt:
+  secret: ${JWT_SECRET}  # SIN valor por defecto - falla si no está configurado
+  expiration: 86400000
+
+# Application Configuration (production)
+app:
+  upload-dir: ${UPLOAD_DIR:/app/uploads}
+  max-file-size: 10MB
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://club-management-frontend-b893.onrender.com,https://club-management-frontend.onrender.com,https://club-management-frontend-production.up.railway.app}
+  security:
+    bcrypt-strength: 10  # Restored to reasonable production value
+
+# Caching configuration (moved under spring in prod profile)
+# See line 74 for the spring: key
+
+# Server optimizations
+server:
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css
+    min-response-size: 1024
+  http2:
+    enabled: true
+  # Security: Limit payload sizes to prevent DoS attacks - Sprint 10
+  tomcat:
+    max-http-post-size: 2MB
+    max-http-request-header-size: 16KB
+  max-http-header-size: 16KB
+
+# Actuator (production)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+# Logging (production)
+logging:
+  level:
+    com.club.management: INFO
+    org.springframework: WARN
+  file:
+    name: /app/logs/club-management.log
+    max-size: 10MB
+    max-history: 30
+
+---
+# Perfil Alpha (Staging)
+spring:
+  config:
+    activate:
+      on-profile: alpha
+
+  datasource:
+    # FREE tier: Usar DATABASE_URL directamente (Spring Boot lo parsea automáticamente)
+    # Render provee DATABASE_URL en formato: postgresql://user:pass@host:port/db
+    # Spring Boot lo convierte automáticamente a JDBC URL con configuración SSL correcta
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/club_management}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      auto-commit: false
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    validate-on-migrate: false
+
+# JWT Configuration (alpha)
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# Application Configuration (alpha)
+app:
+  upload-dir: /app/uploads
+  max-file-size: 10MB
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+
+# Actuator (alpha)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+# Logging (alpha)
+logging:
+  level:
+    com.club.management: DEBUG
+    org.springframework: INFO
+
+---
+# Perfil de test
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  datasource:
+    url: jdbc:tc:postgresql:15-alpine:///testdb
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+  flyway:
+    enabled: true
+    clean-disabled: false
+
+logging:
+  level:
+    com.club.management: INFO
+    org.testcontainers: INFO

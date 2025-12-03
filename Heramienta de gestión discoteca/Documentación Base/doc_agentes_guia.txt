@@ -1,0 +1,638 @@
+# 🤖 Guía de Agentes para Personas SIN Conocimientos Técnicos
+
+## 🎯 Qué es un "Agente"
+
+**Imagina que tienes un equipo de expertos invisibles.**
+
+Cada experto sabe hacer UNA cosa muy bien:
+- Un experto construye la base (Backend)
+- Otro experto hace que se vea bonito (Frontend)  
+- Otro experto guarda los datos (Base de Datos)
+- Otro experto instala todo (DevOps)
+
+**TÚ solo les dices QUÉ quieres, ellos hacen el CÓMO.**
+
+---
+
+## 🚨 IMPORTANTE: ¿Qué Pasa Si No Sé Nada?
+
+### Si NO tienes conocimientos técnicos:
+
+#### ❌ NO Intentes:
+- Escribir código tú mismo
+- Instalar cosas manualmente sin guía
+- "Arreglar" errores modificando archivos
+- Hacer deploy sin supervisión
+
+#### ✅ SÍ Puedes:
+- Copiar y pegar los prompts que te doy
+- Seguir las instrucciones paso a paso
+- Hacer preguntas cuando no entiendas
+- Contratar a alguien técnico para partes críticas
+
+---
+
+## 🎓 Sistema de Agentes: Nivel Explicación Infantil
+
+### Agente 1: **El Profesor de Instalación** 👨‍🏫
+**Qué hace:** Te enseña a instalar TODO lo necesario en tu computadora
+
+**Por qué lo necesitas:**
+Sin este agente, no puedes empezar. Es como querer cocinar sin tener una cocina.
+
+**Qué te va a pedir:**
+- Sistema operativo (Windows/Mac/Linux)
+- ¿Tienes algo instalado ya?
+
+**Qué te va a dar:**
+- Instrucciones paso a paso CON IMÁGENES
+- Qué botón hacer clic
+- Qué escribir EXACTAMENTE
+- Cómo verificar que funcionó
+
+**Prompt para Claude Code:**
+```
+Actúa como "Profesor de Instalación" para alguien SIN conocimientos técnicos.
+
+CONTEXTO: 
+Usuario tiene [Windows/Mac/Linux] y NO sabe nada de programación.
+
+TAREA:
+Dame instrucciones PASO A PASO (como si tuviera 8 años) para instalar:
+1. Java 17
+2. Node.js 18
+3. Docker Desktop
+4. Git
+5. Visual Studio Code
+
+Para CADA herramienta:
+- Explica QUÉ es en lenguaje simple
+- Dame el link de descarga EXACTO
+- Paso a paso con capturas (describe las pantallas)
+- Cómo verificar que se instaló bien
+- QUÉ hacer si sale un error
+
+Usa analogías simples y emojis.
+```
+
+---
+
+### Agente 2: **El Constructor de Cimientos** 🏗️
+**Qué hace:** Crea la estructura base del proyecto (como construir los cimientos de una casa)
+
+**Por qué lo necesitas:**
+Sin estructura, no hay dónde poner el código. Es como intentar construir una casa sin tener el terreno preparado.
+
+**Qué te va a pedir:**
+- Nombre del proyecto
+- Dónde quieres guardarlo en tu computadora
+
+**Qué te va a dar:**
+- Todas las carpetas creadas
+- Todos los archivos base
+- Sistema listo para empezar a trabajar
+
+**Prompt para Claude Code:**
+```
+Actúa como "Constructor de Cimientos".
+
+Usuario NO es técnico. Necesito que:
+
+1. Expliques QUÉ es cada carpeta que vas a crear (en lenguaje simple)
+2. Crees TODA la estructura del proyecto Club Management
+3. Me des un checklist visual para verificar que todo está bien
+
+Después de crear todo, dame:
+- Un dibujo ASCII de la estructura de carpetas
+- Explicación de para qué sirve CADA carpeta (como si fuera una casa)
+- Lista de verificación: "✅ Si ves esto, está bien"
+
+NO uses términos técnicos sin explicar.
+```
+
+---
+
+### Agente 3: **El Mago del Backend** 🧙‍♂️
+**Qué hace:** Construye el "cerebro" de tu aplicación (la parte invisible que hace cálculos)
+
+**Analogía simple:**
+- Frontend = La carta del restaurante que VES
+- Backend = La cocina donde PREPARAN la comida
+- Base de datos = El refrigerador donde GUARDAN los ingredientes
+
+**Por qué lo necesitas:**
+El backend hace todos los cálculos:
+- ¿Cuánto dinero ganaste este mes?
+- ¿Cuánto le debes pagar a cada empleado?
+- ¿Qué eventos tienes programados?
+
+**Qué te va a pedir:**
+- ¿Qué quieres calcular/guardar?
+- Ejemplo: "Quiero registrar un gasto"
+
+**Qué te va a dar:**
+- Código que hace esos cálculos
+- Tests para verificar que funciona
+- Explicación de QUÉ hace cada parte
+
+**Prompt para Claude Code:**
+```
+Actúa como "Mago del Backend" para alguien NO técnico.
+
+REGLA DE ORO: Explica TODO con analogías de restaurante.
+
+TAREA: Crear el módulo de GASTOS
+
+Estructura tu respuesta así:
+
+1. **¿Qué vamos a construir?** (explicación simple)
+   "Vamos a crear un sistema para que apuntes todos los gastos de tu discoteca,
+   como si fuera un cuaderno digital. Cada vez que gastes dinero, lo anotas aquí."
+
+2. **¿Qué información necesitamos guardar?** (lista simple)
+   - En qué fecha gastaste
+   - Cuánto dinero
+   - En qué lo gastaste (DJ, bebidas, etc.)
+   
+3. **El código** (generarlo todo)
+
+4. **¿Cómo sé que funciona?** (tests explicados)
+   "Hemos escrito tests. Es como si le pidiéramos a un inspector que revise
+   que todo funciona bien antes de usarlo de verdad."
+
+5. **Checklist de verificación**
+   ✅ Si ves esto → está bien
+   ❌ Si ves esto → hay un problema
+
+NO uses jerga técnica. Si la usas, explícala inmediatamente.
+```
+
+---
+
+### Agente 4: **El Artista Visual** 🎨
+**Qué hace:** Hace que tu aplicación se vea bonita y sea fácil de usar (Frontend)
+
+**Analogía:**
+Es como decorar tu casa. El Constructor hizo las paredes, pero el Artista pone los muebles bonitos, pinta las paredes de colores, y hace que todo sea cómodo.
+
+**Por qué lo necesitas:**
+El backend funciona, pero necesitas VERLO y poder hacer clic en botones. Sin frontend, tendrías que escribir comandos complicados para todo.
+
+**Qué te va a pedir:**
+- ¿Cómo quieres que se vea?
+- ¿Qué colores te gustan?
+- ¿Qué botones necesitas?
+
+**Qué te va a dar:**
+- Páginas bonitas
+- Botones que funcionan
+- Formularios para llenar
+- Tablas para ver datos
+
+**Prompt para Claude Code:**
+```
+Actúa como "Artista Visual" explicando a alguien NO técnico.
+
+Usuario quiere ver una página de GASTOS.
+
+ESTRUCTURA DE RESPUESTA:
+
+1. **Boceto de la página** (dibujo ASCII/descripción)
+   ```
+   ┌─────────────────────────────────────┐
+   │  💰 Gastos                         │
+   │                                     │
+   │  [➕ Nuevo Gasto]  [🔍 Buscar]     │
+   │                                     │
+   │  Tabla:                             │
+   │  Fecha    | Concepto  | Monto      │
+   │  ─────────┼───────────┼────────    │
+   │  2025-10-01 | DJ     | €500       │
+   │  2025-10-02 | Bebidas| €300       │
+   │                                     │
+   └─────────────────────────────────────┘
+   ```
+
+2. **¿Qué puede hacer el usuario?**
+   - Ver todos los gastos en una tabla
+   - Hacer clic en "Nuevo Gasto" para añadir uno
+   - Buscar un gasto específico
+   
+3. **Código** (generar componentes React)
+
+4. **¿Cómo lo pruebo?**
+   Paso a paso para abrir en navegador
+
+5. **Checklist visual**
+   ✅ Ves una tabla → bien
+   ✅ Puedes hacer clic en botones → bien
+   ❌ Página en blanco → problema (ver solución)
+
+Usa muchos emojis y analogías.
+```
+
+---
+
+### Agente 5: **El Bibliotecario** 📚
+**Qué hace:** Organiza y guarda TODA tu información (Base de Datos)
+
+**Analogía:**
+Imagina una biblioteca gigante. Cada libro es un dato:
+- Estante 1: Todos los eventos
+- Estante 2: Todos los gastos  
+- Estante 3: Todos los empleados
+
+El Bibliotecario sabe EXACTAMENTE dónde está cada libro, puede encontrarlos rapidísimo, y NUNCA pierde nada.
+
+**Por qué lo necesitas:**
+Sin base de datos, cada vez que apagas la computadora PIERDES TODO. Con base de datos, tus datos están seguros para siempre.
+
+**Qué te va a pedir:**
+- ¿Qué información quieres guardar?
+- Ejemplo: Eventos, gastos, empleados
+
+**Qué te va a dar:**
+- Estructura para guardar datos
+- Sistema que nunca pierde información
+- Búsquedas rapidísimas
+
+**Prompt para Claude Code:**
+```
+Actúa como "El Bibliotecario" explicando a alguien sin conocimientos técnicos.
+
+TAREA: Crear la estructura para guardar EVENTOS
+
+RESPONDE ASÍ:
+
+1. **Analogía de la biblioteca**
+   "Vamos a crear un 'estante' para eventos. Cada evento es como un 'libro'
+   con varias 'páginas' (información)."
+
+2. **¿Qué información guarda cada 'libro'?**
+   📖 Cada evento tendrá:
+   - Nombre del evento (ej: "Fiesta de Halloween")
+   - Fecha (ej: 31 de Octubre)
+   - Cuántas personas esperamos
+   - Cuánto dinero gastamos
+   - Cuánto dinero ganamos
+   
+3. **El código técnico** (crear migración)
+   [Genera la migración SQL]
+
+4. **¿Cómo verifico que funcionó?**
+   Comando simple para revisar:
+   ```
+   [comando explicado paso a paso]
+   ```
+   
+5. **Analogía visual**
+   ```
+   Base de Datos = Biblioteca
+   └── Estante "EVENTOS" 
+       ├── 📖 Evento 1: Halloween 2025
+       ├── 📖 Evento 2: Navidad 2025
+       └── 📖 Evento 3: Año Nuevo 2026
+   ```
+
+Cada término técnico DEBE tener analogía.
+```
+
+---
+
+### Agente 6: **El Instalador** 🔧
+**Qué hace:** Pone tu aplicación en internet para que funcione (DevOps/Deploy)
+
+**Analogía:**
+Construiste una casa (la aplicación) en tu jardín (tu computadora). El Instalador la "traslada" a un terreno público (servidor en internet) para que TODOS puedan visitarla, no solo tú.
+
+**Por qué lo necesitas:**
+Si solo funciona en tu computadora, nadie más puede usarlo. Necesitas ponerlo en un servidor 24/7.
+
+**Qué te va a pedir:**
+- ¿Dónde quieres poner la aplicación? (servidor propio/cloud)
+- ¿Tienes dominio? (www.tuclub.com)
+
+**Qué te va a dar:**
+- Tu aplicación funcionando en internet
+- Link para que otros accedan
+- Sistema de backups automáticos
+
+**Prompt para Claude Code:**
+```
+Actúa como "El Instalador" para alguien NO técnico.
+
+TAREA: Explicar cómo poner la aplicación en internet
+
+ESTRUCTURA:
+
+1. **¿Qué significa "deploy"?**
+   Analogía simple de "mudarse de casa"
+
+2. **Opciones que tienes**
+   
+   Opción A: Tu propio servidor (como comprar una casa)
+   - Ventajas: [lista simple]
+   - Desventajas: [lista simple]
+   - Coste: €X/mes
+   
+   Opción B: Servicios cloud GRATIS (como rentar)
+   - Ventajas: [lista simple]
+   - Desventajas: [lista simple]
+   - Coste: GRATIS
+   
+3. **Recomendación**
+   "Si no sabes nada, empieza con Opción B (gratis)"
+
+4. **Paso a paso CON CAPTURAS**
+   Cada paso debe ser:
+   - Captura o descripción de pantalla
+   - Qué hacer EXACTAMENTE
+   - Qué escribir (copiar/pegar ready)
+
+5. **¿Cómo sé que funcionó?**
+   "Abre este link: https://tuapp.com
+   Si ves [ESTO], funcionó ✅"
+
+6. **Troubleshooting visual**
+   SI ves esto ❌ → HAZ esto ✅
+
+NO asumas que saben usar terminal, SSH, comandos Unix.
+```
+
+---
+
+### Agente 7: **El Detective de Errores** 🕵️
+**Qué hace:** Encuentra y arregla problemas (Debugging)
+
+**Analogía:**
+Como un detective que investiga un crimen. Cuando algo no funciona, el Detective busca pistas, encuentra al culpable (el bug), y lo arregla.
+
+**Por qué lo necesitas:**
+SIEMPRE van a haber errores. SIEMPRE. Es normal. El Detective te enseña a entenderlos y arreglarlos.
+
+**Qué te va a pedir:**
+- Mensaje de error (copiar/pegar)
+- Qué estabas haciendo cuando falló
+- Captura de pantalla
+
+**Qué te va a dar:**
+- Explicación simple del error
+- Solución paso a paso
+- Cómo evitarlo en el futuro
+
+**Prompt para Claude Code:**
+```
+Actúa como "Detective de Errores" para NO técnicos.
+
+Usuario copia un error y NO entiende nada.
+
+ESTRUCTURA DE RESPUESTA:
+
+1. **Traducción del error a español simple**
+   
+   Error técnico:
+   ```
+   [error copiado por usuario]
+   ```
+   
+   Traducción simple:
+   "Esto significa que [explicación de 8 años]"
+
+2. **¿Por qué pasó esto?**
+   Analogía simple (como explicarle a un niño)
+
+3. **¿Es grave?**
+   🟢 No te preocupes, es fácil de arreglar
+   🟡 Necesitarás 10 minutos, pero se arregla
+   🔴 Esto es complicado, mejor llama a un técnico
+
+4. **Solución PASO A PASO**
+   Paso 1: [acción simple]
+   Paso 2: [acción simple]
+   ...
+   
+5. **¿Cómo verifico que se arregló?**
+   Checklist visual
+
+6. **¿Cómo evito que pase de nuevo?**
+   Tips simples
+
+REGLAS:
+- NO uses jerga
+- Cada paso debe tener UNA SOLA acción
+- Usa analogías del mundo real
+```
+
+---
+
+### Agente 8: **El Profesor Particular** 👨‍🎓
+**Qué hace:** Te enseña conceptos técnicos cuando los necesites (Educación)
+
+**Analogía:**
+Como un profesor que te explica las cosas cuando no entiendes. No juzga, no se impacienta, explica las veces que sea necesario.
+
+**Por qué lo necesitas:**
+A veces otros agentes usarán términos técnicos. El Profesor te los explica en lenguaje humano.
+
+**Qué te va a pedir:**
+- ¿Qué no entiendes?
+
+**Qué te va a dar:**
+- Explicación super simple
+- Analogías del mundo real
+- Ejemplos visuales
+
+**Prompt para Claude Code:**
+```
+Actúa como "Profesor Particular" para alguien SIN conocimientos técnicos.
+
+Usuario te pregunta: "¿Qué es [TÉRMINO TÉCNICO]?"
+
+ESTRUCTURA:
+
+1. **Definición para niños**
+   "[término] es como [analogía cotidiana]"
+
+2. **¿Para qué sirve?**
+   Ejemplo del mundo real
+
+3. **Analogía visual**
+   Dibujo ASCII o descripción gráfica
+
+4. **Ejemplo práctico**
+   "En tu proyecto de Club Management, [término] se usa para [uso específico]"
+
+5. **¿Necesito saberlo EN PROFUNDIDAD?**
+   🟢 No, solo entiende la idea general
+   🟡 Es útil saberlo un poco más
+   🔴 Es importante, aquí más info
+
+EJEMPLOS de términos: API, JSON, Base de datos, Frontend, Backend, etc.
+
+Usa MUCHAS analogías cotidianas.
+```
+
+---
+
+## 🎬 Cómo Usar Este Sistema (Paso a Paso)
+
+### DÍA 1: Instalación
+
+```
+1. Abre Claude Code
+2. Copia este prompt:
+
+"Actúa como Profesor de Instalación.
+Tengo [Windows/Mac] y NO SÉ NADA de programación.
+Enséñame a instalar todo lo necesario PASO A PASO."
+
+3. Sigue CADA instrucción al pie de la letra
+4. NO te saltes pasos
+5. Si algo falla, llama al Detective de Errores
+```
+
+### DÍA 2: Estructura Base
+
+```
+"Actúa como Constructor de Cimientos.
+Crea la estructura del proyecto Club Management.
+Explícame QUÉ es cada carpeta."
+```
+
+### DÍA 3-5: Primer Módulo (Eventos)
+
+```
+"Actúa como Mago del Backend.
+Crea el módulo de EVENTOS completo.
+Explícame como si tuviera 8 años."
+```
+
+```
+"Actúa como Bibliotecario.
+Crea donde guardar los eventos.
+Usa analogías simples."
+```
+
+```
+"Actúa como Artista Visual.
+Crea la página para ver/crear eventos.
+Dibuja cómo se verá."
+```
+
+### Cuando Algo Falla
+
+```
+"Actúa como Detective de Errores.
+Tengo este error: [copiar/pegar]
+¿Qué significa y cómo lo arreglo?"
+```
+
+### Cuando No Entiendes Algo
+
+```
+"Actúa como Profesor Particular.
+¿Qué es [término] en lenguaje simple?"
+```
+
+---
+
+## 🚨 ADVERTENCIAS IMPORTANTES
+
+### ❌ Cosas que NO Debes Hacer
+
+1. **NO modifiques código si no entiendes**
+   - Pregunta primero al agente correspondiente
+   
+2. **NO hagas deploy a producción sin ayuda**
+   - Usa al Instalador
+   
+3. **NO ignores los errores**
+   - Usa al Detective de Errores inmediatamente
+   
+4. **NO te saltes los tests**
+   - Son tu red de seguridad
+
+### ✅ Cosas que SÍ Debes Hacer
+
+1. **Pregunta TODO lo que no entiendas**
+   - Los agentes están para eso
+   
+2. **Sigue las instrucciones EXACTAMENTE**
+   - No improvises
+   
+3. **Haz backups frecuentes**
+   - Usa el script que el Instalador te da
+   
+4. **Pide ayuda cuando te atores más de 30 minutos**
+   - Mejor preguntar que romper todo
+
+---
+
+## 💰 ¿Cuándo CONTRATAR a Alguien Técnico?
+
+### Puedes Hacerlo Solo Con Los Agentes:
+- ✅ Setup inicial
+- ✅ Desarrollo básico siguiendo roadmap
+- ✅ Cambios pequeños
+- ✅ Errores comunes
+
+### Deberías Contratar Ayuda Para:
+- ❌ Deploy a producción (primera vez)
+- ❌ Integración con sistemas externos complejos
+- ❌ Problemas de seguridad
+- ❌ Optimización de performance
+- ❌ Bugs críticos que no entiendes
+
+### Coste Estimado de Ayuda Externa:
+- **Consultoría inicial:** €500-1000 (setup + deploy)
+- **Soporte mensual:** €200-500/mes (opcional)
+- **Desarrollo custom:** €30-80/hora
+
+---
+
+## 📞 Plan de Emergencia
+
+### Si Todo Falla:
+
+1. **NO ENTRES EN PÁNICO**
+2. Haz backup inmediatamente (script en docs/)
+3. Anota QUÉ hiciste antes de que fallara
+4. Copia el mensaje de error COMPLETO
+5. Contacta: [correo de soporte técnico]
+
+---
+
+## ✅ Checklist de Supervivencia
+
+Guarda esta lista:
+
+- [ ] Tengo backups automáticos configurados
+- [ ] Sé cómo restaurar un backup
+- [ ] Tengo guardados los prompts de cada agente
+- [ ] Sé usar al Detective de Errores
+- [ ] Tengo un técnico de confianza por si acaso
+- [ ] NO modifico código que no entiendo
+- [ ] Pregunto TODO lo que no sé
+- [ ] Sigo las instrucciones AL PIE DE LA LETRA
+
+---
+
+## 🎯 Realidad Check
+
+### Lo que SÍ vas a lograr:
+- ✅ Tener un sistema funcionando
+- ✅ Hacer cambios básicos
+- ✅ Entender cómo funciona a alto nivel
+- ✅ Ahorrar €15,000-30,000 en desarrollo
+
+### Lo que NO vas a lograr (sin ayuda):
+- ❌ Ser un programador experto
+- ❌ Resolver bugs super complejos
+- ❌ Hackear el sistema
+- ❌ Optimizar al 100%
+
+**Y está BIEN. No necesitas ser experto para tener tu sistema funcionando.**
+
+---
+
+[Continúa en: PROMPTS_AGENTES_COMPLETOS.md →]()

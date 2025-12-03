@@ -1,0 +1,6 @@
+# Ensure shell scripts always use LF line endings (Unix format)
+*.sh text eol=lf
+
+# Ensure these specific scripts are always executable
+build.sh text eol=lf
+start.sh text eol=lf

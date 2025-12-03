@@ -1,0 +1,976 @@
+# Guía de Desarrollo con Claude Code
+
+## 1. Workflow Recomendado
+
+### Iniciar Claude Code
+```bash
+# Desde el directorio del proyecto
+cd club-management
+claude-code
+```
+
+### Estructura de Prompts
+
+Cada funcionalidad sigue este patrón:
+
+```
+1. CONTEXTO: "Estoy trabajando en [módulo] del proyecto Club Management"
+2. OBJETIVO: "Necesito implementar [funcionalidad específica]"
+3. ESPECIFICACIONES: Lista de requisitos técnicos
+4. GENERACIÓN: "Genera el código completo siguiendo las convenciones del proyecto"
+```
+
+## 2. Prompts por Tipo de Tarea
+
+### A) Crear Entidad Completa
+
+```
+PROMPT:
+Necesito crear la entidad completa para [NOMBRE_ENTIDAD].
+
+Especificaciones:
+- Campos: 
+  * [campo1]: [tipo] - [descripción]
+  * [campo2]: [tipo] - [descripción]
+  * [campo3]: [tipo] - [descripción]
+
+- Relaciones:
+  * ManyToOne con [EntidadX]
+  * OneToMany con [EntidadY]
+
+- Validaciones:
+  * [campo] no puede ser null
+  * [campo] debe ser unique
+  * [campo] debe cumplir [regla]
+
+Genera:
+1. Entity con JPA annotations
+2. Migración Flyway (V00X__create_[tabla].sql)
+3. Repository con Spring Data JPA
+4. Custom queries si son necesarias
+
+Usa Lombok para reducir boilerplate.
+Incluye auditoría (createdAt, updatedAt).
+```
+
+**Ejemplo Real:**
+```
+Necesito crear la entidad completa para GASTO.
+
+Especificaciones:
+- Campos:
+  * concepto: String - descripción del gasto
+  * monto: BigDecimal - cantidad monetaria
+  * fecha: LocalDate - fecha del gasto
+  * categoria: CategoriaGasto (enum) - tipo de gasto
+  * pagado: Boolean - si está pagado
+  * notas: String - observaciones opcionales
+
+- Relaciones:
+  * ManyToOne con Evento (un evento tiene muchos gastos)
+  * ManyToOne con Proveedor (opcional)
+
+- Validaciones:
+  * concepto no puede ser null ni vacío
+  * monto debe ser mayor que 0
+  * fecha no puede ser futura
+  * categoria es requerida
+
+Genera:
+1. Entity Gasto.java con JPA annotations
+2. Migración V003__create_gastos.sql
+3. GastoRepository con query para sumar gastos por evento
+
+Usa Lombok (@Data, @Builder).
+```
+
+### B) Crear Service con Lógica de Negocio
+
+```
+PROMPT:
+Necesito implementar [ServiceName] con la siguiente lógica:
+
+Métodos requeridos:
+1. [metodo1]: 
+   - Entrada: [parámetros]
+   - Salida: [tipo]
+   - Lógica: [descripción paso a paso]
+   - Validaciones: [lista]
+   - Excepciones: lanzar [Exception] si [condición]
+
+2. [metodo2]:
+   - [especificaciones]
+
+Consideraciones:
+- Todos los métodos públicos deben ser @Transactional
+- Mapear entidades a DTOs antes de retornar
+- Logging en operaciones críticas
+- Manejo de casos edge
+
+Genera también:
+- DTOs necesarios (Request, Response)
+- Mapper con MapStruct
+- Tests unitarios con JUnit 5 y Mockito
+```
+
+**Ejemplo Real:**
+```
+Necesito implementar GastoService con la siguiente lógica:
+
+Métodos requeridos:
+1. crearGasto:
+   - Entrada: CreateGastoRequest (eventoId, concepto, monto, categoria, proveedorId)
+   - Salida: GastoDTO
+   - Lógica:
+     a. Validar que el evento existe
+     b. Validar que el proveedor existe (si se proporciona)
+     c. Crear entidad Gasto
+     d. Guardar en BD
+     e. Actualizar el total de gastos del evento
+     f. Retornar DTO
+   - Excepciones: lanzar NotFoundException si evento no existe
+
+2. calcularGastosPorCategoria:
+   - Entrada: Long eventoId
+   - Salida: Map<CategoriaGasto, BigDecimal>
+   - Lógica: agrupar gastos por categoría y sumar montos
+
+3. marcarComoPagado:
+   - Entrada: Long gastoId, LocalDate fechaPago
+   - Salida: GastoDTO
+   - Lógica: actualizar campo pagado=true y fecha_pago
+
+Genera:
+- GastoService.java
+- CreateGastoRequest.java, UpdateGastoRequest.java
+- GastoDTO.java
+- GastoMapper.java (MapStruct)
+- GastoServiceTest.java con casos:
+  * Creación exitosa
+  * Evento no encontrado (excepción)
+  * Cálculo por categoría
+```
+
+### C) Crear REST Controller
+
+```
+PROMPT:
+Necesito crear el controller REST para [recurso].
+
+Endpoints requeridos:
+
+GET /api/[recurso]
+- Descripción: Listar con paginación y filtros
+- Parámetros query: [lista]
+- Response: Page<[DTO]>
+- Roles permitidos: [roles]
+
+POST /api/[recurso]
+- Descripción: Crear nuevo
+- Body: [RequestDTO]
+- Response: [ResponseDTO] (201 Created)
+- Validaciones: [lista]
+- Roles permitidos: [roles]
+
+PUT /api/[recurso]/{id}
+- Descripción: Actualizar
+- Path param: id
+- Body: [UpdateDTO]
+- Response: [ResponseDTO]
+- Roles permitidos: [roles]
+
+DELETE /api/[recurso]/{id}
+- Descripción: Eliminar
+- Path param: id
+- Response: 204 No Content
+- Roles permitidos: [roles]
+
+Incluye:
+- Validación con @Valid
+- Documentación OpenAPI/Swagger
+- Manejo de excepciones
+- Security con @PreAuthorize
+```
+
+**Ejemplo Real:**
+```
+Necesito crear GastoController.
+
+Endpoints:
+
+GET /api/gastos
+- Descripción: Listar gastos con filtros
+- Params: eventoId (opcional), categoria (opcional), fechaInicio, fechaFin, pageable
+- Response: Page<GastoDTO>
+- Roles: ADMIN, GERENTE, ENCARGADO, LECTURA
+
+POST /api/gastos
+- Body: CreateGastoRequest
+- Response: GastoDTO (201)
+- Validaciones: campos requeridos
+- Roles: ADMIN, GERENTE, ENCARGADO
+
+PUT /api/gastos/{id}
+- Path: id
+- Body: UpdateGastoRequest
+- Response: GastoDTO
+- Roles: ADMIN, GERENTE
+
+POST /api/gastos/{id}/pagar
+- Path: id
+- Body: { fechaPago: "2025-10-01" }
+- Response: GastoDTO
+- Roles: ADMIN, GERENTE
+
+GET /api/gastos/por-categoria
+- Params: eventoId
+- Response: Map<String, BigDecimal>
+- Roles: todos autenticados
+
+Incluye Swagger docs completos.
+```
+
+### D) Crear Migración Flyway
+
+```
+PROMPT:
+Necesito crear una migración Flyway que:
+
+1. Cree la tabla [nombre]
+   - Columnas: [lista con tipos y constraints]
+   - Primary key: [campo]
+   - Foreign keys: [lista]
+   - Indexes: [lista]
+   - Default values: [si aplica]
+
+2. [Otras operaciones si necesarias]
+
+Nombre del archivo: V00X__[descripcion].sql
+
+Consideraciones:
+- Usar BIGSERIAL para IDs
+- TIMESTAMP para fechas con hora
+- DATE para fechas simples
+- DECIMAL(10,2) para montos
+- VARCHAR con límites apropiados
+- NOT NULL donde corresponda
+- Índices en foreign keys y campos de búsqueda frecuente
+```
+
+**Ejemplo Real:**
+```
+Crea migración Flyway para tabla GASTOS:
+
+Tabla: gastos
+Columnas:
+- id: BIGSERIAL, primary key
+- evento_id: BIGINT, not null, FK a eventos(id)
+- categoria: VARCHAR(50), not null
+- concepto: VARCHAR(255), not null
+- monto: DECIMAL(10,2), not null
+- proveedor_id: BIGINT, nullable, FK a proveedores(id)
+- fecha: DATE, not null
+- metodo_pago: VARCHAR(50)
+- pagado: BOOLEAN, default false
+- fecha_pago: DATE, nullable
+- notas: TEXT
+- numero_factura: VARCHAR(100)
+- creado_en: TIMESTAMP, default CURRENT_TIMESTAMP
+- creado_por: VARCHAR(255)
+
+Indexes:
+- idx_gastos_evento_id en (evento_id)
+- idx_gastos_categoria en (categoria)
+- idx_gastos_fecha en (fecha)
+- idx_gastos_proveedor_id en (proveedor_id)
+
+Nombre: V003__create_gastos_table.sql
+```
+
+### E) Crear Test de Integración
+
+```
+PROMPT:
+Necesito un test de integración para [Controller/Service].
+
+Setup:
+- @SpringBootTest
+- TestContainers con PostgreSQL
+- Base de datos limpia para cada test
+- Datos de prueba: [descripción]
+
+Tests a crear:
+1. [test1]: 
+   - Escenario: [descripción]
+   - Given: [condiciones iniciales]
+   - When: [acción]
+   - Then: [resultado esperado]
+
+2. [test2]: ...
+
+Usa:
+- MockMvc para controllers
+- @Transactional para rollback
+- AssertJ para assertions
+- @WithMockUser para seguridad
+```
+
+**Ejemplo Real:**
+```
+Test de integración para GastoController:
+
+Setup:
+- @SpringBootTest con TestContainers PostgreSQL
+- Crear evento de prueba en @BeforeEach
+- MockMvc configurado
+
+Tests:
+
+1. testCrearGasto_exitoso:
+   - Given: Evento existe, request válido
+   - When: POST /api/gastos
+   - Then: 201 Created, GastoDTO en response, guardado en BD
+
+2. testCrearGasto_eventoNoExiste:
+   - Given: EventoId inexistente
+   - When: POST /api/gastos
+   - Then: 404 Not Found
+
+3. testListarGastos_conFiltros:
+   - Given: 3 gastos en BD de diferentes categorías
+   - When: GET /api/gastos?categoria=ARTISTA
+   - Then: 200 OK, solo gastos de categoría ARTISTA
+
+4. testMarcarPagado_exitoso:
+   - Given: Gasto existe con pagado=false
+   - When: POST /api/gastos/{id}/pagar
+   - Then: 200 OK, gasto.pagado=true
+
+Archivo: GastoControllerIntegrationTest.java
+```
+
+### F) Crear Página React
+
+```
+PROMPT:
+Necesito crear una página React para gestionar [entidad].
+
+Funcionalidades:
+1. Lista con tabla
+   - Columnas: [lista]
+   - Filtros: [campos]
+   - Paginación
+   - Ordenamiento
+
+2. Crear/Editar en modal
+   - Campos: [lista con tipos]
+   - Validaciones: [lista]
+
+3. Acciones: [ver, editar, eliminar]
+
+Stack:
+- TanStack Table para tabla
+- TanStack Query para datos
+- React Hook Form + Zod para formulario
+- Shadcn/ui para componentes
+- Tailwind para estilos
+
+Estructura:
+/pages/[Entidad]/
+  ├── [Entidad]Page.tsx (página principal)
+  ├── [Entidad]Table.tsx (tabla)
+  ├── [Entidad]Form.tsx (formulario modal)
+  └── [Entidad]Filters.tsx (filtros)
+
+/services/
+  └── [entidad]Service.ts (llamadas API)
+
+/types/
+  └── [entidad].ts (TypeScript types)
+```
+
+**Ejemplo Real:**
+```
+Página React para gestionar GASTOS:
+
+Funcionalidades:
+1. Tabla de gastos
+   - Columnas: concepto, categoría, monto, fecha, pagado, acciones
+   - Filtros: evento, categoría, rango fechas, estado pago
+   - Paginación (20 por página)
+   - Ordenar por fecha desc por defecto
+
+2. Modal crear/editar
+   - Campos:
+     * Evento (select)
+     * Categoría (select de enum)
+     * Concepto (text)
+     * Monto (number, €)
+     * Proveedor (select opcional)
+     * Fecha (date picker)
+     * Método pago (select)
+     * Notas (textarea opcional)
+   - Validaciones:
+     * Concepto requerido, min 3 chars
+     * Monto requerido, > 0
+     * Fecha requerida, no futura
+
+3. Acciones:
+   - Ver detalle
+   - Editar
+   - Marcar como pagado (si no está pagado)
+   - Eliminar (con confirmación)
+
+Generar archivos:
+- GastosPage.tsx
+- GastoTable.tsx
+- GastoForm.tsx
+- GastoFilters.tsx
+- gastoService.ts
+- gasto.types.ts
+
+Responsive, con loading states y error handling.
+```
+
+## 3. Prompts para Tareas Comunes
+
+### Crear Enum
+```
+Crea el enum [NombreEnum] con los siguientes valores:
+- [VALOR1]: [descripción]
+- [VALOR2]: [descripción]
+
+Incluye método para obtener por string y validación.
+```
+
+### Añadir Endpoint a Controller Existente
+```
+En [Controller], añade un nuevo endpoint:
+
+[METHOD] /api/[path]
+- Descripción: [descripción]
+- Parámetros: [lista]
+- Lógica: [descripción]
+- Response: [tipo]
+- Roles: [lista]
+
+Incluye docs Swagger.
+```
+
+### Optimizar Query
+```
+Esta query es lenta:
+[código de la query]
+
+Optimízala:
+- Añade índices necesarios en migración
+- Usa JOIN FETCH si hay N+1
+- Considera usar proyección si solo necesitas campos específicos
+- Añade explicación de la optimización
+```
+
+### Crear Reporte con JasperReports
+```
+Necesito un reporte PDF de [nombre]:
+
+Datos a mostrar:
+- [campo1]
+- [campo2]
+- [campo3]
+
+Agrupación: [por qué campo]
+Totales: [qué sumar]
+
+Genera:
+1. Plantilla .jrxml
+2. Método en ReportService para generar el PDF
+3. Endpoint en ReportController
+```
+
+## 4. Testing Strategy
+
+### Test Unitario de Service
+```java
+@ExtendWith(MockitoExtension.class)
+class GastoServiceTest {
+    
+    @Mock
+    private GastoRepository gastoRepository;
+    
+    @Mock
+    private EventoRepository eventoRepository;
+    
+    @InjectMocks
+    private GastoService gastoService;
+    
+    @Test
+    void cuandoCrearGasto_conEventoValido_entoncesGastoCreado() {
+        // Given
+        CreateGastoRequest request = CreateGastoRequest.builder()
+            .eventoId(1L)
+            .concepto("DJ")
+            .monto(new BigDecimal("500.00"))
+            .categoria(CategoriaGasto.ARTISTA)
+            .build();
+            
+        Evento evento = new Evento();
+        evento.setId(1L);
+        
+        when(eventoRepository.findById(1L)).thenReturn(Optional.of(evento));
+        when(gastoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        
+        // When
+        GastoDTO resultado = gastoService.crearGasto(request);
+        
+        // Then
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.getConcepto()).isEqualTo("DJ");
+        assertThat(resultado.getMonto()).isEqualByComparingTo("500.00");
+        verify(gastoRepository).save(any());
+    }
+    
+    @Test
+    void cuandoCrearGasto_conEventoInexistente_entoncesLanzaExcepcion() {
+        // Given
+        CreateGastoRequest request = CreateGastoRequest.builder()
+            .eventoId(999L)
+            .concepto("Test")
+            .monto(new BigDecimal("100"))
+            .build();
+            
+        when(eventoRepository.findById(999L)).thenReturn(Optional.empty());
+        
+        // When & Then
+        assertThatThrownBy(() -> gastoService.crearGasto(request))
+            .isInstanceOf(NotFoundException.class)
+            .hasMessageContaining("Evento no encontrado");
+    }
+}
+```
+
+### Test de Integración con TestContainers
+```java
+@SpringBootTest
+@Testcontainers
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles("test")
+class GastoControllerIntegrationTest {
+    
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine");
+    
+    @DynamicPropertySource
+    static void properties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
+    
+    @Autowired
+    private MockMvc mockMvc;
+    
+    @Autowired
+    private ObjectMapper objectMapper;
+    
+    @Autowired
+    private EventoRepository eventoRepository;
+    
+    @BeforeEach
+    void setup() {
+        // Crear datos de prueba
+        Evento evento = new Evento();
+        evento.setNombre("Test Event");
+        evento.setFecha(LocalDate.now());
+        eventoRepository.save(evento);
+    }
+    
+    @Test
+    @WithMockUser(roles = "GERENTE")
+    void crearGasto_conDatosValidos_retorna201() throws Exception {
+        CreateGastoRequest request = new CreateGastoRequest();
+        // ... setup request
+        
+        mockMvc.perform(post("/api/gastos")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.concepto").value("Test"));
+    }
+}
+```
+
+## 5. Code Review Checklist
+
+Antes de hacer commit, verificar:
+
+### Backend
+- [ ] Entidad tiene validaciones apropiadas (@NotNull, @Size, etc.)
+- [ ] Service tiene @Transactional donde corresponde
+- [ ] Controller tiene validación de entrada (@Valid)
+- [ ] DTOs separados (CreateRequest, UpdateRequest, Response)
+- [ ] Manejo de excepciones personalizado
+- [ ] Tests unitarios cubren casos principales
+- [ ] Test de integración para flujo completo
+- [ ] Documentación Swagger en endpoints
+- [ ] Logs apropiados (info, error) en operaciones críticas
+- [ ] No hay valores hardcoded (usar @Value o properties)
+- [ ] Nombres descriptivos en variables y métodos
+- [ ] Código formateado correctamente
+
+### Frontend
+- [ ] Componente es responsivo (mobile, tablet, desktop)
+- [ ] Loading states manejados (skeleton, spinner)
+- [ ] Error handling apropiado (toast, mensaje)
+- [ ] Validación de formularios con Zod
+- [ ] TypeScript types definidos correctamente
+- [ ] No hay console.log olvidados
+- [ ] Keys únicas en listas (.map)
+- [ ] Accesibilidad básica (labels, aria-labels)
+- [ ] Tests para casos principales
+- [ ] Componentes reutilizables cuando corresponda
+
+## 6. Git Workflow
+
+### Crear Rama Feature
+```bash
+# Desde main
+git checkout main
+git pull origin main
+
+# Crear rama feature
+git checkout -b feature/nombre-descriptivo
+
+# Ejemplos de nombres:
+# feature/gastos-module
+# feature/nominas-calculation
+# fix/evento-date-validation
+# refactor/service-layer
+```
+
+### Commits Atómicos
+```bash
+# Commits pequeños y descriptivos
+git add backend/src/main/java/.../Gasto.java
+git commit -m "feat(backend): add Gasto entity with validations"
+
+git add backend/src/main/java/.../GastoService.java
+git commit -m "feat(backend): implement GastoService business logic"
+
+git add backend/src/test/java/.../GastoServiceTest.java
+git commit -m "test(backend): add unit tests for GastoService"
+
+git add frontend/src/pages/Gastos/
+git commit -m "feat(frontend): create Gastos page with CRUD"
+```
+
+### Convención de Commits
+```
+<tipo>(<scope>): <descripción>
+
+Tipos:
+- feat: Nueva funcionalidad
+- fix: Bug fix
+- refactor: Refactorización sin cambio funcional
+- test: Añadir o modificar tests
+- docs: Documentación
+- style: Formato, espacios, etc. (no código)
+- chore: Tareas de mantenimiento, deps, etc.
+- perf: Mejora de performance
+
+Ejemplos:
+feat(backend): add Gasto entity and repository
+fix(frontend): correct date format in GastoForm
+refactor(service): extract calculation logic to helper
+test(integration): add tests for GastoController
+docs(readme): update setup instructions
+```
+
+### Push y Pull Request
+```bash
+# Push a rama remota
+git push origin feature/gastos-module
+
+# En GitHub, crear Pull Request:
+# - Título descriptivo
+# - Descripción de cambios
+# - Screenshots si hay cambios visuales
+# - Asignar reviewer
+# - Etiquetar apropiadamente
+```
+
+### Después de Merge
+```bash
+# Volver a main y limpiar
+git checkout main
+git pull origin main
+git branch -d feature/gastos-module
+```
+
+## 7. Debugging con Claude Code
+
+### Backend - Debugging
+```
+PROMPT:
+Tengo un error en [método/clase]:
+
+Error: [copiar mensaje de error completo]
+
+Código actual:
+[pegar código relevante]
+
+¿Qué está causando el error y cómo lo soluciono?
+```
+
+### Frontend - Debugging
+```
+PROMPT:
+En [componente] tengo el siguiente problema:
+[descripción del problema]
+
+Código del componente:
+[pegar código]
+
+Console errors:
+[pegar errores de consola]
+
+¿Cómo lo arreglo?
+```
+
+### Performance Issues
+```
+PROMPT:
+Esta query/componente es muy lento:
+[código]
+
+Métricas actuales:
+- Tiempo de respuesta: [X ms]
+- Tamaño de respuesta: [X KB]
+
+¿Cómo puedo optimizarlo?
+```
+
+## 8. Scaffolding Rápido
+
+### Nuevo Módulo Completo
+```
+PROMPT MAESTRO para crear módulo completo:
+
+Necesito crear un módulo completo para gestionar [ENTIDAD].
+
+Genera todo lo necesario para Backend y Frontend siguiendo la arquitectura del proyecto Club Management.
+
+BACKEND:
+1. Entity [Entidad] con campos:
+   [lista de campos con tipos y validaciones]
+   
+2. Relaciones:
+   [lista de relaciones]
+
+3. Repository con queries custom:
+   [lista de queries necesarias]
+
+4. Service con métodos:
+   - crear[Entidad]
+   - actualizar[Entidad]
+   - eliminar[Entidad]
+   - buscar[Entidad] (con filtros)
+   - [métodos específicos de negocio]
+
+5. DTOs: CreateRequest, UpdateRequest, Response
+
+6. Controller REST con endpoints:
+   - GET /api/[recurso] (lista con filtros)
+   - GET /api/[recurso]/{id} (detalle)
+   - POST /api/[recurso] (crear)
+   - PUT /api/[recurso]/{id} (actualizar)
+   - DELETE /api/[recurso]/{id} (eliminar)
+
+7. Migración Flyway
+
+8. Tests:
+   - Unit tests para Service
+   - Integration tests para Controller
+
+FRONTEND:
+9. Página [Entidad]Page.tsx
+10. Tabla [Entidad]Table.tsx con TanStack Table
+11. Formulario [Entidad]Form.tsx con validaciones Zod
+12. Service [entidad]Service.ts con llamadas API
+13. Types [entidad].types.ts
+
+Todo debe seguir las convenciones del proyecto y estar listo para producción.
+```
+
+## 9. Casos de Uso Comunes
+
+### Añadir Nuevo Campo a Entidad Existente
+```
+PROMPT:
+Necesito añadir el campo [nombreCampo] a la entidad [Entidad].
+
+Tipo: [tipo]
+Validaciones: [lista]
+Default: [valor]
+
+Genera:
+1. Migración Flyway para ALTER TABLE
+2. Actualización de Entity
+3. Actualización de DTOs
+4. Actualización de formulario frontend
+5. Tests actualizados
+```
+
+### Crear Nueva Relación entre Entidades
+```
+PROMPT:
+Necesito crear una relación entre [EntidadA] y [EntidadB].
+
+Tipo de relación: [OneToMany, ManyToOne, ManyToMany]
+Descripción: [cómo se relacionan]
+
+Genera:
+1. Migración para añadir FK
+2. Actualizar entities con anotaciones JPA
+3. Queries necesarias en repositories
+4. Actualizar services si es necesario
+5. Tests
+```
+
+### Implementar Búsqueda Avanzada
+```
+PROMPT:
+Necesito implementar búsqueda avanzada en [Entidad].
+
+Criterios de búsqueda:
+- [campo1]: búsqueda parcial (LIKE)
+- [campo2]: rango de fechas
+- [campo3]: valores exactos (IN)
+- [campo4]: mayor/menor que
+
+Debe soportar:
+- Combinación de filtros (AND)
+- Paginación
+- Ordenamiento
+
+Genera:
+1. Specification class para criterios dinámicos
+2. Actualizar Repository con JpaSpecificationExecutor
+3. Service method para búsqueda
+4. Controller endpoint
+5. Frontend: filtros y tabla
+```
+
+### Exportar a Excel
+```
+PROMPT:
+Necesito exportar [Entidad] a Excel.
+
+Columnas a incluir: [lista]
+Formato: [descripción]
+
+Genera:
+1. Service method usando Apache POI
+2. Controller endpoint GET /api/[recurso]/export
+3. Frontend: botón de exportación
+4. Tests
+```
+
+### Implementar Dashboard Widget
+```
+PROMPT:
+Necesito un widget para el dashboard que muestre [descripción].
+
+Datos a mostrar:
+- [dato1]
+- [dato2]
+- [dato3]
+
+Visualización: [gráfico/tabla/card]
+
+Genera:
+1. Backend: endpoint para obtener datos agregados
+2. Frontend: componente widget
+3. Integración con dashboard principal
+```
+
+## 10. Convenciones del Proyecto
+
+### Nombres de Archivos
+
+**Backend (Java):**
+```
+Entity:     Gasto.java
+Repository: GastoRepository.java
+Service:    GastoService.java
+Controller: GastoController.java
+DTO:        GastoDTO.java, CreateGastoRequest.java
+Mapper:     GastoMapper.java
+Test:       GastoServiceTest.java, GastoControllerIntegrationTest.java
+```
+
+**Frontend (TypeScript/React):**
+```
+Page:       GastosPage.tsx
+Component:  GastoTable.tsx, GastoForm.tsx
+Service:    gastoService.ts
+Types:      gasto.types.ts
+Hook:       useGastos.ts
+Store:      gastoStore.ts
+```
+
+### Estructura de Paquetes Java
+```
+com.club.management
+├── config
+├── controller
+├── dto
+│   ├── request
+│   └── response
+├── entity
+├── exception
+├── integration
+├── mapper
+├── repository
+├── security
+├── service
+└── util
+```
+
+### Importaciones
+**Backend:** Ordenar por: java, javax, springframework, otras, propias
+**Frontend:** Ordenar por: react, librerías, componentes, types, styles
+
+## 11. Mejores Prácticas
+
+### Backend
+
+1. **Siempre usar DTOs** - Nunca exponer entities directamente
+2. **Validación en múltiples capas** - Controller (formato) y Service (negocio)
+3. **Transacciones explícitas** - @Transactional en services
+4. **Logs significativos** - INFO para operaciones importantes, ERROR con stack trace
+5. **Excepciones específicas** - Custom exceptions con mensajes claros
+6. **Tests primero** - TDD cuando sea posible
+7. **Documentación Swagger** - Todos los endpoints documentados
+
+### Frontend
+
+1. **Componentes pequeños** - Single responsibility
+2. **Custom hooks** - Extraer lógica reutilizable
+3. **Error boundaries** - Capturar errores de componentes
+4. **Loading skeletons** - Mejor UX que spinners genéricos
+5. **Optimistic updates** - TanStack Query optimistic updates
+6. **Accesibilidad** - Semantic HTML, ARIA labels
+7. **Mobile first** - Diseñar para móvil primero
+
+### General
+
+1. **DRY** - Don't Repeat Yourself
+2. **KISS** - Keep It Simple, Stupid
+3. **YAGNI** - You Aren't Gonna Need It
+4. **Fail fast** - Validar temprano y lanzar excepciones
+5. **Comentarios útiles** - Explicar "por qué", no "qué"
+6. **Refactorizar constantemente** - Código limpio es código mantenible
+
+---
+
+[← Anterior: Seguridad y Roles](./09-seguridad-roles.md) | [Siguiente: API Documentation →](./11-api-documentation.md)

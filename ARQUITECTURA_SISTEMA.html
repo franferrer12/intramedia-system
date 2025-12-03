@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquitectura del Sistema - Club Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 40px 20px;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .legend {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .legend h3 {
+            margin-bottom: 15px;
+            color: #1e3c72;
+        }
+
+        .legend-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .layer {
+            margin-bottom: 40px;
+        }
+
+        .layer-title {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: inline-block;
+        }
+
+        .layer-title h2 {
+            color: #1e3c72;
+            font-size: 1.8rem;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .module {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            border-top: 5px solid;
+        }
+
+        .module:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .module.frontend { border-top-color: #3b82f6; }
+        .module.backend { border-top-color: #10b981; }
+        .module.database { border-top-color: #f59e0b; }
+        .module.integration { border-top-color: #8b5cf6; }
+        .module.core { border-top-color: #ef4444; }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .module-icon {
+            font-size: 2.5rem;
+        }
+
+        .module-title {
+            flex: 1;
+        }
+
+        .module-title h3 {
+            font-size: 1.3rem;
+            color: #1e3c72;
+            margin-bottom: 5px;
+        }
+
+        .module-title p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .module-content {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed #e5e7eb;
+        }
+
+        .module.active .module-content {
+            display: block;
+        }
+
+        .module-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .module-content li {
+            padding: 8px 0;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .module-content li:before {
+            content: "→";
+            color: #3b82f6;
+            font-weight: bold;
+        }
+
+        .connections {
+            position: relative;
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 40px 0;
+        }
+
+        .connection-line {
+            position: absolute;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            height: 3px;
+            z-index: 1;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .flow-diagram {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin: 30px 0;
+        }
+
+        .flow-diagram h3 {
+            text-align: center;
+            color: #1e3c72;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .flow-step:not(:last-child)::after {
+            content: "↓";
+            position: absolute;
+            left: 50%;
+            bottom: -15px;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            color: #3b82f6;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-5px); }
+        }
+
+        .flow-box {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .flow-box h4 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+
+        .flow-box p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .tech-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .tech-card h4 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .tech-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tech-badge {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .integration-map {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .integration-map h3 {
+            text-align: center;
+            color: #1e3c72;
+            margin-bottom: 40px;
+            font-size: 1.8rem;
+        }
+
+        .integration-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            position: relative;
+        }
+
+        .integration-node {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 2;
+        }
+
+        .integration-node.central {
+            grid-column: 2;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            transform: scale(1.1);
+        }
+
+        .integration-node h4 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .integration-node p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .stats-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-top: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            color: white;
+        }
+
+        .stat-box h3 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-box p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .toggle-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.3s;
+        }
+
+        .toggle-btn:hover {
+            background: #2563eb;
+        }
+
+        @media (max-width: 768px) {
+            .integration-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .integration-node.central {
+                grid-column: 1;
+            }
+
+            header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏗️ Arquitectura del Sistema</h1>
+            <p>Club Management System - Estructura Completa y Conexiones</p>
+        </header>
+
+        <!-- Leyenda -->
+        <div class="legend">
+            <h3>📋 Leyenda de Capas</h3>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #3b82f6;">🖥️</div>
+                    <span><strong>Frontend</strong> - Interfaz de usuario (React)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #10b981;">⚙️</div>
+                    <span><strong>Backend</strong> - Lógica de negocio (Spring Boot)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #f59e0b;">💾</div>
+                    <span><strong>Database</strong> - Almacenamiento (PostgreSQL)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #8b5cf6;">🔗</div>
+                    <span><strong>Integración</strong> - Conectores entre módulos</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #ef4444;">🎯</div>
+                    <span><strong>Core</strong> - Módulos principales del negocio</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Capa 1: Frontend -->
+        <div class="layer">
+            <div class="layer-title">
+                <h2>🖥️ Capa 1: Frontend (React + TypeScript)</h2>
+            </div>
+
+            <div class="modules-grid">
+                <div class="module frontend core" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">📊</div>
+                        <div class="module-title">
+                            <h3>Dashboard</h3>
+                            <p>Panel principal con KPIs</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>Auto-refresh cada 30s</li>
+                            <li>6 KPIs principales</li>
+                            <li>Gráficos de tendencias</li>
+                            <li>Comparativas mensuales</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module frontend core" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">🖥️</div>
+                        <div class="module-title">
+                            <h3>Sistema POS</h3>
+                            <p>Punto de venta en barra</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>Terminal táctil optimizada</li>
+                            <li>Carrito de compra inteligente</li>
+                            <li>3 métodos de pago</li>
+                            <li>Sesiones de caja</li>
+                            <li>Monitor en tiempo real</li>
+                            <li><strong>CONECTA CON:</strong> Inventario, Finanzas, Botellas VIP</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module frontend core" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">🍾</div>
+                        <div class="module-title">
+                            <h3>Botellas VIP</h3>
+                            <p>Gestión de botellas abiertas</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>Dashboard en tiempo real</li>
+                            <li>Tracking copa por copa</li>
+                            <li>Sistema de alertas (vacía, +24h)</li>
+                            <li>Cálculo de ingresos potenciales</li>
+                            <li>Filtros por ubicación</li>
+                            <li><strong>CONECTA CON:</strong> Inventario, POS, Finanzas</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module frontend" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">🎊</div>
+                        <div class="module-title">
+                            <h3>Eventos</h3>
+                            <p>Gestión de fiestas</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>Calendario de eventos</li>
+                            <li>Estados (Planificado, Confirmado)</li>
+                            <li>Control de capacidad</li>
+                            <li>Precios de entrada</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module frontend" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">💰</div>
+                        <div class="module-title">
+                            <h3>Finanzas</h3>
+                            <p>Ingresos y gastos</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>Registro de transacciones</li>
+                            <li>Cálculo automático de P&L</li>
+                            <li>Balance en tiempo real</li>
+                            <li>Exportación Excel/PDF</li>
+                            <li><strong>RECIBE DE:</strong> POS, Nóminas, Botellas VIP</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module frontend" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">👥</div>
+                        <div class="module-title">
+                            <h3>Personal</h3>
+                            <p>Empleados y nóminas</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>Gestión de empleados</li>
+                            <li>Registro de turnos</li>
+                            <li>Cálculo automático de nóminas</li>
+                            <li>Generación masiva de sueldos</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module frontend" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">📦</div>
+                        <div class="module-title">
+                            <h3>Inventario</h3>
+                            <p>Productos y stock</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>Catálogo de productos</li>
+                            <li>Control de stock en tiempo real</li>
+                            <li>Alertas de stock bajo</li>
+                            <li>Movimientos (entradas/salidas)</li>
+                            <li><strong>CONECTA CON:</strong> POS, Botellas VIP</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module frontend" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">📚</div>
+                        <div class="module-title">
+                            <h3>Centro de Ayuda</h3>
+                            <p>Onboarding y tutoriales</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>8 tutoriales interactivos</li>
+                            <li>10 tours guiados</li>
+                            <li>Página de novedades</li>
+                            <li>Presentación visual</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Capa 2: Backend -->
+        <div class="layer">
+            <div class="layer-title">
+                <h2>⚙️ Capa 2: Backend (Spring Boot 3.2 + Java 17)</h2>
+            </div>
+
+            <div class="modules-grid">
+                <div class="module backend core" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">🔐</div>
+                        <div class="module-title">
+                            <h3>Autenticación JWT</h3>
+                            <p>Seguridad y roles</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>5 roles (ADMIN, GERENTE, RRHH, ENCARGADO, LECTURA)</li>
+                            <li>Tokens con expiración 24h</li>
+                            <li>Refresh automático</li>
+                            <li>Spring Security configurado</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module backend core" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">💳</div>
+                        <div class="module-title">
+                            <h3>POS Service</h3>
+                            <p>Lógica de ventas</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>24 endpoints REST</li>
+                            <li>Gestión de sesiones de caja</li>
+                            <li>Cálculo de totales por método de pago</li>
+                            <li>Triggers automáticos de stock</li>
+                            <li>Registro en transacciones financieras</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module backend core" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">🍷</div>
+                        <div class="module-title">
+                            <h3>Botellas VIP Service</h3>
+                            <p>Lógica de botellas</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>12 endpoints REST</li>
+                            <li>Cálculo de copas restantes</li>
+                            <li>Sistema de alertas automático</li>
+                            <li>Stock dual (cerrado + abierto)</li>
+                            <li>Triggers de apertura/cierre</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module backend" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">💸</div>
+                        <div class="module-title">
+                            <h3>Transacciones Service</h3>
+                            <p>Lógica financiera</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>Registro de ingresos/gastos</li>
+                            <li>Cálculo automático de P&L</li>
+                            <li>Categorización de transacciones</li>
+                            <li>Integración con POS y Nóminas</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module backend" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">📊</div>
+                        <div class="module-title">
+                            <h3>Analytics Service</h3>
+                            <p>Métricas y reportes</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>Dashboard KPIs</li>
+                            <li>Exportación Excel (Apache POI)</li>
+                            <li>Exportación PDF (JasperReports)</li>
+                            <li>Agregaciones complejas</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module backend" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">📦</div>
+                        <div class="module-title">
+                            <h3>Inventario Service</h3>
+                            <p>Lógica de stock</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>Movimientos transaccionales</li>
+                            <li>Alertas automáticas de stock bajo</li>
+                            <li>Historial completo de movimientos</li>
+                            <li>Integración con POS y Botellas VIP</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Capa 3: Base de Datos -->
+        <div class="layer">
+            <div class="layer-title">
+                <h2>💾 Capa 3: Base de Datos (PostgreSQL 15 + Flyway)</h2>
+            </div>
+
+            <div class="modules-grid">
+                <div class="module database" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">📋</div>
+                        <div class="module-title">
+                            <h3>Tablas Core</h3>
+                            <p>Entidades principales</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>usuarios (autenticación)</li>
+                            <li>eventos (fiestas y conciertos)</li>
+                            <li>empleados (personal)</li>
+                            <li>productos (catálogo)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module database core" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">🛒</div>
+                        <div class="module-title">
+                            <h3>Tablas POS</h3>
+                            <p>Sistema de ventas</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>sesiones_caja (apertura/cierre)</li>
+                            <li>ventas (transacciones)</li>
+                            <li>detalle_venta (items vendidos)</li>
+                            <li><strong>Triggers:</strong> numeración automática, descuento stock</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module database core" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">🍾</div>
+                        <div class="module-title">
+                            <h3>Tablas Botellas VIP</h3>
+                            <p>Tracking de copas</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>botellas_abiertas (tracking)</li>
+                            <li>productos (campos VIP: copas_por_botella, precio_copa)</li>
+                            <li><strong>Triggers:</strong> descuento automático al abrir, auto-cierre</li>
+                            <li><strong>Vistas:</strong> análisis de rentabilidad, stock total</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module database" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">💰</div>
+                        <div class="module-title">
+                            <h3>Tablas Finanzas</h3>
+                            <p>Control económico</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>transacciones (ingresos/gastos)</li>
+                            <li>categorias_transaccion</li>
+                            <li>nominas (pagos a empleados)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="module database" onclick="toggleModule(this)">
+                    <div class="module-header">
+                        <div class="module-icon">🗄️</div>
+                        <div class="module-title">
+                            <h3>Migraciones Flyway</h3>
+                            <p>15 migraciones aplicadas</p>
+                        </div>
+                        <button class="toggle-btn">Ver detalles</button>
+                    </div>
+                    <div class="module-content">
+                        <ul>
+                            <li>V001-V009: Sistema base</li>
+                            <li>V019: Sistema POS completo</li>
+                            <li>V020-V024: Sistema Botellas VIP</li>
+                            <li>8 triggers automáticos</li>
+                            <li>5 vistas de análisis</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mapa de Integración -->
+        <div class="integration-map">
+            <h3>🔗 Mapa de Integración entre Módulos</h3>
+            <div class="integration-grid">
+                <!-- Fila 1 -->
+                <div class="integration-node">
+                    <div class="module-icon">📊</div>
+                    <h4>Dashboard</h4>
+                    <p>Consume datos de todos los módulos</p>
+                </div>
+                <div class="integration-node">
+                    <div class="module-icon">📚</div>
+                    <h4>Ayuda</h4>
+                    <p>Tours y tutoriales</p>
+                </div>
+                <div class="integration-node">
+                    <div class="module-icon">🎊</div>
+                    <h4>Eventos</h4>
+                    <p>Independiente</p>
+                </div>
+
+                <!-- Fila 2 - Central -->
+                <div class="integration-node">
+                    <div class="module-icon">📦</div>
+                    <h4>Inventario</h4>
+                    <p>Recibe de: POS, Botellas VIP</p>
+                </div>
+                <div class="integration-node central">
+                    <div class="module-icon">💰</div>
+                    <h4>FINANZAS</h4>
+                    <p>Hub central - Recibe de: POS, Nóminas, Botellas VIP</p>
+                </div>
+                <div class="integration-node">
+                    <div class="module-icon">👥</div>
+                    <h4>Personal</h4>
+                    <p>Envía a: Finanzas</p>
+                </div>
+
+                <!-- Fila 3 - Módulos Core -->
+                <div class="integration-node core">
+                    <div class="module-icon">🖥️</div>
+                    <h4>POS</h4>
+                    <p>Envía a: Inventario, Finanzas | Integra con: Botellas VIP</p>
+                </div>
+                <div class="integration-node core">
+                    <div class="module-icon">🍾</div>
+                    <h4>Botellas VIP</h4>
+                    <p>Envía a: Inventario, Finanzas | Integra con: POS</p>
+                </div>
+                <div class="integration-node">
+                    <div class="module-icon">📈</div>
+                    <h4>Analytics</h4>
+                    <p>Consume de: Finanzas, POS, Inventario</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flujo de Datos POS -->
+        <div class="flow-diagram">
+            <h3>📊 Flujo de Datos: Venta en POS</h3>
+
+            <div class="flow-step">
+                <div class="flow-box">
+                    <h4>1. Usuario vende en POS</h4>
+                    <p>Frontend: POSPage.tsx → Carrito de compra</p>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="flow-box" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <h4>2. Backend procesa venta</h4>
+                    <p>VentaService.java → Crea venta + detalle_venta</p>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="flow-box" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    <h4>3. Trigger descuenta stock</h4>
+                    <p>PostgreSQL → descontar_stock_venta (automático)</p>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="flow-box" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                    <h4>4. Trigger registra en finanzas</h4>
+                    <p>PostgreSQL → registrar_transaccion_venta (automático)</p>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="flow-box" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                    <h4>5. Frontend se actualiza</h4>
+                    <p>Dashboard, Inventario y Finanzas reflejan cambios</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flujo de Datos Botellas VIP -->
+        <div class="flow-diagram">
+            <h3>🍾 Flujo de Datos: Botella VIP</h3>
+
+            <div class="flow-step">
+                <div class="flow-box">
+                    <h4>1. Usuario abre botella</h4>
+                    <p>Frontend: AbrirBotellaModal.tsx → Selecciona producto</p>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="flow-box" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <h4>2. Backend crea registro</h4>
+                    <p>BotellaAbiertaService.java → Crea botella_abierta</p>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="flow-box" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    <h4>3. Trigger descuenta stock cerrado</h4>
+                    <p>PostgreSQL → descontar_stock_al_abrir_botella</p>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="flow-box" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                    <h4>4. Usuario vende copas en POS</h4>
+                    <p>POS → tipo_venta: "COPA_INDIVIDUAL" → Descuenta copas</p>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="flow-box" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                    <h4>5. Sistema alerta si casi vacía</h4>
+                    <p>Backend calcula: copasRestantes < 20% → Alerta "CASI_VACÍA"</p>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="flow-box" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                    <h4>6. Usuario cierra botella</h4>
+                    <p>CerrarBotellaModal.tsx → Estado: CERRADA o DESPERDICIADA</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <div class="tech-stack">
+            <div class="tech-card">
+                <h4>🖥️ Frontend</h4>
+                <div class="tech-list">
+                    <span class="tech-badge">React 18</span>
+                    <span class="tech-badge">TypeScript</span>
+                    <span class="tech-badge">TanStack Query</span>
+                    <span class="tech-badge">Zustand</span>
+                    <span class="tech-badge">TailwindCSS</span>
+                    <span class="tech-badge">Vite</span>
+                </div>
+            </div>
+
+            <div class="tech-card">
+                <h4>⚙️ Backend</h4>
+                <div class="tech-list">
+                    <span class="tech-badge">Spring Boot 3.2</span>
+                    <span class="tech-badge">Java 17</span>
+                    <span class="tech-badge">Spring Security</span>
+                    <span class="tech-badge">JWT</span>
+                    <span class="tech-badge">JPA/Hibernate</span>
+                </div>
+            </div>
+
+            <div class="tech-card">
+                <h4>💾 Database</h4>
+                <div class="tech-list">
+                    <span class="tech-badge">PostgreSQL 15</span>
+                    <span class="tech-badge">Flyway</span>
+                    <span class="tech-badge">PL/pgSQL</span>
+                    <span class="tech-badge">Triggers</span>
+                </div>
+            </div>
+
+            <div class="tech-card">
+                <h4>🚀 DevOps</h4>
+                <div class="tech-list">
+                    <span class="tech-badge">Docker</span>
+                    <span class="tech-badge">Railway.app</span>
+                    <span class="tech-badge">Git</span>
+                    <span class="tech-badge">Maven</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="stats-panel">
+            <h3 style="text-align: center; margin-bottom: 30px; color: #1e3c72; font-size: 1.8rem;">📊 Estadísticas del Sistema</h3>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <h3>87+</h3>
+                    <p>Endpoints REST</p>
+                </div>
+                <div class="stat-box" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <h3>25+</h3>
+                    <p>Módulos Activos</p>
+                </div>
+                <div class="stat-box" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    <h3>15</h3>
+                    <p>Migraciones DB</p>
+                </div>
+                <div class="stat-box" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                    <h3>8</h3>
+                    <p>Triggers Automáticos</p>
+                </div>
+                <div class="stat-box" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                    <h3>23+</h3>
+                    <p>Páginas Frontend</p>
+                </div>
+                <div class="stat-box" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                    <h3>33,500+</h3>
+                    <p>Líneas de Código</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function toggleModule(element) {
+            element.classList.toggle('active');
+            const btn = element.querySelector('.toggle-btn');
+            if (element.classList.contains('active')) {
+                btn.textContent = 'Ocultar';
+            } else {
+                btn.textContent = 'Ver detalles';
+            }
+        }
+
+        // Auto-animate on load
+        window.addEventListener('load', function() {
+            const modules = document.querySelectorAll('.module');
+            modules.forEach((module, index) => {
+                setTimeout(() => {
+                    module.style.opacity = '0';
+                    module.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        module.style.transition = 'all 0.5s ease';
+                        module.style.opacity = '1';
+                        module.style.transform = 'translateY(0)';
+                    }, 50);
+                }, index * 50);
+            });
+        });
+    </script>
+</body>
+</html>

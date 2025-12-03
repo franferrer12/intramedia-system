@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roadmap Visual - Sistema POS</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.2rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 20px;
+        }
+
+        .timeline {
+            margin: 30px 0;
+        }
+
+        .phase {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .phase:hover {
+            background: #e9ecef;
+            transform: translateX(10px);
+        }
+
+        .phase-number {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: white;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .phase-content {
+            flex: 1;
+        }
+
+        .phase-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .phase-duration {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .phase-features {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .feature-tag {
+            background: #667eea;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+
+        .priority-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .priority-card {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .priority-high {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .priority-medium {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .priority-low {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 1s ease;
+        }
+
+        .architecture {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .layer {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .layer h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .layer ul {
+            list-style: none;
+            font-size: 0.9rem;
+        }
+
+        .layer li {
+            padding: 5px 0;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .architecture {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Roadmap Visual - Sistema POS</h1>
+            <p class="subtitle">Evolución completa del sistema de punto de venta</p>
+        </header>
+
+        <!-- Estadísticas Generales -->
+        <div class="card full-width">
+            <h2>📊 Resumen General</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">10</div>
+                    <div class="stat-label">Fases</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">~107</div>
+                    <div class="stat-label">Días</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">100+</div>
+                    <div class="stat-label">Features</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">3-4</div>
+                    <div class="stat-label">Meses</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline de Fases -->
+        <div class="card full-width">
+            <h2>📅 Timeline de Desarrollo</h2>
+            <div class="timeline">
+                <div class="phase">
+                    <div class="phase-number" style="background: #4CAF50;">0</div>
+                    <div class="phase-content">
+                        <div class="phase-title">MVP - Sistema Básico</div>
+                        <div class="phase-duration">⏱️ 2-3 días</div>
+                        <div class="phase-features">
+                            <span class="feature-tag">Sesiones</span>
+                            <span class="feature-tag">Consumos</span>
+                            <span class="feature-tag">Stock</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" style="width: 200px;">
+                        <div class="progress-fill" style="width: 100%;">100%</div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="phase-number" style="background: #8BC34A;">1</div>
+                    <div class="phase-content">
+                        <div class="phase-title">UX + Analytics Básico</div>
+                        <div class="phase-duration">⏱️ 3-5 días</div>
+                        <div class="phase-features">
+                            <span class="feature-tag">Interface mejorada</span>
+                            <span class="feature-tag">Reportes</span>
+                            <span class="feature-tag">Dashboards</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" style="width: 200px;">
+                        <div class="progress-fill" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="phase-number" style="background: #CDDC39; color: #333;">2</div>
+                    <div class="phase-content">
+                        <div class="phase-title">Gestión de Caja</div>
+                        <div class="phase-duration">⏱️ 5-7 días</div>
+                        <div class="phase-features">
+                            <span class="feature-tag">Apertura caja</span>
+                            <span class="feature-tag">Cuadres</span>
+                            <span class="feature-tag">Retiros</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" style="width: 200px;">
+                        <div class="progress-fill" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="phase-number" style="background: #FFC107; color: #333;">3</div>
+                    <div class="phase-content">
+                        <div class="phase-title">Tickets y Comandas</div>
+                        <div class="phase-duration">⏱️ 4-6 días</div>
+                        <div class="phase-features">
+                            <span class="feature-tag">Tickets</span>
+                            <span class="feature-tag">Comandas</span>
+                            <span class="feature-tag">Impresoras</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" style="width: 200px;">
+                        <div class="progress-fill" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="phase-number" style="background: #FF9800;">4</div>
+                    <div class="phase-content">
+                        <div class="phase-title">Descuentos y Propinas</div>
+                        <div class="phase-duration">⏱️ 5-7 días</div>
+                        <div class="phase-features">
+                            <span class="feature-tag">Descuentos</span>
+                            <span class="feature-tag">Promociones</span>
+                            <span class="feature-tag">Propinas</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" style="width: 200px;">
+                        <div class="progress-fill" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="phase-number" style="background: #FF5722;">5</div>
+                    <div class="phase-content">
+                        <div class="phase-title">Mesas y Reservas</div>
+                        <div class="phase-duration">⏱️ 7-10 días</div>
+                        <div class="phase-features">
+                            <span class="feature-tag">Gestión mesas</span>
+                            <span class="feature-tag">Reservas</span>
+                            <span class="feature-tag">VIP</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" style="width: 200px;">
+                        <div class="progress-fill" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="phase-number" style="background: #F44336;">6</div>
+                    <div class="phase-content">
+                        <div class="phase-title">Integraciones Externas</div>
+                        <div class="phase-duration">⏱️ 10-15 días</div>
+                        <div class="phase-features">
+                            <span class="feature-tag">TPV</span>
+                            <span class="feature-tag">Bizum</span>
+                            <span class="feature-tag">Hardware</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" style="width: 200px;">
+                        <div class="progress-fill" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="phase-number" style="background: #E91E63;">7</div>
+                    <div class="phase-content">
+                        <div class="phase-title">Business Intelligence</div>
+                        <div class="phase-duration">⏱️ 8-12 días</div>
+                        <div class="phase-features">
+                            <span class="feature-tag">Analytics</span>
+                            <span class="feature-tag">ML</span>
+                            <span class="feature-tag">Predicciones</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" style="width: 200px;">
+                        <div class="progress-fill" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="phase-number" style="background: #9C27B0;">8</div>
+                    <div class="phase-content">
+                        <div class="phase-title">App Móvil</div>
+                        <div class="phase-duration">⏱️ 15-20 días</div>
+                        <div class="phase-features">
+                            <span class="feature-tag">PWA</span>
+                            <span class="feature-tag">Offline</span>
+                            <span class="feature-tag">Nativa</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" style="width: 200px;">
+                        <div class="progress-fill" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="phase-number" style="background: #673AB7;">9</div>
+                    <div class="phase-content">
+                        <div class="phase-title">Seguridad Avanzada</div>
+                        <div class="phase-duration">⏱️ 5-7 días</div>
+                        <div class="phase-features">
+                            <span class="feature-tag">2FA</span>
+                            <span class="feature-tag">Auditoría</span>
+                            <span class="feature-tag">Anti-fraude</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" style="width: 200px;">
+                        <div class="progress-fill" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+
+                <div class="phase">
+                    <div class="phase-number" style="background: #3F51B5;">10</div>
+                    <div class="phase-content">
+                        <div class="phase-title">Multi-Local y Franquicia</div>
+                        <div class="phase-duration">⏱️ 10-15 días</div>
+                        <div class="phase-features">
+                            <span class="feature-tag">Multi-local</span>
+                            <span class="feature-tag">Corporativo</span>
+                            <span class="feature-tag">Consolidación</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" style="width: 200px;">
+                        <div class="progress-fill" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="grid">
+            <div class="card">
+                <h2>📊 Distribución de Tiempo</h2>
+                <div class="chart-container">
+                    <canvas id="timeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📈 Crecimiento de Features</h2>
+                <div class="chart-container">
+                    <canvas id="featuresChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>🎯 Prioridad de Fases</h2>
+                <div class="priority-grid">
+                    <div class="priority-card priority-high">
+                        <div>Alta Prioridad</div>
+                        <div style="font-size: 2rem; margin-top: 10px;">4</div>
+                        <div style="font-size: 0.9rem;">Fases 0-3</div>
+                    </div>
+                    <div class="priority-card priority-medium">
+                        <div>Media Prioridad</div>
+                        <div style="font-size: 2rem; margin-top: 10px;">3</div>
+                        <div style="font-size: 0.9rem;">Fases 4-6</div>
+                    </div>
+                    <div class="priority-card priority-low">
+                        <div>Baja Prioridad</div>
+                        <div style="font-size: 2rem; margin-top: 10px;">4</div>
+                        <div style="font-size: 0.9rem;">Fases 7-10</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⚡ Esfuerzo vs Complejidad</h2>
+                <div class="chart-container">
+                    <canvas id="effortChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Arquitectura -->
+        <div class="card full-width">
+            <h2>🏗️ Arquitectura del Sistema</h2>
+            <div class="architecture">
+                <div class="layer">
+                    <h3>Frontend</h3>
+                    <ul>
+                        <li>✓ React + TypeScript</li>
+                        <li>✓ TailwindCSS</li>
+                        <li>✓ TanStack Query</li>
+                        <li>✓ Zustand</li>
+                        <li>→ PWA (Fase 8)</li>
+                    </ul>
+                </div>
+                <div class="layer">
+                    <h3>Backend</h3>
+                    <ul>
+                        <li>✓ Spring Boot 3.2</li>
+                        <li>✓ Spring Security + JWT</li>
+                        <li>✓ JPA + Hibernate</li>
+                        <li>→ WebSockets (Fase 1)</li>
+                        <li>→ Redis Cache (Fase 7)</li>
+                    </ul>
+                </div>
+                <div class="layer">
+                    <h3>Base de Datos</h3>
+                    <ul>
+                        <li>✓ PostgreSQL 15</li>
+                        <li>✓ Flyway Migrations</li>
+                        <li>→ Triggers (Fase 0)</li>
+                        <li>→ Partitioning (Fase 7)</li>
+                        <li>→ Replicación (Fase 10)</li>
+                    </ul>
+                </div>
+                <div class="layer">
+                    <h3>Integraciones</h3>
+                    <ul>
+                        <li>→ TPV/Datáfono (Fase 6)</li>
+                        <li>→ Impresoras (Fase 3)</li>
+                        <li>→ Bizum (Fase 6)</li>
+                        <li>→ APIs externas (Fase 6)</li>
+                        <li>→ ML Services (Fase 7)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROI Esperado -->
+        <div class="card full-width">
+            <h2>💰 ROI Esperado por Fase</h2>
+            <div class="chart-container">
+                <canvas id="roiChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de colores
+        const colors = {
+            primary: '#667eea',
+            secondary: '#764ba2',
+            success: '#4CAF50',
+            warning: '#FFC107',
+            danger: '#F44336',
+            info: '#2196F3'
+        };
+
+        // Gráfico de Distribución de Tiempo
+        const timeCtx = document.getElementById('timeChart').getContext('2d');
+        new Chart(timeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['MVP (3d)', 'UX (5d)', 'Caja (7d)', 'Tickets (6d)', 'Promociones (7d)',
+                         'Mesas (10d)', 'Integraciones (15d)', 'BI (12d)', 'Móvil (20d)',
+                         'Seguridad (7d)', 'Multi-Local (15d)'],
+                datasets: [{
+                    data: [3, 5, 7, 6, 7, 10, 15, 12, 20, 7, 15],
+                    backgroundColor: [
+                        '#4CAF50', '#8BC34A', '#CDDC39', '#FFC107', '#FF9800',
+                        '#FF5722', '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Crecimiento de Features
+        const featuresCtx = document.getElementById('featuresChart').getContext('2d');
+        new Chart(featuresCtx, {
+            type: 'line',
+            data: {
+                labels: ['F0', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10'],
+                datasets: [{
+                    label: 'Funcionalidades',
+                    data: [5, 12, 25, 35, 45, 58, 70, 80, 90, 95, 100],
+                    borderColor: colors.primary,
+                    backgroundColor: colors.primary + '20',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Esfuerzo vs Complejidad
+        const effortCtx = document.getElementById('effortChart').getContext('2d');
+        new Chart(effortCtx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Alta Prioridad',
+                    data: [
+                        {x: 2, y: 9, r: 10},
+                        {x: 3, y: 8, r: 15},
+                        {x: 5, y: 7, r: 20},
+                        {x: 6, y: 6, r: 18}
+                    ],
+                    backgroundColor: '#F44336'
+                }, {
+                    label: 'Media Prioridad',
+                    data: [
+                        {x: 5, y: 5, r: 18},
+                        {x: 7, y: 4, r: 25},
+                        {x: 8, y: 3, r: 30}
+                    ],
+                    backgroundColor: '#FFC107'
+                }, {
+                    label: 'Baja Prioridad',
+                    data: [
+                        {x: 7, y: 2, r: 25},
+                        {x: 9, y: 1, r: 35},
+                        {x: 6, y: 1.5, r: 18},
+                        {x: 8, y: 0.8, r: 30}
+                    ],
+                    backgroundColor: '#4CAF50'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Complejidad (1-10)'
+                        },
+                        min: 0,
+                        max: 10
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Prioridad (1-10)'
+                        },
+                        min: 0,
+                        max: 10
+                    }
+                }
+            }
+        });
+
+        // Gráfico de ROI
+        const roiCtx = document.getElementById('roiChart').getContext('2d');
+        new Chart(roiCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Fase 0', 'Fase 1', 'Fase 2', 'Fase 3', 'Fase 4', 'Fase 5',
+                         'Fase 6', 'Fase 7', 'Fase 8', 'Fase 9', 'Fase 10'],
+                datasets: [{
+                    label: 'Inversión (días)',
+                    data: [3, 5, 7, 6, 7, 10, 15, 12, 20, 7, 15],
+                    backgroundColor: colors.danger,
+                }, {
+                    label: 'Valor generado (estimado)',
+                    data: [10, 15, 25, 20, 18, 30, 35, 40, 50, 15, 45],
+                    backgroundColor: colors.success,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Animación de progreso
+        setTimeout(() => {
+            const fills = document.querySelectorAll('.progress-fill');
+            fills.forEach(fill => {
+                const width = fill.style.width;
+                fill.style.width = '0%';
+                setTimeout(() => {
+                    fill.style.width = width;
+                }, 100);
+            });
+        }, 500);
+    </script>
+</body>
+</html>

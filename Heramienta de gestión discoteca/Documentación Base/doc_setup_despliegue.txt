@@ -1,0 +1,509 @@
+# Setup y Despliegue
+
+## 1. Requisitos del Sistema
+
+### Desarrollo Local
+- **Java:** 17+ (OpenJDK recomendado)
+- **Node.js:** 18+ y npm 9+
+- **Docker:** 20.10+ y Docker Compose 2.0+
+- **PostgreSQL:** 15+ (o via Docker)
+- **Git:** 2.30+
+- **Memoria RAM:** 8GB mínimo, 16GB recomendado
+- **Disco:** 10GB libres
+
+### Producción
+- **Servidor:** Linux (Ubuntu 22.04 LTS recomendado)
+- **RAM:** 2GB mínimo, 4GB recomendado
+- **CPU:** 2 cores mínimo
+- **Disco:** 20GB libres
+- **Docker:** Instalado y configurado
+
+---
+
+## 2. Instalación Local
+
+### Opción A: Con Docker Compose (Recomendado)
+
+```bash
+# 1. Clonar repositorio
+git clone https://github.com/tu-usuario/club-management.git
+cd club-management
+
+# 2. Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus valores
+
+# 3. Levantar todos los servicios
+docker-compose up -d
+
+# 4. Verificar que todo esté corriendo
+docker-compose ps
+
+# Acceder a:
+# - Frontend: http://localhost:3000
+# - Backend API: http://localhost:8080
+# - Swagger UI: http://localhost:8080/swagger-ui/index.html
+# - PostgreSQL: localhost:5432
+```
+
+### Opción B: Desarrollo Manual
+
+#### Backend
+```bash
+cd backend
+
+# Instalar dependencias y compilar
+./mvnw clean install
+
+# Ejecutar (dev profile)
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+
+# O ejecutar el JAR
+java -jar target/club-management-0.0.1-SNAPSHOT.jar
+```
+
+#### Frontend
+```bash
+cd frontend
+
+# Instalar dependencias
+npm install
+
+# Modo desarrollo (hot reload)
+npm run dev
+
+# Build para producción
+npm run build
+
+# Preview del build
+npm run preview
+```
+
+#### PostgreSQL
+```bash
+# Con Docker
+docker run -d \
+  --name club-postgres \
+  -e POSTGRES_DB=club_management \
+  -e POSTGRES_USER=club_admin \
+  -e POSTGRES_PASSWORD=tu_password \
+  -p 5432:5432 \
+  postgres:15-alpine
+
+# O instalación local
+# En Ubuntu:
+sudo apt update
+sudo apt install postgresql-15
+sudo -u postgres createuser -P club_admin
+sudo -u postgres createdb -O club_admin club_management
+```
+
+---
+
+## 3. Configuración
+
+### Variables de Entorno
+
+**Backend (.env o application-prod.yml):**
+```yaml
+# Base de datos
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/club_management
+    username: club_admin
+    password: ${DB_PASSWORD}
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# JWT
+jwt:
+  secret: ${JWT_SECRET}  # Mínimo 256 bits, usar generador seguro
+  expiration: 86400000  # 24 horas en milisegundos
+
+# Integraciones
+fourvenues:
+  api-url: https://api.fourvenues.com
+  api-key: ${FOURVENUES_API_KEY}
+
+pos:
+  api-url: ${POS_API_URL}
+  api-key: ${POS_API_KEY}
+
+# Email (opcional)
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# File storage
+app:
+  upload-dir: ./uploads
+  max-file-size: 10MB
+```
+
+**Frontend (.env):**
+```bash
+# API URL
+VITE_API_URL=http://localhost:8080/api
+
+# App config
+VITE_APP_NAME=Club Management
+VITE_APP_VERSION=1.0.0
+
+# Features flags (opcional)
+VITE_ENABLE_ANALYTICS=false
+VITE_ENABLE_DEBUG=true
+```
+
+### Generar JWT Secret Seguro
+```bash
+# Opción 1: OpenSSL
+openssl rand -base64 64
+
+# Opción 2: Node.js
+node -e "console.log(require('crypto').randomBytes(64).toString('base64'))"
+
+# Opción 3: Python
+python3 -c "import secrets; print(secrets.token_urlsafe(64))"
+```
+
+---
+
+## 4. Docker Compose Completo
+
+**docker-compose.yml:**
+```yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: club_postgres
+    environment:
+      POSTGRES_DB: club_management
+      POSTGRES_USER: club_admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    ports:
+      - "5432:5432"
+    networks:
+      - club_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U club_admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: club_backend
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: club_management
+      DB_USER: club_admin
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      FOURVENUES_API_KEY: ${FOURVENUES_API_KEY}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - club_network
+    restart: unless-stopped
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8080/api
+    container_name: club_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - club_network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: club_nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - club_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  club_network:
+    driver: bridge
+```
+
+**backend/Dockerfile:**
+```dockerfile
+FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY pom.xml .
+RUN mvn dependency:go-offline
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+COPY --from=build /app/target/club-management-*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+**frontend/Dockerfile:**
+```dockerfile
+FROM node:18-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+**frontend/nginx.conf:**
+```nginx
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api {
+        proxy_pass http://backend:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+}
+```
+
+---
+
+## 5. Despliegue en Producción
+
+### Opción 1: Self-Hosted (VPS o Local)
+
+#### Setup Inicial del Servidor
+```bash
+# Actualizar sistema (Ubuntu)
+sudo apt update && sudo apt upgrade -y
+
+# Instalar Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER
+
+# Instalar Docker Compose
+sudo apt install docker-compose-plugin
+
+# Crear usuario para la aplicación
+sudo useradd -m -s /bin/bash clubapp
+sudo usermod -aG docker clubapp
+```
+
+#### Despliegue
+```bash
+# Como usuario clubapp
+su - clubapp
+
+# Clonar repositorio
+git clone https://github.com/tu-usuario/club-management.git
+cd club-management
+
+# Configurar .env
+nano .env
+# Añadir todas las variables con valores de producción
+
+# Permisos
+chmod 600 .env
+
+# Levantar servicios
+docker-compose -f docker-compose.prod.yml up -d
+
+# Ver logs
+docker-compose logs -f
+
+# Verificar servicios
+docker-compose ps
+```
+
+#### Configurar Dominio y SSL
+```bash
+# Instalar Certbot
+sudo apt install certbot python3-certbot-nginx
+
+# Obtener certificado (ejemplo: club.tudominio.com)
+sudo certbot --nginx -d club.tudominio.com
+
+# Auto-renovación
+sudo systemctl enable certbot.timer
+sudo systemctl start certbot.timer
+```
+
+**nginx/nginx.conf (con SSL):**
+```nginx
+server {
+    listen 80;
+    server_name club.tudominio.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name club.tudominio.com;
+
+    ssl_certificate /etc/nginx/ssl/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/privkey.pem;
+    
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    location / {
+        proxy_pass http://frontend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /api {
+        proxy_pass http://backend:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Opción 2: Cloud Free Tier
+
+#### Render.com (Backend)
+```bash
+# 1. Crear cuenta en render.com
+# 2. Conectar repositorio GitHub
+# 3. Crear New Web Service
+# 4. Configurar:
+#    - Build Command: ./mvnw clean package -DskipTests
+#    - Start Command: java -jar target/club-management-*.jar
+#    - Environment: Java 17
+# 5. Añadir variables de entorno
+# 6. Deploy
+```
+
+#### Vercel (Frontend)
+```bash
+# Instalar Vercel CLI
+npm i -g vercel
+
+# En carpeta frontend
+cd frontend
+vercel login
+vercel
+
+# Configurar variables de entorno en dashboard
+# VITE_API_URL=https://tu-backend.onrender.com/api
+```
+
+#### Neon.tech (PostgreSQL)
+```bash
+# 1. Crear cuenta en neon.tech
+# 2. Crear nuevo proyecto
+# 3. Obtener connection string
+# 4. Actualizar DB_URL en backend
+
+# Connection string ejemplo:
+# postgresql://user:pass@ep-cool-name.us-east-2.aws.neon.tech/dbname?sslmode=require
+```
+
+---
+
+## 6. Scripts de Utilidad
+
+### scripts/deploy.sh
+```bash
+#!/bin/bash
+
+echo "🚀 Iniciando despliegue..."
+
+# Pull últimos cambios
+git pull origin main
+
+# Build y restart servicios
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+
+# Esperar a que backend esté listo
+echo "⏳ Esperando a que el backend esté listo..."
+until curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; do
+    sleep 5
+done
+
+echo "✅ Despliegue completado exitosamente!"
+echo "📊 Backend: http://localhost:8080"
+echo "🖥️  Frontend: http://localhost:3000"
+
+# Mostrar logs
+docker-compose logs -f --tail=50
+```
+
+###
