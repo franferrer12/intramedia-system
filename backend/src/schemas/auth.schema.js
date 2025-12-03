@@ -8,9 +8,9 @@ import { z } from 'zod';
 // Login schema
 export const loginSchema = z.object({
   body: z.object({
-    username: z.string()
-      .min(3, 'El nombre de usuario debe tener al menos 3 caracteres')
-      .max(50, 'El nombre de usuario no puede exceder 50 caracteres'),
+    email: z.string()
+      .email('Email inválido')
+      .max(100, 'El email no puede exceder 100 caracteres'),
     password: z.string()
       .min(6, 'La contraseña debe tener al menos 6 caracteres')
       .max(100, 'La contraseña no puede exceder 100 caracteres')
