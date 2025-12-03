@@ -3,7 +3,8 @@ import assert from 'node:assert';
 import {
   createEventoSchema,
   updateEventoSchema,
-  eventoIdSchema
+  eventoIdSchema,
+  eventoSchema
 } from '../src/schemas/evento.schema.js';
 import {
   createContractSchema,
@@ -47,7 +48,7 @@ describe('Zod Schemas Validation', () => {
         otros_costos: 0
       };
 
-      const result = createEventoSchema.safeParse(validEvento);
+      const result = eventoSchema.safeParse(validEvento);
       assert.strictEqual(result.success, true);
     });
 

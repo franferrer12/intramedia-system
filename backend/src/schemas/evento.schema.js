@@ -11,19 +11,22 @@ const eventoBaseSchema = z.object({
     .min(3, 'El nombre del evento debe tener al menos 3 caracteres')
     .max(200, 'El nombre del evento no puede exceder 200 caracteres'),
   fecha: z.string()
-    .datetime({ message: 'Fecha inválida. Debe ser formato ISO 8601' })
-    .or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida. Formato: YYYY-MM-DD')),
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida. Formato: YYYY-MM-DD'),
+  mes: z.string()
+    .max(50, 'El mes no puede exceder 50 caracteres')
+    .optional(),
   hora: z.string()
     .regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Hora inválida. Formato: HH:MM')
     .optional()
     .nullable(),
-  lugar: z.string()
+  ciudad_lugar: z.string()
     .min(2, 'El lugar debe tener al menos 2 caracteres')
     .max(200, 'El lugar no puede exceder 200 caracteres')
     .optional()
     .nullable(),
-  tipo: z.string()
-    .max(50, 'El tipo no puede exceder 50 caracteres')
+  categoria_id: z.number()
+    .int('Categoría ID debe ser un número entero')
+    .positive('Categoría ID debe ser positivo')
     .optional()
     .nullable(),
   dj_id: z.number()
@@ -36,6 +39,10 @@ const eventoBaseSchema = z.object({
     .positive('Cliente ID debe ser positivo')
     .optional()
     .nullable(),
+  horas: z.number()
+    .nonnegative('Las horas no pueden ser negativas')
+    .optional()
+    .nullable(),
   cache_total: z.number()
     .nonnegative('El caché total no puede ser negativo')
     .max(999999999.99, 'El caché total es demasiado grande')
@@ -46,16 +53,44 @@ const eventoBaseSchema = z.object({
     .max(999999999.99, 'La parte del DJ es demasiado grande')
     .optional()
     .nullable(),
+  parte_agencia: z.number()
+    .nonnegative('La parte de la agencia no puede ser negativa')
+    .max(999999999.99, 'La parte de la agencia es demasiado grande')
+    .optional()
+    .nullable(),
+  reserva: z.number()
+    .nonnegative('La reserva no puede ser negativa')
+    .optional()
+    .nullable(),
+  cobrado_cliente: z.boolean()
+    .optional(),
+  pagado_dj: z.boolean()
+    .optional(),
+  costo_alquiler: z.number()
+    .nonnegative('El costo de alquiler no puede ser negativo')
+    .optional()
+    .nullable(),
+  otros_costos: z.number()
+    .nonnegative('Otros costos no pueden ser negativos')
+    .optional()
+    .nullable(),
+  descripcion_costos: z.string()
+    .max(500, 'La descripción de costos no puede exceder 500 caracteres')
+    .optional()
+    .nullable(),
   estado: z.enum(['pendiente', 'confirmado', 'cancelado', 'completado'], {
     errorMap: () => ({ message: 'Estado inválido' })
   }).optional(),
-  notas: z.string()
-    .max(1000, 'Las notas no pueden exceder 1000 caracteres')
+  observaciones: z.string()
+    .max(1000, 'Las observaciones no pueden exceder 1000 caracteres')
     .optional()
     .nullable()
 });
 
-// Create evento schema
+// Export base schema for direct validation (e.g., in tests)
+export const eventoSchema = eventoBaseSchema;
+
+// Create evento schema (for Express middleware validation)
 export const createEventoSchema = z.object({
   body: eventoBaseSchema.required({
     evento: true,
@@ -105,6 +140,7 @@ export const updatePagoSchema = z.object({
 });
 
 export default {
+  eventoSchema,
   createEventoSchema,
   updateEventoSchema,
   dateRangeQuerySchema,
