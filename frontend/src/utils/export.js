@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { format } from 'date-fns';
 import { announceToScreenReader } from './accessibility';
 import toast from './toast';
@@ -15,7 +15,7 @@ import toast from './toast';
  * @param {String} sheetName - Name of the worksheet
  * @param {Object} options - Export options
  */
-export const exportToExcel = (data, filename = 'export', sheetName = 'Data', options = {}) => {
+export const exportToExcel = async (data, filename = 'export', sheetName = 'Data', options = {}) => {
   try {
     if (!data || data.length === 0) {
       toast.warning('No hay datos para exportar');
@@ -26,49 +26,65 @@ export const exportToExcel = (data, filename = 'export', sheetName = 'Data', opt
     const transformedData = options.transformer ? data.map(options.transformer) : data;
 
     // Create workbook
-    const wb = XLSX.utils.book_new();
+    const workbook = new ExcelJS.Workbook();
 
-    // Create worksheet from data
-    const ws = XLSX.utils.json_to_sheet(transformedData, {
-      header: options.headers || undefined,
-      skipHeader: options.skipHeader || false,
+    // Add worksheet
+    const worksheet = workbook.addWorksheet(sheetName);
+
+    // Get headers
+    const headers = options.headers || Object.keys(transformedData[0] || {});
+
+    // Add header row if not skipped
+    if (!options.skipHeader) {
+      worksheet.addRow(headers);
+      // Style header row
+      worksheet.getRow(1).font = { bold: true };
+      worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' }
+      };
+    }
+
+    // Add data rows
+    transformedData.forEach(item => {
+      const rowValues = headers.map(header => item[header]);
+      worksheet.addRow(rowValues);
     });
 
     // Auto-size columns
     if (options.autoWidth !== false) {
       const maxWidth = 50;
-      const colWidths = [];
-
-      // Get headers
-      const headers = options.headers || Object.keys(transformedData[0] || {});
-
-      headers.forEach((header, i) => {
+      worksheet.columns = headers.map((header, i) => {
         const headerLength = String(header).length;
         const dataLengths = transformedData.map(row => {
           const value = row[header];
           return String(value || '').length;
         });
         const maxLength = Math.max(headerLength, ...dataLengths);
-        colWidths.push({ wch: Math.min(maxLength + 2, maxWidth) });
+        return {
+          header: String(header),
+          key: String(header),
+          width: Math.min(maxLength + 2, maxWidth)
+        };
       });
-
-      ws['!cols'] = colWidths;
     }
-
-    // Apply custom styles if provided
-    if (options.styles) {
-      // Apply styles (advanced feature, requires XLSX Pro or custom implementation)
-      // For now, basic styling is applied automatically
-    }
-
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
 
     // Generate file
     const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm');
     const finalFilename = `${filename}_${timestamp}.xlsx`;
 
-    XLSX.writeFile(wb, finalFilename);
+    // Write to buffer and download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = finalFilename;
+    link.click();
+    URL.revokeObjectURL(url);
 
     announceToScreenReader(`Archivo ${finalFilename} descargado`, 'polite');
     toast.success(`Exportado: ${finalFilename}`);

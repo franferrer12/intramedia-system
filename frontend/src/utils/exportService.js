@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 /**
  * Utility for exporting data to PDF and Excel formats
@@ -250,14 +250,17 @@ export const exportClientFinancialToPDF = (clients, stats) => {
  * @param {string} options.filename - Output filename
  * @param {Array} options.sheets - Array of sheet objects { name, headers, data }
  */
-export const exportToExcel = ({
+export const exportToExcel = async ({
   filename = 'export.xlsx',
   sheets = []
 }) => {
-  const workbook = XLSX.utils.book_new();
+  const workbook = new ExcelJS.Workbook();
 
   sheets.forEach(sheet => {
     const { name, headers, data, summary } = sheet;
+
+    // Create worksheet
+    const worksheet = workbook.addWorksheet(name);
 
     // Prepare worksheet data
     let wsData = [];
@@ -281,26 +284,46 @@ export const exportToExcel = ({
       });
     }
 
-    // Create worksheet
-    const worksheet = XLSX.utils.aoa_to_sheet(wsData);
+    // Add all rows to worksheet
+    wsData.forEach((row, idx) => {
+      worksheet.addRow(row);
+      // Style header row
+      if (idx === 0 && headers && headers.length > 0) {
+        worksheet.getRow(1).font = { bold: true };
+        worksheet.getRow(1).fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFE0E0E0' }
+        };
+      }
+    });
 
     // Set column widths
-    const colWidths = headers ? headers.map((_, idx) => {
-      const maxLength = Math.max(
-        String(headers[idx]).length,
-        ...data.map(row => String(row[idx] || '').length)
-      );
-      return { wch: Math.min(Math.max(maxLength + 2, 10), 50) };
-    }) : [];
-
-    worksheet['!cols'] = colWidths;
-
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, name);
+    if (headers) {
+      worksheet.columns = headers.map((header, idx) => {
+        const maxLength = Math.max(
+          String(header).length,
+          ...data.map(row => String(row[idx] || '').length)
+        );
+        return {
+          key: String(idx),
+          width: Math.min(Math.max(maxLength + 2, 10), 50)
+        };
+      });
+    }
   });
 
   // Write file
-  XLSX.writeFile(workbook, filename);
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
 };
 
 /**
