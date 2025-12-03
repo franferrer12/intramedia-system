@@ -12,7 +12,7 @@ test.describe('Authentication Flow', () => {
     // Step 1: Login
     const loginResponse = await request.post(`${API_URL}/api/auth/login`, {
       data: {
-        username: 'admin',
+        email: 'admin@intramedia.com',
         password: 'admin123'
       }
     });
@@ -50,7 +50,7 @@ test.describe('Authentication Flow', () => {
   test('login with invalid credentials should fail', async ({ request }) => {
     const response = await request.post(`${API_URL}/api/auth/login`, {
       data: {
-        username: 'admin',
+        email: 'admin@intramedia.com',
         password: 'wrongpassword'
       }
     });

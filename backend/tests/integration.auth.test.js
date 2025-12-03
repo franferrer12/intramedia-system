@@ -11,14 +11,14 @@ describe('Auth API Integration Tests', () => {
       const response = await request(app)
         .post('/api/auth/login')
         .send({
-          username: 'admin',
+          email: 'admin@intramedia.com',
           password: 'admin123'
         })
         .expect(200);
 
       assert.ok(response.body.token, 'Response should have token');
       assert.ok(response.body.user, 'Response should have user data');
-      assert.strictEqual(response.body.user.username, 'admin');
+      assert.strictEqual(response.body.user.email, 'admin@intramedia.com');
 
       authToken = response.body.token;
     });
@@ -27,7 +27,7 @@ describe('Auth API Integration Tests', () => {
       const response = await request(app)
         .post('/api/auth/login')
         .send({
-          username: 'admin',
+          email: 'admin@intramedia.com',
           password: 'wrongpassword'
         })
         .expect(401);
@@ -48,7 +48,7 @@ describe('Auth API Integration Tests', () => {
       const response = await request(app)
         .post('/api/auth/login')
         .send({
-          username: 'nonexistent',
+          email: 'nonexistent@example.com',
           password: 'password'
         })
         .expect(401);
@@ -65,8 +65,8 @@ describe('Auth API Integration Tests', () => {
         .expect(200);
 
       assert.ok(response.body.id, 'Response should have user ID');
-      assert.ok(response.body.username, 'Response should have username');
-      assert.strictEqual(response.body.username, 'admin');
+      assert.ok(response.body.email, 'Response should have email');
+      assert.strictEqual(response.body.email, 'admin@intramedia.com');
     });
 
     it('should fail without token', async () => {

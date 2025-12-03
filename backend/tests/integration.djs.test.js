@@ -14,7 +14,7 @@ describe('DJs API Integration Tests', () => {
     const loginResponse = await request(app)
       .post('/api/auth/login')
       .send({
-        username: 'admin',
+        email: 'admin@intramedia.com',
         password: 'admin123'
       });
 

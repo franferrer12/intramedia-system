@@ -18,7 +18,7 @@ test.describe('Evento Complete Workflow', () => {
     // Login to get auth token
     const loginResponse = await request.post(`${API_URL}/api/auth/login`, {
       data: {
-        username: 'admin',
+        email: 'admin@intramedia.com',
         password: 'admin123'
       }
     });
