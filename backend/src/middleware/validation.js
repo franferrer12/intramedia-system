@@ -60,6 +60,10 @@ export const validators = {
     return String(value).length <= max;
   },
 
+  exactLength: (value, exact) => {
+    return String(value).length === exact;
+  },
+
   min: (value, min) => {
     return Number(value) >= min;
   },
@@ -74,6 +78,10 @@ export const validators = {
 
   matches: (value, regex) => {
     return regex.test(value);
+  },
+
+  isBoolean: (value) => {
+    return typeof value === 'boolean' || value === 'true' || value === 'false';
   }
 };
 
@@ -174,6 +182,15 @@ class ValidationRule {
     return this;
   }
 
+  length(exact, message = null) {
+    this.rules.push({
+      type: 'length',
+      value: exact,
+      message: message || `${this.friendlyName} debe tener exactamente ${exact} caracteres`
+    });
+    return this;
+  }
+
   min(min, message = null) {
     this.rules.push({
       type: 'min',
@@ -201,11 +218,24 @@ class ValidationRule {
     return this;
   }
 
+  oneOf(array, message = null) {
+    // Alias for isIn
+    return this.isIn(array, message);
+  }
+
   matches(regex, message = null) {
     this.rules.push({
       type: 'matches',
       value: regex,
       message: message || `${this.friendlyName} tiene un formato inválido`
+    });
+    return this;
+  }
+
+  boolean(message = null) {
+    this.rules.push({
+      type: 'boolean',
+      message: message || `${this.friendlyName} debe ser verdadero o falso`
     });
     return this;
   }
@@ -286,6 +316,9 @@ const validateData = (data, rules) => {
         case 'maxLength':
           isValid = validators.maxLength(value, validation.value);
           break;
+        case 'length':
+          isValid = validators.exactLength(value, validation.value);
+          break;
         case 'min':
           isValid = validators.min(value, validation.value);
           break;
@@ -297,6 +330,9 @@ const validateData = (data, rules) => {
           break;
         case 'matches':
           isValid = validators.matches(value, validation.value);
+          break;
+        case 'boolean':
+          isValid = validators.isBoolean(value);
           break;
         case 'custom':
           isValid = validation.validator(value, data);

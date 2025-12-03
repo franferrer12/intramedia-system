@@ -275,9 +275,45 @@ export const optionalAuth = async (req, res, next) => {
   }
 };
 
+/**
+ * Alias for authenticate - for backwards compatibility
+ */
+export const authenticateToken = authenticate;
+
+/**
+ * Role-based authorization middleware
+ * @param {Array<String>} allowedRoles - Array of allowed roles
+ */
+export const requireRole = (allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user || !req.user.role) {
+      return res.status(401).json({
+        success: false,
+        error: 'Usuario no autenticado'
+      });
+    }
+
+    const userRole = req.user.role.toUpperCase();
+    const normalizedRoles = allowedRoles.map(r => r.toUpperCase());
+
+    if (!normalizedRoles.includes(userRole)) {
+      return res.status(403).json({
+        success: false,
+        error: 'No tienes permisos para acceder a este recurso',
+        required_roles: allowedRoles,
+        your_role: req.user.role
+      });
+    }
+
+    next();
+  };
+};
+
 export default {
   authenticate,
+  authenticateToken,
   requireUserType,
+  requireRole,
   requirePermission,
   canAccessDJ,
   canAccessEvent,
