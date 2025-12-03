@@ -91,32 +91,32 @@ class Contract {
    */
   static async getAll({ page = 1, limit = 20, status, contract_type, cliente_id, dj_id, search }) {
     const offset = (page - 1) * limit;
-    const conditions = ['deleted_at IS NULL'];
+    const conditions = ['c.deleted_at IS NULL'];
     const values = [];
     let paramCount = 1;
 
     if (status) {
-      conditions.push(`status = $${paramCount++}`);
+      conditions.push(`c.status = $${paramCount++}`);
       values.push(status);
     }
 
     if (contract_type) {
-      conditions.push(`contract_type = $${paramCount++}`);
+      conditions.push(`c.contract_type = $${paramCount++}`);
       values.push(contract_type);
     }
 
     if (cliente_id) {
-      conditions.push(`cliente_id = $${paramCount++}`);
+      conditions.push(`c.cliente_id = $${paramCount++}`);
       values.push(cliente_id);
     }
 
     if (dj_id) {
-      conditions.push(`dj_id = $${paramCount++}`);
+      conditions.push(`c.dj_id = $${paramCount++}`);
       values.push(dj_id);
     }
 
     if (search) {
-      conditions.push(`(title ILIKE $${paramCount} OR party_b_name ILIKE $${paramCount} OR contract_number ILIKE $${paramCount})`);
+      conditions.push(`(c.title ILIKE $${paramCount} OR c.party_b_name ILIKE $${paramCount} OR c.contract_number ILIKE $${paramCount})`);
       values.push(`%${search}%`);
       paramCount++;
     }
@@ -124,13 +124,19 @@ class Contract {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     // Query para contar total
-    const countQuery = `SELECT COUNT(*) FROM contracts ${whereClause}`;
+    const countQuery = `
+      SELECT COUNT(*)
+      FROM contracts c
+      LEFT JOIN clientes cl ON cl.id = c.cliente_id
+      LEFT JOIN djs d ON d.id = c.dj_id
+      ${whereClause}
+    `;
     const countResult = await pool.query(countQuery, values);
     const totalItems = parseInt(countResult.rows[0].count);
 
     // Query para obtener datos
     const dataQuery = `
-      SELECT 
+      SELECT
         c.*,
         cl.nombre as cliente_nombre,
         d.nombre as dj_nombre

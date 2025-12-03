@@ -63,10 +63,10 @@ describe('DJ Model Tests', () => {
   });
 
   describe('update', () => {
-    it('should update DJ tarifa', async () => {
-      const updated = await DJ.update(testDJId, { tarifa_base: 6000 });
+    it('should update DJ observaciones', async () => {
+      const updated = await DJ.update(testDJId, { observaciones: 'Updated notes' });
 
-      assert.strictEqual(parseFloat(updated.tarifa_base), 6000);
+      assert.strictEqual(updated.observaciones, 'Updated notes');
     });
 
     it('should update DJ contact info', async () => {

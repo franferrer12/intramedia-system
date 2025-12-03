@@ -68,7 +68,10 @@ describe('Evento Model Tests', () => {
         evento: 'Minimal Event',
         fecha: '2025-12-26',
         mes: '2025-12',
-        dj_id: testDjId
+        dj_id: testDjId,
+        cache_total: 5000,
+        parte_dj: 3000,
+        parte_agencia: 2000
       };
 
       const evento = await Evento.create(eventoData);
@@ -107,12 +110,12 @@ describe('Evento Model Tests', () => {
       assert.strictEqual(parseFloat(updated.parte_dj), 7000);
     });
 
-    it('should update evento lugar', async () => {
+    it('should update evento ciudad_lugar', async () => {
       const updated = await Evento.update(testEventoId, {
-        lugar: 'New Venue'
+        ciudad_lugar: 'New Venue'
       });
 
-      assert.strictEqual(updated.lugar, 'New Venue');
+      assert.strictEqual(updated.ciudad_lugar, 'New Venue');
     });
   });
 
@@ -171,7 +174,10 @@ describe('Evento Model Tests', () => {
         evento: 'To Delete',
         fecha: '2025-12-27',
         mes: '2025-12',
-        dj_id: testDjId
+        dj_id: testDjId,
+        cache_total: 5000,
+        parte_dj: 3000,
+        parte_agencia: 2000
       });
 
       const deleted = await Evento.delete(tempEvento.id);
