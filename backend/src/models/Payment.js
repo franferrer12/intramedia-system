@@ -7,7 +7,10 @@ import pool from '../config/database.js';
 import logger from '../utils/logger.js';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Initialize Stripe only if API key is provided
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY)
+  : null;
 
 class Payment {
   /**
