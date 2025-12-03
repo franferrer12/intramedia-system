@@ -89,7 +89,7 @@ class AuthService {
     try {
       // Get user
       const userResult = await pool.query(
-        'SELECT id, email, password_hash, user_type, is_active FROM users WHERE email = $1',
+        'SELECT id, email, password_hash, user_type, role FROM users WHERE email = $1',
         [email]
       );
 
@@ -101,14 +101,6 @@ class AuthService {
       }
 
       const user = userResult.rows[0];
-
-      // Check if user is active
-      if (!user.is_active) {
-        return {
-          success: false,
-          error: 'Usuario desactivado'
-        };
-      }
 
       // Verify password
       const validPassword = await bcrypt.compare(password, user.password_hash);
