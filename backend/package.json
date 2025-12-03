@@ -48,7 +48,7 @@
     "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.2",
     "multer": "^2.0.2",
-    "nodemailer": "^6.9.7",
+    "nodemailer": "^7.0.11",
     "passport": "^0.7.0",
     "passport-instagram": "^1.0.0",
     "pdfkit": "^0.17.2",
