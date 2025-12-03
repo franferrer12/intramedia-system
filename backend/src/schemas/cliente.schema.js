@@ -17,8 +17,15 @@ const clienteBaseSchema = z.object({
     .regex(/^\+?[0-9\s-()]{7,20}$/, 'Teléfono inválido')
     .optional()
     .nullable(),
+  tipo: z.enum(['corporativo', 'particular', 'empresa', 'agencia'], {
+    errorMap: () => ({ message: 'Tipo de cliente inválido' })
+  }).optional().nullable(),
   empresa: z.string()
     .max(100, 'Empresa no puede exceder 100 caracteres')
+    .optional()
+    .nullable(),
+  ciudad: z.string()
+    .max(100, 'Ciudad no puede exceder 100 caracteres')
     .optional()
     .nullable(),
   direccion: z.string()
@@ -29,14 +36,21 @@ const clienteBaseSchema = z.object({
     .regex(/^[A-Z&Ñ]{3,4}[0-9]{6}[A-V1-9][A-Z1-9][0-9A]$/, 'RFC inválido')
     .optional()
     .nullable(),
-  notas: z.string()
-    .max(1000, 'Las notas no pueden exceder 1000 caracteres')
+  valoracion: z.number()
+    .int('Valoración debe ser un número entero')
+    .min(1, 'Valoración mínima es 1')
+    .max(5, 'Valoración máxima es 5')
     .optional()
     .nullable(),
-  tipo_cliente: z.enum(['corporativo', 'particular', 'agencia'], {
-    errorMap: () => ({ message: 'Tipo de cliente inválido' })
-  }).optional().nullable()
+  activo: z.boolean().optional(),
+  observaciones: z.string()
+    .max(1000, 'Las observaciones no pueden exceder 1000 caracteres')
+    .optional()
+    .nullable()
 });
+
+// Export base schema for direct validation (e.g., in tests)
+export const clienteSchema = clienteBaseSchema;
 
 export const createClienteSchema = z.object({
   body: clienteBaseSchema.required({ nombre: true })
@@ -50,6 +64,7 @@ export const updateClienteSchema = z.object({
 });
 
 export default {
+  clienteSchema,
   createClienteSchema,
   updateClienteSchema
 };
