@@ -103,7 +103,7 @@ describe('Auth API Integration Tests', () => {
           request(app)
             .post('/api/auth/login')
             .send({
-              username: 'admin',
+              email: 'admin@intramedia.com',
               password: 'wrongpassword'
             })
         );
@@ -122,7 +122,7 @@ describe('Auth API Integration Tests', () => {
       const response = await request(app)
         .post('/api/auth/login')
         .send({
-          username: 'admin',
+          email: 'admin@intramedia.com',
           password: 'admin123'
         })
         .expect(200);

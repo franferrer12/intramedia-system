@@ -21,7 +21,7 @@ test.describe('Authentication Flow', () => {
     const loginData = await loginResponse.json();
     expect(loginData.token).toBeTruthy();
     expect(loginData.user).toBeTruthy();
-    expect(loginData.user.username).toBe('admin');
+    expect(loginData.user.email).toBe('admin@intramedia.com');
 
     const token = loginData.token;
 
@@ -34,7 +34,7 @@ test.describe('Authentication Flow', () => {
 
     expect(meResponse.ok()).toBeTruthy();
     const userData = await meResponse.json();
-    expect(userData.username).toBe('admin');
+    expect(userData.email).toBe('admin@intramedia.com');
     expect(userData.id).toBeTruthy();
 
     // Step 3: Logout
