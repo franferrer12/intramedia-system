@@ -249,9 +249,17 @@ class AuthService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
 
+    // Use ON CONFLICT to update existing session if token already exists
+    // This handles the case where JWT generates the same token (same second, same payload)
     await pool.query(
       `INSERT INTO sessions (user_id, token, ip_address, user_agent, expires_at)
-       VALUES ($1, $2, $3, $4, $5)`,
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (token)
+       DO UPDATE SET
+         ip_address = EXCLUDED.ip_address,
+         user_agent = EXCLUDED.user_agent,
+         expires_at = EXCLUDED.expires_at,
+         created_at = CURRENT_TIMESTAMP`,
       [userId, token, ipAddress, userAgent, expiresAt]
     );
   }
